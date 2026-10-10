@@ -1,0 +1,262 @@
+data: {"type":"kind_detecting","timestamp":1791676169733}
+
+data: {"type":"kind_detected","kind":"domain","hint":"likely-domain","timestamp":1791676169777}
+
+data: {"type":"scan_init","layerMaxScores":{"discovery":32,"accessibility":85,"usability":173,"payments":16},"checkRoster":[{"id":"ard-catalog","name":"ARD discovery","layerId":"discovery","maxScore":1},{"id":"ai-catalog-published","name":"AI Catalog discovery","layerId":"discovery","maxScore":1,"bonus":true},{"id":"ard-entries-valid","name":"ARD entry validity","layerId":"discovery","maxScore":2,"bonus":true},{"id":"ard-trust-manifest","name":"ARD trust manifest","layerId":"discovery","maxScore":2,"bonus":true},{"id":"agentic-search-usecase","name":"Category share of voice","layerId":"discovery","maxScore":6},{"id":"agentic-search-specific","name":"Developer resource discoverability","layerId":"discovery","maxScore":3},{"id":"brand-search-accuracy","name":"Brand name discoverability","layerId":"discovery","maxScore":3},{"id":"wikipedia-presence","name":"Wikipedia / Wikidata entity presence","layerId":"discovery","maxScore":4,"bonus":true},{"id":"robots-ai-policy-quality","name":"robots.txt AI crawler policy","layerId":"discovery","maxScore":2},{"id":"mcp-registry-listed","name":"Listed in MCP registries","layerId":"discovery","maxScore":1},{"id":"npm-sdk-package","name":"NPM/PyPI SDK package","layerId":"discovery","maxScore":1},{"id":"agent-rules-repo","name":"Agent platform configs","layerId":"discovery","maxScore":1},{"id":"agent-plugins-repo","name":"Agent Plugins manifest","layerId":"discovery","maxScore":1,"bonus":true},{"id":"registry-branding","name":"Registry branding","layerId":"discovery","maxScore":2},{"id":"chatgpt-app-listed","name":"ChatGPT app listed","layerId":"discovery","maxScore":2,"bonus":true},{"id":"sitemap","name":"Sitemap exists","layerId":"accessibility","maxScore":2},{"id":"content-no-js","name":"Content without JavaScript","layerId":"accessibility","maxScore":3},{"id":"bot-detection","name":"Not blocked by bot detection","layerId":"accessibility","maxScore":2},{"id":"agent-discovery-file","name":"Agent discovery file","layerId":"accessibility","maxScore":2},{"id":"agent-skills-index-v2","name":"Agent Skills index conformance (v0.2.0)","layerId":"accessibility","maxScore":2,"bonus":true},{"id":"a2a-agent-card","name":"A2A / agent-card","layerId":"accessibility","maxScore":2,"bonus":true},{"id":"skills-sh-listed","name":"Listed on skills.sh","layerId":"accessibility","maxScore":1},{"id":"pricing-md","name":"pricing.md exists","layerId":"accessibility","maxScore":2},{"id":"nlweb-schema-feeds","name":"NLWeb Schema Feeds","layerId":"accessibility","maxScore":1},{"id":"mcp-well-known-discovery","name":"MCP well-known discovery","layerId":"accessibility","maxScore":2,"bonus":true},{"id":"agent-mode-view","name":"Agent mode view","layerId":"accessibility","maxScore":2,"bonus":true},{"id":"link-headers-discovery","name":"HTTP Link headers (RFC 8288)","layerId":"accessibility","maxScore":1,"bonus":true},{"id":"markdown-url-fallback","name":"Markdown URL fallback","layerId":"accessibility","maxScore":2,"bonus":true},{"id":"modular-llms-txt","name":"Modular llms.txt per product area","layerId":"accessibility","maxScore":1,"bonus":true},{"id":"sitemap-lastmod","name":"Sitemap freshness (lastmod)","layerId":"accessibility","maxScore":1,"bonus":true},{"id":"robots-agent-user-policy","name":"robots.txt agent-user policy","layerId":"accessibility","maxScore":2},{"id":"llms-txt-exists","name":"llms.txt exists","layerId":"accessibility","maxScore":1},{"id":"llms-txt-formatting","name":"llms.txt formatting","layerId":"accessibility","maxScore":2},{"id":"json-ld","name":"JSON-LD structured data","layerId":"accessibility","maxScore":4},{"id":"pricing-info","name":"Pricing info accessible","layerId":"accessibility","maxScore":3},{"id":"public-api-docs","name":"Public API/docs linked from homepage","layerId":"accessibility","maxScore":3},{"id":"agent-instruction","name":"Agent instruction / when-to-use","layerId":"accessibility","maxScore":3},{"id":"skills-sh-quality","name":"Skills.sh skill quality","layerId":"accessibility","maxScore":2},{"id":"json-ld-entity-linking","name":"JSON-LD entity linking (sameAs)","layerId":"accessibility","maxScore":2},{"id":"metadata-completeness","name":"Metadata completeness","layerId":"accessibility","maxScore":2},{"id":"org-schema-completeness","name":"Organization schema completeness","layerId":"accessibility","maxScore":2},{"id":"schema-type-breadth","name":"Schema type breadth","layerId":"accessibility","maxScore":2},{"id":"trust-anchors","name":"Trust anchor pages","layerId":"accessibility","maxScore":2},{"id":"llms-txt-links-resolve","name":"llms.txt links resolve","layerId":"accessibility","maxScore":2},{"id":"markdown-link-alternate","name":"Markdown alternate link","layerId":"accessibility","maxScore":1,"bonus":true},{"id":"markdown-frontmatter","name":"Markdown frontmatter metadata","layerId":"accessibility","maxScore":1},{"id":"redirect-hygiene","name":"Redirect hygiene","layerId":"accessibility","maxScore":1},{"id":"page-token-budget","name":"Page token budget","layerId":"accessibility","maxScore":1},{"id":"code-fence-validity","name":"Code fence validity","layerId":"accessibility","maxScore":1},{"id":"docs-auth-gate","name":"Content behind auth","layerId":"accessibility","maxScore":2},{"id":"openapi-spec","name":"OpenAPI spec published","layerId":"accessibility","maxScore":7},{"id":"developer-portal","name":"Developer portal","layerId":"accessibility","maxScore":6},{"id":"api-catalog-rfc9727","name":"API catalog (RFC 9727)","layerId":"accessibility","maxScore":2,"bonus":true},{"id":"markdown-negotiation","name":"Markdown agent docs","layerId":"accessibility","maxScore":1},{"id":"markdown-negotiation-vary","name":"Markdown content negotiation (acceptmarkdown.com)","layerId":"accessibility","maxScore":1,"bonus":true},{"id":"agent-ua-markdown","name":"Bot-UA markdown serving","layerId":"accessibility","maxScore":1,"bonus":true},{"id":"agent-crawler-reachability","name":"Agent crawler reachability","layerId":"accessibility","maxScore":2},{"id":"mcp-tool-descriptions","name":"MCP tool descriptions","layerId":"usability","maxScore":3,"bonus":true},{"id":"mcp-param-schemas","name":"MCP parameter schemas","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-server-identity","name":"MCP server identity","layerId":"usability","maxScore":1,"bonus":true},{"id":"mcp-tool-listing","name":"MCP tool listing","layerId":"usability","maxScore":3,"bonus":true},{"id":"mcp-tool-naming","name":"MCP tool naming","layerId":"usability","maxScore":2,"bonus":true},{"id":"public-api","name":"Public API with reachable endpoints","layerId":"usability","maxScore":7},{"id":"oauth-support","name":"OAuth 2.0 support","layerId":"usability","maxScore":5},{"id":"scoped-permissions","name":"Scoped permissions","layerId":"usability","maxScore":5},{"id":"mcp-auth-mechanism","name":"MCP auth mechanism","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-oauth-metadata","name":"MCP OAuth metadata","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-pkce-s256","name":"MCP PKCE S256 support","layerId":"usability","maxScore":2,"bonus":true},{"id":"onboarding-friction","name":"Agent onboarding friction","layerId":"usability","maxScore":2},{"id":"web-bot-auth-directory","name":"Web Bot Auth directory","layerId":"usability","maxScore":2,"bonus":true},{"id":"oauth-protected-resource","name":"OAuth Protected Resource metadata (RFC 9728)","layerId":"usability","maxScore":2,"bonus":true},{"id":"auth-md-exists","name":"auth.md exists","layerId":"usability","maxScore":2,"bonus":true},{"id":"auth-md-structure","name":"auth.md structure","layerId":"usability","maxScore":2,"bonus":true},{"id":"auth-md-walkthrough-simulation","name":"auth.md walkthrough simulation","layerId":"usability","maxScore":2,"bonus":true},{"id":"agent-auth-discovery-metadata","name":"Agent auth discovery metadata","layerId":"usability","maxScore":3,"bonus":true},{"id":"agent-auth-www-authenticate","name":"Agent auth WWW-Authenticate hint","layerId":"usability","maxScore":1,"bonus":true},{"id":"agent-auth-endpoints-reachable","name":"agent_auth endpoints reachable","layerId":"usability","maxScore":2,"bonus":true},{"id":"pap-discovery","name":"Personal Agent Protocol discovery file","layerId":"usability","maxScore":2,"bonus":true},{"id":"pap-issuer-binding","name":"PAP issuer binding","layerId":"usability","maxScore":2,"bonus":true},{"id":"pap-auth-config","name":"PAP sign-in and extension config","layerId":"usability","maxScore":2,"bonus":true},{"id":"pap-interfaces","name":"PAP API and agent entries","layerId":"usability","maxScore":2,"bonus":true},{"id":"pap-endpoint-enforcement","name":"PAP endpoints reject unauthenticated agents","layerId":"usability","maxScore":2,"bonus":true},{"id":"pap-cross-protocol","name":"PAP agrees with ARD and auth.md","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-server","name":"MCP server / manifest","layerId":"usability","maxScore":6},{"id":"mcp-error-handling","name":"MCP error handling","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-transport-modern","name":"MCP modern transport","layerId":"usability","maxScore":1,"bonus":true},{"id":"webmcp","name":"WebMCP support","layerId":"usability","maxScore":5},{"id":"rate-limit-headers","name":"Rate limit response headers","layerId":"usability","maxScore":2},{"id":"idempotency-key-support","name":"Idempotency-Key support","layerId":"usability","maxScore":3},{"id":"json-error-responses","name":"JSON error responses","layerId":"usability","maxScore":4},{"id":"api-error-model","name":"REST typed error model","layerId":"usability","maxScore":3},{"id":"api-versioning-policy","name":"REST versioning / deprecation policy","layerId":"usability","maxScore":3},{"id":"pagination-shape","name":"REST pagination pattern","layerId":"usability","maxScore":2},{"id":"async-job-pattern","name":"REST async-job pattern","layerId":"usability","maxScore":2},{"id":"cli-tool","name":"CLI tool available","layerId":"usability","maxScore":3},{"id":"rest-sdk-packages","name":"Multi-language SDK packages","layerId":"usability","maxScore":3},{"id":"nlweb-ask","name":"NLWeb /ask endpoint","layerId":"usability","maxScore":1},{"id":"nlweb-streaming","name":"NLWeb streaming support","layerId":"usability","maxScore":1},{"id":"response-schema-coverage","name":"REST response schema coverage","layerId":"usability","maxScore":2},{"id":"mcp-tool-annotations","name":"MCP tool annotations","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-server-card","name":"MCP server-card.json","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-multi-surface-coverage","name":"Product + docs MCP coverage","layerId":"usability","maxScore":2,"bonus":true},{"id":"sandbox-environment","name":"Sandbox / test environment","layerId":"usability","maxScore":2,"bonus":true},{"id":"batch-endpoints","name":"REST batch / bulk endpoint","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-resource-listing","name":"MCP resources exposed","layerId":"usability","maxScore":3},{"id":"graphql-error-type-definition","name":"GraphQL typed error model","layerId":"usability","maxScore":3},{"id":"graphql-versioning-policy","name":"GraphQL versioning / deprecation policy","layerId":"usability","maxScore":2},{"id":"graphql-pagination-pattern","name":"GraphQL pagination pattern","layerId":"usability","maxScore":2},{"id":"graphql-async-job-pattern","name":"GraphQL async-job pattern","layerId":"usability","maxScore":2},{"id":"graphql-schema-completeness","name":"GraphQL schema description coverage","layerId":"usability","maxScore":3,"bonus":true},{"id":"graphql-batch-mutations","name":"GraphQL batch mutations","layerId":"usability","maxScore":2,"bonus":true},{"id":"agent-friendly-404","name":"Agent-friendly 404s","layerId":"usability","maxScore":2},{"id":"ax-document-structure","name":"Accessible document structure","layerId":"usability","maxScore":3,"bonus":true},{"id":"ax-native-controls","name":"Native interactive controls","layerId":"usability","maxScore":3,"bonus":true},{"id":"ax-accessible-names","name":"Accessible names on controls","layerId":"usability","maxScore":2,"bonus":true},{"id":"ax-form-labeling","name":"Form control labeling","layerId":"usability","maxScore":2,"bonus":true},{"id":"ax-tree-injection-safe","name":"Accessibility-tree injection safety (bonus)","layerId":"usability","maxScore":2,"bonus":true},{"id":"mcp-app-registry","name":"MCP Apps support","layerId":"usability","maxScore":4},{"id":"a2ui-support","name":"A2UI / generative UI support","layerId":"usability","maxScore":2},{"id":"mcp-apps-ui-quality","name":"MCP Apps UI quality","layerId":"usability","maxScore":4,"bonus":true},{"id":"mcp-view-domain","name":"MCP App view reachable","layerId":"usability","maxScore":4},{"id":"mcp-view-csp","name":"MCP App view CSP","layerId":"usability","maxScore":4},{"id":"api-schema-analysis","name":"API schema complexity analysis","layerId":"usability","maxScore":2},{"id":"function-calling-compat","name":"Function calling compatibility","layerId":"usability","maxScore":2},{"id":"mcp-resource-quality","name":"MCP resource quality","layerId":"usability","maxScore":3},{"id":"mpp-support","name":"MPP payment protocol","layerId":"payments","maxScore":2,"bonus":true},{"id":"x402-support","name":"x402 payment protocol","layerId":"payments","maxScore":2,"bonus":true},{"id":"ucp-support","name":"UCP - Universal Commerce Protocol","layerId":"payments","maxScore":3,"bonus":true},{"id":"acp-support","name":"ACP - Agentic Commerce Protocol","layerId":"payments","maxScore":3,"bonus":true},{"id":"acp-delegate-payment","name":"ACP delegate payment","layerId":"payments","maxScore":3,"bonus":true},{"id":"ap2-support","name":"AP2 - Agent Payments Protocol","layerId":"payments","maxScore":3,"bonus":true}],"staticOnly":true,"timestamp":1791676169777}
+
+data: {"type":"discovery_phase","step":"Fetching example.org","label":"Fetching example.org","stepIndex":1,"totalSteps":8,"timestamp":1791676169778}
+
+data: {"type":"discovery_phase","step":"Loaded example.org homepage","label":"Loaded example.org homepage","stepIndex":2,"totalSteps":8,"timestamp":1791676170389}
+
+data: {"type":"discovery_phase","step":"Reading your site with AI","label":"Reading your site with AI","stepIndex":3,"totalSteps":8,"timestamp":1791676170389}
+
+data: {"type":"discovery_phase","step":"Looking for an MCP server","label":"Looking for an MCP server","stepIndex":4,"totalSteps":8,"timestamp":1791676170409}
+
+data: {"type":"discovery_phase","step":"Checked agent search visibility","label":"Checked agent search visibility","stepIndex":5,"totalSteps":8,"timestamp":1791676170413}
+
+data: {"type":"discovery_phase","step":"Checked brand searches","label":"Checked brand searches","stepIndex":6,"totalSteps":8,"timestamp":1791676170414}
+
+data: {"type":"discovery_phase","step":"No MCP server found","label":"No MCP server found","stepIndex":7,"totalSteps":8,"timestamp":1791676170544}
+
+data: {"type":"discovery_phase","step":"Assembling results","label":"Assembling results","stepIndex":8,"totalSteps":8,"timestamp":1791676171491}
+
+data: {"type":"scan_init","layerMaxScores":{"discovery":32,"accessibility":85,"usability":173,"payments":16},"totalChecks":105,"staticOnly":true,"timestamp":1791676171492}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"ard-catalog","checkName":"ARD discovery","mcpKind":null,"mcpUrl":null,"timestamp":1791676171493}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"ai-catalog-published","checkName":"AI Catalog discovery","mcpKind":null,"mcpUrl":null,"timestamp":1791676171494}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"ard-entries-valid","checkName":"ARD entry validity","mcpKind":null,"mcpUrl":null,"timestamp":1791676171494}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"ard-trust-manifest","checkName":"ARD trust manifest","mcpKind":null,"mcpUrl":null,"timestamp":1791676171494}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"agentic-search-usecase","checkName":"Category share of voice","mcpKind":null,"mcpUrl":null,"timestamp":1791676171494}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"agentic-search-specific","checkName":"Developer resource discoverability","mcpKind":null,"mcpUrl":null,"timestamp":1791676171494}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"brand-search-accuracy","checkName":"Brand name discoverability","mcpKind":null,"mcpUrl":null,"timestamp":1791676171495}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"wikipedia-presence","checkName":"Wikipedia / Wikidata entity presence","mcpKind":null,"mcpUrl":null,"timestamp":1791676171495}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"robots-ai-policy-quality","checkName":"robots.txt AI crawler policy","mcpKind":null,"mcpUrl":null,"timestamp":1791676171501}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"mcp-registry-listed","checkName":"Listed in MCP registries","mcpKind":null,"mcpUrl":null,"timestamp":1791676171502}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"npm-sdk-package","checkName":"NPM/PyPI SDK package","mcpKind":null,"mcpUrl":null,"timestamp":1791676171502}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"agent-rules-repo","checkName":"Agent platform configs","mcpKind":null,"mcpUrl":null,"timestamp":1791676171503}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"agent-plugins-repo","checkName":"Agent Plugins manifest","mcpKind":null,"mcpUrl":null,"timestamp":1791676171508}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"registry-branding","checkName":"Registry branding","mcpKind":null,"mcpUrl":null,"timestamp":1791676171510}
+
+data: {"type":"check_start","layerId":"discovery","layerName":"Discovery","checkId":"chatgpt-app-listed","checkName":"ChatGPT app listed","mcpKind":null,"mcpUrl":null,"timestamp":1791676171511}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"sitemap","checkName":"Sitemap exists","mcpKind":null,"mcpUrl":null,"timestamp":1791676171512}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"content-no-js","checkName":"Content without JavaScript","mcpKind":null,"mcpUrl":null,"timestamp":1791676171512}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"bot-detection","checkName":"Not blocked by bot detection","mcpKind":null,"mcpUrl":null,"timestamp":1791676171514}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"agent-discovery-file","checkName":"Agent discovery file","mcpKind":null,"mcpUrl":null,"timestamp":1791676171514}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"agent-skills-index-v2","checkName":"Agent Skills index conformance (v0.2.0)","mcpKind":null,"mcpUrl":null,"timestamp":1791676171515}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"a2a-agent-card","checkName":"A2A / agent-card","mcpKind":null,"mcpUrl":null,"timestamp":1791676171516}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"skills-sh-listed","checkName":"Listed on skills.sh","mcpKind":null,"mcpUrl":null,"timestamp":1791676171517}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"pricing-md","checkName":"pricing.md exists","mcpKind":null,"mcpUrl":null,"timestamp":1791676171517}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"nlweb-schema-feeds","checkName":"NLWeb Schema Feeds","mcpKind":null,"mcpUrl":null,"timestamp":1791676171518}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"mcp-well-known-discovery","checkName":"MCP well-known discovery","mcpKind":null,"mcpUrl":null,"timestamp":1791676171518}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"agent-mode-view","checkName":"Agent mode view","mcpKind":null,"mcpUrl":null,"timestamp":1791676171518}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"link-headers-discovery","checkName":"HTTP Link headers (RFC 8288)","mcpKind":null,"mcpUrl":null,"timestamp":1791676171519}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"markdown-url-fallback","checkName":"Markdown URL fallback","mcpKind":null,"mcpUrl":null,"timestamp":1791676171519}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"modular-llms-txt","checkName":"Modular llms.txt per product area","mcpKind":null,"mcpUrl":null,"timestamp":1791676171520}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"sitemap-lastmod","checkName":"Sitemap freshness (lastmod)","mcpKind":null,"mcpUrl":null,"timestamp":1791676171525}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"robots-agent-user-policy","checkName":"robots.txt agent-user policy","mcpKind":null,"mcpUrl":null,"timestamp":1791676171525}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"llms-txt-exists","checkName":"llms.txt exists","mcpKind":null,"mcpUrl":null,"timestamp":1791676171525}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"llms-txt-formatting","checkName":"llms.txt formatting","mcpKind":null,"mcpUrl":null,"timestamp":1791676171526}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"json-ld","checkName":"JSON-LD structured data","mcpKind":null,"mcpUrl":null,"timestamp":1791676171526}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"pricing-info","checkName":"Pricing info accessible","mcpKind":null,"mcpUrl":null,"timestamp":1791676171527}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"public-api-docs","checkName":"Public API/docs linked from homepage","mcpKind":null,"mcpUrl":null,"timestamp":1791676171528}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"agent-instruction","checkName":"Agent instruction / when-to-use","mcpKind":null,"mcpUrl":null,"timestamp":1791676171529}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"skills-sh-quality","checkName":"Skills.sh skill quality","mcpKind":null,"mcpUrl":null,"timestamp":1791676171530}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"json-ld-entity-linking","checkName":"JSON-LD entity linking (sameAs)","mcpKind":null,"mcpUrl":null,"timestamp":1791676171530}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"metadata-completeness","checkName":"Metadata completeness","mcpKind":null,"mcpUrl":null,"timestamp":1791676171530}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"org-schema-completeness","checkName":"Organization schema completeness","mcpKind":null,"mcpUrl":null,"timestamp":1791676171531}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"schema-type-breadth","checkName":"Schema type breadth","mcpKind":null,"mcpUrl":null,"timestamp":1791676171532}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"trust-anchors","checkName":"Trust anchor pages","mcpKind":null,"mcpUrl":null,"timestamp":1791676171532}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"llms-txt-links-resolve","checkName":"llms.txt links resolve","mcpKind":null,"mcpUrl":null,"timestamp":1791676171534}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"markdown-link-alternate","checkName":"Markdown alternate link","mcpKind":null,"mcpUrl":null,"timestamp":1791676171534}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"markdown-frontmatter","checkName":"Markdown frontmatter metadata","mcpKind":null,"mcpUrl":null,"timestamp":1791676171535}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"redirect-hygiene","checkName":"Redirect hygiene","mcpKind":null,"mcpUrl":null,"timestamp":1791676171536}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"page-token-budget","checkName":"Page token budget","mcpKind":null,"mcpUrl":null,"timestamp":1791676171536}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"code-fence-validity","checkName":"Code fence validity","mcpKind":null,"mcpUrl":null,"timestamp":1791676171536}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"docs-auth-gate","checkName":"Content behind auth","mcpKind":null,"mcpUrl":null,"timestamp":1791676171536}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"openapi-spec","checkName":"OpenAPI spec published","mcpKind":null,"mcpUrl":null,"timestamp":1791676171536}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"developer-portal","checkName":"Developer portal","mcpKind":null,"mcpUrl":null,"timestamp":1791676171541}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"api-catalog-rfc9727","checkName":"API catalog (RFC 9727)","mcpKind":null,"mcpUrl":null,"timestamp":1791676171542}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"markdown-negotiation","checkName":"Markdown agent docs","mcpKind":null,"mcpUrl":null,"timestamp":1791676171542}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"markdown-negotiation-vary","checkName":"Markdown content negotiation (acceptmarkdown.com)","mcpKind":null,"mcpUrl":null,"timestamp":1791676171543}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"agent-ua-markdown","checkName":"Bot-UA markdown serving","mcpKind":null,"mcpUrl":null,"timestamp":1791676171545}
+
+data: {"type":"check_start","layerId":"accessibility","layerName":"Access","checkId":"agent-crawler-reachability","checkName":"Agent crawler reachability","mcpKind":null,"mcpUrl":null,"timestamp":1791676171550}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-tool-descriptions","checkName":"MCP tool descriptions","mcpKind":null,"mcpUrl":null,"timestamp":1791676171550}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-param-schemas","checkName":"MCP parameter schemas","mcpKind":null,"mcpUrl":null,"timestamp":1791676171550}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-server-identity","checkName":"MCP server identity","mcpKind":null,"mcpUrl":null,"timestamp":1791676171550}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-tool-listing","checkName":"MCP tool listing","mcpKind":null,"mcpUrl":null,"timestamp":1791676171551}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-tool-naming","checkName":"MCP tool naming","mcpKind":null,"mcpUrl":null,"timestamp":1791676171551}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"public-api","checkName":"Public API with reachable endpoints","mcpKind":null,"mcpUrl":null,"timestamp":1791676171551}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"oauth-support","checkName":"OAuth 2.0 support","mcpKind":null,"mcpUrl":null,"timestamp":1791676171551}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"scoped-permissions","checkName":"Scoped permissions","mcpKind":null,"mcpUrl":null,"timestamp":1791676171552}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-auth-mechanism","checkName":"MCP auth mechanism","mcpKind":null,"mcpUrl":null,"timestamp":1791676171553}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-oauth-metadata","checkName":"MCP OAuth metadata","mcpKind":null,"mcpUrl":null,"timestamp":1791676171554}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-pkce-s256","checkName":"MCP PKCE S256 support","mcpKind":null,"mcpUrl":null,"timestamp":1791676171554}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"onboarding-friction","checkName":"Agent onboarding friction","mcpKind":null,"mcpUrl":null,"timestamp":1791676171554}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"web-bot-auth-directory","checkName":"Web Bot Auth directory","mcpKind":null,"mcpUrl":null,"timestamp":1791676171555}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"oauth-protected-resource","checkName":"OAuth Protected Resource metadata (RFC 9728)","mcpKind":null,"mcpUrl":null,"timestamp":1791676171556}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"auth-md-exists","checkName":"auth.md exists","mcpKind":null,"mcpUrl":null,"timestamp":1791676171556}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"auth-md-structure","checkName":"auth.md structure","mcpKind":null,"mcpUrl":null,"timestamp":1791676171557}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"auth-md-walkthrough-simulation","checkName":"auth.md walkthrough simulation","mcpKind":null,"mcpUrl":null,"timestamp":1791676171557}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"agent-auth-discovery-metadata","checkName":"Agent auth discovery metadata","mcpKind":null,"mcpUrl":null,"timestamp":1791676171557}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"agent-auth-www-authenticate","checkName":"Agent auth WWW-Authenticate hint","mcpKind":null,"mcpUrl":null,"timestamp":1791676171558}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"agent-auth-endpoints-reachable","checkName":"agent_auth endpoints reachable","mcpKind":null,"mcpUrl":null,"timestamp":1791676171559}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"pap-discovery","checkName":"Personal Agent Protocol discovery file","mcpKind":null,"mcpUrl":null,"timestamp":1791676171559}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"pap-issuer-binding","checkName":"PAP issuer binding","mcpKind":null,"mcpUrl":null,"timestamp":1791676171560}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"pap-auth-config","checkName":"PAP sign-in and extension config","mcpKind":null,"mcpUrl":null,"timestamp":1791676171560}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"pap-interfaces","checkName":"PAP API and agent entries","mcpKind":null,"mcpUrl":null,"timestamp":1791676171560}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"pap-endpoint-enforcement","checkName":"PAP endpoints reject unauthenticated agents","mcpKind":null,"mcpUrl":null,"timestamp":1791676171560}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"pap-cross-protocol","checkName":"PAP agrees with ARD and auth.md","mcpKind":null,"mcpUrl":null,"timestamp":1791676171560}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-server","checkName":"MCP server / manifest","mcpKind":null,"mcpUrl":null,"timestamp":1791676171560}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-error-handling","checkName":"MCP error handling","mcpKind":null,"mcpUrl":null,"timestamp":1791676171563}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-transport-modern","checkName":"MCP modern transport","mcpKind":null,"mcpUrl":null,"timestamp":1791676171564}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"webmcp","checkName":"WebMCP support","mcpKind":null,"mcpUrl":null,"timestamp":1791676171564}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"rate-limit-headers","checkName":"Rate limit response headers","mcpKind":null,"mcpUrl":null,"timestamp":1791676171565}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"idempotency-key-support","checkName":"Idempotency-Key support","mcpKind":null,"mcpUrl":null,"timestamp":1791676171566}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"json-error-responses","checkName":"JSON error responses","mcpKind":null,"mcpUrl":null,"timestamp":1791676171566}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"api-error-model","checkName":"REST typed error model","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"api-error-model","checkName":"REST typed error model","status":"na","score":0,"maxScore":3,"details":"No REST API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"api-versioning-policy","checkName":"REST versioning / deprecation policy","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"api-versioning-policy","checkName":"REST versioning / deprecation policy","status":"na","score":0,"maxScore":3,"details":"No REST API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"pagination-shape","checkName":"REST pagination pattern","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"pagination-shape","checkName":"REST pagination pattern","status":"na","score":0,"maxScore":2,"details":"No REST API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"async-job-pattern","checkName":"REST async-job pattern","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"async-job-pattern","checkName":"REST async-job pattern","status":"na","score":0,"maxScore":2,"details":"No REST API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"cli-tool","checkName":"CLI tool available","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"rest-sdk-packages","checkName":"Multi-language SDK packages","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"nlweb-ask","checkName":"NLWeb /ask endpoint","mcpKind":null,"mcpUrl":null,"timestamp":1791676171567}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"nlweb-streaming","checkName":"NLWeb streaming support","mcpKind":null,"mcpUrl":null,"timestamp":1791676171568}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"response-schema-coverage","checkName":"REST response schema coverage","mcpKind":null,"mcpUrl":null,"timestamp":1791676171568}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"response-schema-coverage","checkName":"REST response schema coverage","status":"na","score":0,"maxScore":2,"details":"No REST API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171568}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-tool-annotations","checkName":"MCP tool annotations","mcpKind":null,"mcpUrl":null,"timestamp":1791676171568}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-server-card","checkName":"MCP server-card.json","mcpKind":null,"mcpUrl":null,"timestamp":1791676171568}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-multi-surface-coverage","checkName":"Product + docs MCP coverage","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"sandbox-environment","checkName":"Sandbox / test environment","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"batch-endpoints","checkName":"REST batch / bulk endpoint","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"batch-endpoints","checkName":"REST batch / bulk endpoint","status":"na","score":0,"maxScore":2,"details":"No REST API surface detected on this domain","bonus":true,"mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"mcp-resource-listing","checkName":"MCP resources exposed","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"graphql-error-type-definition","checkName":"GraphQL typed error model","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"graphql-error-type-definition","checkName":"GraphQL typed error model","status":"na","score":0,"maxScore":3,"details":"No GraphQL API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"graphql-versioning-policy","checkName":"GraphQL versioning / deprecation policy","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"graphql-versioning-policy","checkName":"GraphQL versioning / deprecation policy","status":"na","score":0,"maxScore":2,"details":"No GraphQL API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"graphql-pagination-pattern","checkName":"GraphQL pagination pattern","mcpKind":null,"mcpUrl":null,"timestamp":1791676171569}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"graphql-pagination-pattern","checkName":"GraphQL pagination pattern","status":"na","score":0,"maxScore":2,"details":"No GraphQL API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171570}
+
+data: {"type":"check_start","layerId":"usability","layerName":"Usability","checkId":"graphql-async-job-pattern","checkName":"GraphQL async-job pattern","mcpKind":null,"mcpUrl":null,"timestamp":1791676171570}
+
+data: {"type":"check_complete","layerId":"usability","layerName":"Usability","checkId":"graphql-async-job-pattern","checkName":"GraphQL async-job pattern","status":"na","score":0,"maxScore":2,"details":"No GraphQL API surface detected on this domain","mcpKind":null,"mcpUrl":null,"timestamp":1791676171570}
+
