@@ -8,6 +8,7 @@ import Level3 from "@/content/setup/level-3.mdx";
 import Level4 from "@/content/setup/level-4.mdx";
 import { content } from "@/lib/content";
 import { setupContent } from "@/lib/setup";
+import "./setup.css";
 
 const page = content.pages.setup;
 

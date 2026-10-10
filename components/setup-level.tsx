@@ -1,10 +1,13 @@
 import type { MDXComponents, MDXContent } from "mdx/types";
+import type { ReactNode } from "react";
 import { groupedRows, setupContent, type SetupLevel } from "@/lib/setup";
 
 // Code blocks scroll sideways inside themselves on a phone, so they must be
 // reachable by keyboard to scroll.
 const mdxComponents: MDXComponents = {
   pre: (props) => <pre tabIndex={0} {...props} />,
+  // Says what a code block shows, and whether it is a whole document or an excerpt.
+  CodeLabel: ({ children }: { children?: ReactNode }) => <p className="code-label">{children}</p>,
 };
 
 function checksSummary(level: SetupLevel): string {

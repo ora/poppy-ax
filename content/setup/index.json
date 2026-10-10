@@ -10,7 +10,7 @@
       "none": "{count}, none checked yet"
     },
     "checksHeading": "Checks this level turns green",
-    "checksIntro": "These are the checker's rows for this level, by their ids in the check catalog. Each row passes, or does not apply, once this level is built.",
+    "checksIntro": "These are the checker's rows for this level, by their ids in the check catalog. Building what this level describes, and following the guides it links, is what makes them pass. A row that checks something you do not offer does not apply.",
     "groups": {
       "today": "Checked today",
       "soon": "Coming soon to the checker",
@@ -68,12 +68,11 @@
       "id": "level-2",
       "number": 2,
       "title": "Let agents in, signed out",
-      "summary": "Assistants prove who they are and get short-lived tokens that work only together with a key the assistant holds.",
+      "summary": "Assistants prove who they are and get session tokens that expire. Outside MCP, each token works only together with a key the assistant holds.",
       "size": "Medium. Changes to your token endpoint, and a proof check in front of every API. Days to weeks, depending on whether your OAuth server can bind tokens to keys.",
       "rows": [
         "T1-01",
         "T1-02",
-        "T1-03",
         "T1-05",
         "ADV-REDIRECT",
         "T2-M1",
@@ -130,6 +129,7 @@
       "summary": "Let an assistant's browser join its session, let assistants talk with your own agent, and ask for confirmation before you act.",
       "size": "Varies. Each surface is its own project: days for the browser join, weeks for conversations or operations.",
       "rows": [
+        "T1-03",
         "T1-07",
         "T1-09",
         "T2-19",

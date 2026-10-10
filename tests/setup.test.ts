@@ -74,17 +74,31 @@ describe("content/setup/index.json", () => {
     for (const id of level1.rows) expect(catalogRow(id)?.level, id).toBe("0");
   });
 
-  it("puts every browser, conversation and operations row in level 4", () => {
+  it("puts every browser, conversation and operations row in level 4, and nothing else", () => {
     const level4 = new Set(setupContent.levels[3]!.rows);
-    const surfaceAnchors = new Set(SPEC_ANCHORS["/docs/spec"]!.slice(SPEC_ANCHORS["/docs/spec"]!.indexOf("web-browsing")));
-    surfaceAnchors.delete("apis");
-    surfaceAnchors.delete("conversations");
-    surfaceAnchors.delete("references");
+    // A row belongs to an optional surface when its spec section is browsing
+    // (section 5), a conversation section (7.x) or the operations extension, or
+    // when it sends its request to one of those surfaces' endpoints.
+    const surfaceAnchors = new Set([
+      "web-browsing", "conversation-protocols", "conversation-requests", "sending-messages", "message-fields",
+      "reading-events", "streaming", "status", "human-or-ai", "handoff", "direct-conversations",
+      "conversation-sign-in", "closing", "conversation-errors",
+    ]);
+    const surfaceTargets = /conversation endpoint|browser_session_endpoint|operations endpoint/;
+    const onSurface = (row: (typeof catalog.rows)[number]) => {
+      const url = new URL(row.spec_url);
+      return (
+        url.pathname === "/docs/extensions/operations" ||
+        surfaceAnchors.has(url.hash.slice(1)) ||
+        surfaceTargets.test(row.request?.target ?? "")
+      );
+    };
+    // Guides rows have no section anchor; these are about a surface by their title.
+    const surfaceByTitle: Record<string, string> = { "T2-25": "Cookie scope (browser join cookie)" };
     for (const row of catalog.rows) {
       if (row.level === "0") continue;
-      const url = new URL(row.spec_url);
-      const onSurface = url.pathname === "/docs/extensions/operations" || surfaceAnchors.has(url.hash.slice(1));
-      if (onSurface) expect(level4.has(row.id), row.id).toBe(true);
+      const expected = onSurface(row) || row.id in surfaceByTitle;
+      expect(level4.has(row.id), row.id).toBe(expected);
     }
   });
 

@@ -6,6 +6,8 @@ Assistants can browse your website in the same session they use for your APIs, s
 
 The assistant's browser sends a signed browser assertion to that endpoint as a form POST, never in the URL. It is a JWT signed with a key from the assistant's `jwks_uri`, with `typ` set to `poppy-browser+jwt` in its header ([spec 5](https://personalagentprotocol.org/docs/spec#web-browsing)):
 
+<CodeLabel>Browser assertion, the JWT's claims</CodeLabel>
+
 ```json
 {
   "iss": "https://agent.example/agent.json",
@@ -19,13 +21,15 @@ The assistant's browser sends a signed browser assertion to that endpoint as a f
 }
 ```
 
-Check that the signature verifies and `typ` is right, that `aud` is your endpoint, that it has not expired and `exp` is no more than 60 seconds after `iat`, that you have not seen its `jti`, that the session is active and belongs to the same `client_id` and person, and that `return_to` is on your own domain. If all pass, set a cookie for the session and answer `303 See Other` to `return_to`. If not, set no cookie and answer 400 ([spec 5](https://personalagentprotocol.org/docs/spec#web-browsing)).
+Check that the signature verifies and `typ` is right, that `aud` is your endpoint, that it has not expired and `exp` is no more than 60 seconds after `iat`, that you have not seen its `jti`, that the session is active and belongs to the same `client_id` and person, and that `return_to` is on your own domain. A session assertion must not be accepted here. If all checks pass, set a cookie for the session and answer `303 See Other` to `return_to`. If not, set no cookie and answer 400 ([spec 5](https://personalagentprotocol.org/docs/spec#web-browsing)).
 
-The cookie is your own. It must follow the session as it signs in or out, must not outlive the session, and must be `Secure` and `HttpOnly` with `SameSite=Lax` or `None`, not `Strict` ([spec 5](https://personalagentprotocol.org/docs/spec#web-browsing)).
+The cookie is your own. It must follow the session as it signs in or out, must not outlive the session, and must be `Secure` and `HttpOnly` with `SameSite=Lax` or `None`, not `Strict` ([spec 5](https://personalagentprotocol.org/docs/spec#web-browsing)). The guides suggest limiting it to the hosts assistants need, such as your main site, rather than your whole domain ([guides: browser sessions](https://personalagentprotocol.org/docs/guides#company-browsing)).
 
 ### Let assistants talk with your own agent
 
 If you run your own AI agent, list it in `poppy.json` under `agent.protocols`. The protocol defined so far has the type `poppy` ([spec 3.1](https://personalagentprotocol.org/docs/spec#fields), [spec 7.1](https://personalagentprotocol.org/docs/spec#conversation-protocols)):
+
+<CodeLabel>Excerpt from poppy.json</CodeLabel>
 
 ```json
 "agent": {
@@ -38,11 +42,11 @@ If you run your own AI agent, list it in `poppy.json` under `agent.protocols`. T
 }
 ```
 
-Conversations are JSON over HTTPS, and every request carries a session token with a DPoP proof. A conversation belongs to the assistant and person that started it, or to the account once it uses one, and you must refuse anyone else ([spec 7.2](https://personalagentprotocol.org/docs/spec#conversation-requests)). The endpoint takes five requests:
+Conversations are JSON over HTTPS, and every request carries a session token with a DPoP proof, as in level 2. A conversation belongs to the assistant and person that started it, or to the account once it uses one, and you must refuse anyone else ([spec 7.2](https://personalagentprotocol.org/docs/spec#conversation-requests)). The endpoint takes five requests:
 
 - `POST` to the endpoint starts a conversation with its first message ([spec 7.3](https://personalagentprotocol.org/docs/spec#sending-messages)).
 - `POST` to `/messages` under a conversation sends another message. The assistant chooses each message `id`. A retry with the same `id` and content gets the original answer, and the same `id` with different content gets `message_id_conflict` ([spec 7.3](https://personalagentprotocol.org/docs/spec#sending-messages)).
-- `GET` to `/events` reads messages and changes in order, from a `cursor`, waiting up to `wait` seconds. Every read includes `cursor`, `has_more`, `status` and `responder` ([spec 7.5](https://personalagentprotocol.org/docs/spec#reading-events)). Streaming the events is optional ([spec 7.6](https://personalagentprotocol.org/docs/spec#streaming)).
+- `GET` to `/events` reads messages and changes in order. The assistant passes a `cursor`, the id of the last event it handled, and can wait up to `wait` seconds for something new. Every read includes `cursor`, `has_more`, `status` and `responder` ([spec 7.5](https://personalagentprotocol.org/docs/spec#reading-events)). Streaming the events is optional ([spec 7.6](https://personalagentprotocol.org/docs/spec#streaming)).
 - `POST` to `/handoff` asks for a person at your company ([spec 7.9](https://personalagentprotocol.org/docs/spec#handoff)).
 - `POST` to `/close` closes the conversation ([spec 7.12](https://personalagentprotocol.org/docs/spec#closing)).
 
@@ -53,6 +57,8 @@ Each message says who wrote it: `sender` is `agent` for an AI and `human` for a 
 The operations extension lets you ask the assistant to confirm an action before you perform it, such as an exchange or a changed booking. The person approves one exact version of the terms, the action has one record across channels, and it happens at most once ([operations 1](https://personalagentprotocol.org/docs/extensions/operations#intro)).
 
 To offer it, list the extension in `poppy.json` with your operations endpoint, which accepts DPoP session tokens ([operations 2](https://personalagentprotocol.org/docs/extensions/operations#support)):
+
+<CodeLabel>Excerpt from poppy.json</CodeLabel>
 
 ```json
 "extensions": {
@@ -65,6 +71,98 @@ To offer it, list the extension in `poppy.json` with your operations endpoint, w
 
 Return operations only to assistants whose metadata lists the extension. For other assistants, perform the action as usual or refuse with `extension_required` ([operations 2](https://personalagentprotocol.org/docs/extensions/operations#support)).
 
-An API, MCP tool or agent message that would perform the action proposes an operation instead, with an `operation_id`, a `revision` number and a `summary` the person can decide from alone. Nothing happens yet ([operations 3](https://personalagentprotocol.org/docs/extensions/operations#operations), [operations 4](https://personalagentprotocol.org/docs/extensions/operations#proposing)). Once issued, a revision never changes, and only the latest one can be confirmed ([operations 3.1](https://personalagentprotocol.org/docs/extensions/operations#revisions)).
+The flow has four steps ([operations 1](https://personalagentprotocol.org/docs/extensions/operations#intro)):
 
-The assistant gets the person's approval, then confirms that revision at `/confirm` under the operation, with `approved_by` set to `user` or `standing_permission`. Check the token, its scopes and the revision, then perform the action ([operations 5.2](https://personalagentprotocol.org/docs/extensions/operations#confirm)). Perform each operation at most once, however many times it is confirmed ([operations 6](https://personalagentprotocol.org/docs/extensions/operations#tracking)). The assistant can also cancel it ([operations 7](https://personalagentprotocol.org/docs/extensions/operations#cancelling)).
+1. Propose. An API, MCP tool or agent message that would perform the action returns an operation with its terms instead. Nothing has happened yet.
+2. Approve. The assistant shows the person the terms and gets their approval, or applies a standing permission, a rule the person set earlier such as "exchange for a different size if it costs under $20".
+3. Confirm. The assistant confirms that version of the terms at your operations endpoint, and you perform the action.
+4. Track. The assistant reads the operation until it has a final result.
+
+You must not start the action before it is confirmed, and you must perform only what the confirmed revision describes. Everything that affects the action, such as the item, price, recipient or date, must be in the `summary`, and in `terms` if you send them ([operations 3](https://personalagentprotocol.org/docs/extensions/operations#operations)).
+
+<details>
+<summary>Details for implementers: the operation object</summary>
+
+<CodeLabel>Operation, as you propose it</CodeLabel>
+
+```json
+{
+  "operation_id": "exc_5Rt2",
+  "revision": 1,
+  "state": "proposed",
+  "summary": "Exchange the Stormline Jacket (M) on order ord_7Hk2 for the Stormline Insulated Jacket (M), for $70.00 more, charged to the card used for the order.",
+  "terms": {
+    "order_id": "ord_7Hk2",
+    "item_id": "itm_4Qa",
+    "replacement_sku": "stormline-insulated-m",
+    "price_difference": { "amount": "70.00", "currency": "USD" }
+  },
+  "expires_at": "2026-10-08T12:20:00-07:00",
+  "user_approval_required": false,
+  "url": "https://example.com/orders/ord_7Hk2/exchanges/exc_5Rt2",
+  "confirmation": null,
+  "result": null
+}
+```
+
+The fields ([operations 3](https://personalagentprotocol.org/docs/extensions/operations#operations)):
+
+- Always required: `operation_id`, `revision` (starts at 1 and goes up each time the terms change), `state`, `summary` (the terms in plain language, enough for the person to decide from alone), `confirmation` and `result`.
+- `expires_at` is required while the operation is proposed: the last time this revision can be confirmed.
+- `confirmation` is `null` until confirmed, then holds the confirmed `revision`, `approved_by` and `confirmed_at`. `result` is `null` until the operation is final, then holds a `summary` of what happened and optional `data`.
+- Optional: `terms` (the same terms as JSON you define), `url` (a page on your website showing the operation), and `user_approval_required`. When that is `true`, you accept only the person's own approval of this revision, not a standing permission. It defaults to `false`.
+
+The six states: `proposed` (waiting to be confirmed), `in_progress` (confirmed, being performed, or you are finding out whether it took effect), and four final ones, `succeeded`, `failed`, `cancelled` and `expired`. A final operation never changes state again ([operations 3](https://personalagentprotocol.org/docs/extensions/operations#operations)).
+
+Once issued, a revision never changes. New terms get a new revision with the next number, and only the latest revision can be confirmed ([operations 3.1](https://personalagentprotocol.org/docs/extensions/operations#revisions)). An operation belongs to the session it was proposed in. If that session is signed in, it also belongs to the account, so any session of the same assistant and person signed in to that account can use it. One proposed while signed out can be used only in that session. Answer `operation_not_found` to anyone else ([operations 3.2](https://personalagentprotocol.org/docs/extensions/operations#ownership)).
+
+</details>
+
+<details>
+<summary>Details for implementers: where the operation appears</summary>
+
+The operation is the same object in every channel ([operations 4](https://personalagentprotocol.org/docs/extensions/operations#proposing)):
+
+- An OpenAPI endpoint answers HTTP 202 with the operation in `operation` ([operations 4.1](https://personalagentprotocol.org/docs/extensions/operations#binding-openapi)).
+- An MCP tool returns it in `operation` inside the result's `structuredContent`, with the summary as text ([operations 4.2](https://personalagentprotocol.org/docs/extensions/operations#binding-mcp)).
+- A conversation message carries it in `message.operation`, next to `text` and `data`. A message never confirms an operation, whatever it says ([operations 4.3](https://personalagentprotocol.org/docs/extensions/operations#binding-conversations)).
+
+If the same action comes up again in another channel, you should return the existing operation instead of proposing a new one ([operations 4](https://personalagentprotocol.org/docs/extensions/operations#proposing)).
+
+</details>
+
+<details>
+<summary>Details for implementers: confirming, tracking and cancelling</summary>
+
+The assistant posts to `/confirm` under the operation's address at your endpoint, with the `revision` the person approved and `approved_by` set to `user` or `standing_permission` ([operations 5.2](https://personalagentprotocol.org/docs/extensions/operations#confirm)):
+
+<CodeLabel>Request: assistant to your operations endpoint</CodeLabel>
+
+```http
+POST https://api.example.com/poppy/operations/exc_5Rt2/confirm
+Authorization: DPoP eyJhbGciOi…Qp4w
+DPoP: eyJ0eXAiOiJkcG9wK2p3dCIs…
+Content-Type: application/json
+
+{ "revision": 1, "approved_by": "user" }
+```
+
+Before you perform the action, check ([operations 5.2](https://personalagentprotocol.org/docs/extensions/operations#confirm)):
+
+- the session token may use this operation, or answer `operation_not_found`;
+- the token has the scopes the action needs, or answer `insufficient_scope` or `sign_in_required`;
+- `revision` is the latest, or answer `terms_changed` with the current operation;
+- `approved_by` is allowed for this operation, or answer `user_approval_required`;
+- the operation is `proposed` and has not expired. In any other state, return the operation as it is and do nothing else, so a repeated confirm is safe.
+
+Then record the confirmation, move the operation to `in_progress`, and perform the action. If it finishes within a few seconds, answer with the final state; otherwise answer `in_progress` with a `Retry-After` header ([operations 5.2](https://personalagentprotocol.org/docs/extensions/operations#confirm)).
+
+To keep each action to at most once ([operations 6](https://personalagentprotocol.org/docs/extensions/operations#tracking)):
+
+- Perform each operation at most once, however many times and through whichever channels it is confirmed.
+- Do not report `failed` while you do not know whether the action took effect. Keep it `in_progress` until you find out.
+- In a final state, `result.summary` must describe every change that was made, including changes from an operation that failed or was cancelled partway.
+
+The assistant can cancel a proposed operation, which then cannot be confirmed, or ask you to stop one in progress ([operations 7](https://personalagentprotocol.org/docs/extensions/operations#cancelling)). Errors are listed in the extension ([operations 9](https://personalagentprotocol.org/docs/extensions/operations#errors)).
+
+</details>
