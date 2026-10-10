@@ -37,10 +37,6 @@
   },
   "footerNavLabel": "Footer",
   "pages": {
-    "home": {
-      "heading": "Let your customers' AI assistants in. Safely.",
-      "lede": "A plain guide to how an AI assistant can find a company's front door, prove who it is, and act for a person only within what that person approved. The checker arrives on this page soon."
-    },
     "setup": {
       "title": "Set it up",
       "heading": "Set it up, one level at a time",
