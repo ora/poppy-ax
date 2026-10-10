@@ -1,0 +1,55 @@
+{
+  "siteName": "poppy.ax",
+  "metadata": {
+    "title": "poppy.ax: the Personal Agent Protocol in plain words",
+    "description": "A plain guide to the Personal Agent Protocol (PAP), with a checker that shows whether a site lets people's AI assistants in safely. An independent guide by Ora."
+  },
+  "skipLink": "Skip to main content",
+  "homeLinkLabel": "poppy.ax home",
+  "nav": {
+    "label": "Main",
+    "items": [
+      { "label": "Check", "href": "/" },
+      { "label": "Set it up", "href": "/setup" },
+      { "label": "Sites", "href": "/sites" }
+    ]
+  },
+  "independentLabel": {
+    "before": "An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) at ",
+    "linkText": "personalagentprotocol.org",
+    "href": "https://personalagentprotocol.org",
+    "after": "."
+  },
+  "draft": {
+    "text": "Based on PAP Draft 0.1 (2026-10-09)",
+    "href": "https://personalagentprotocol.org/docs/spec"
+  },
+  "reportError": {
+    "label": "Report an error",
+    "newIssueUrl": "https://github.com/ora/poppy-ax/issues/new"
+  },
+  "license": {
+    "before": "Code under the ",
+    "code": { "text": "MIT License", "href": "https://github.com/ora/poppy-ax/blob/main/LICENSE" },
+    "middle": ". Words under ",
+    "content": { "text": "CC BY 4.0", "href": "https://creativecommons.org/licenses/by/4.0/" },
+    "after": ", so anyone can reuse them with credit."
+  },
+  "footerNavLabel": "Footer",
+  "pages": {
+    "home": {
+      "heading": "Let your customers' AI assistants in. Safely.",
+      "lede": "A plain guide to how an AI assistant can find a company's front door, prove who it is, and act for a person only within what that person approved. The checker arrives on this page soon."
+    },
+    "setup": {
+      "title": "Set it up",
+      "heading": "Set it up, one level at a time",
+      "lede": "Four levels, and you can stop at any of them. Each one says what to build, roughly how big it is, and which checks turn green. The guide arrives on this page soon."
+    },
+    "sites": {
+      "title": "Sites",
+      "heading": "Sites that publish a PAP file",
+      "lede": "Every site Ora has seen publishing the protocol's public file, with the date it was first seen. The list arrives on this page soon."
+    }
+  }
+}

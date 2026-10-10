@@ -1,0 +1,26 @@
+# dependencies
+/node_modules
+
+# Next.js
+/.next/
+/out/
+/build
+*.tsbuildinfo
+
+# tests
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/coverage
+
+# env files (the example stays in the repo)
+.env*
+!.env.example
+
+# deploy and local tooling
+.vercel
+.DS_Store
+*.pem
+npm-debug.log*
+next-env.d.ts
