@@ -35,7 +35,7 @@ Other scripts:
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript, no output |
 | `npm test` | Unit tests (Vitest) |
-| `npm run test:e2e` | End-to-end tests (Playwright) against a production build in fixture mode |
+| `npm run test:e2e` | End-to-end tests (Playwright) against a production build in fixture mode. The tests arrive with the result page; until then this command reports that no tests were found. |
 
 ## Fixture mode
 
@@ -54,3 +54,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to fix a sentence.
 - [ ] OraBot page live
 - [ ] Draft and domain shown to the PAP authors before launch
 - [ ] Offer to hand the explainer and domain over
+- [ ] Bump next, @next/mdx and eslint-config-next to 16.3.8 or later (fixes the high-severity advisories in 16.3.6; due on or after 2026-10-14), then re-run `npm audit`.
