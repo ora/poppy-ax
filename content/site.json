@@ -44,7 +44,7 @@
     "setup": {
       "title": "Set it up",
       "heading": "Set it up, one level at a time",
-      "lede": "Four levels, and you can stop at any of them. Each one says what to build, roughly how big it is, and which checks turn green. The guide arrives on this page soon."
+      "lede": "Four levels, and you can stop at any of them. Each one says what to build, roughly how big it is, and which of the checker's rows turn green. Every claim links the section of the spec it comes from."
     },
     "sites": {
       "title": "Sites",

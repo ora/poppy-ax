@@ -1,0 +1,84 @@
+### Choose how people sign in
+
+A session does not need sign-in. When a task needs the person's account, the person signs in once, in one of the ways you offer ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)):
+
+- Direct sign-in (`auth.direct`): the person signs in on your own page in their browser and approves access.
+- Device sign-in (`auth.device`): the assistant shows the person a link and a short code, and they sign in on your page on any device they like.
+- Mediated sign-in (`auth.mediated`): the assistant sends you the person's credentials. This one is not OAuth, and it puts more on you (see below).
+
+Each kind you offer goes under `auth` in `poppy.json`, with the scopes it can grant. A scope is a named piece of account access. Shortened from the spec's example ([spec 3](https://personalagentprotocol.org/docs/spec#discovery), [spec 3.1](https://personalagentprotocol.org/docs/spec#fields)):
+
+```json
+"auth": {
+  "issuer": "https://auth.example.com",
+  "direct": {
+    "scopes": ["poppy:read", "poppy:write", "addresses"]
+  },
+  "device": {
+    "scopes": ["poppy:read", "poppy:write"]
+  },
+  "custom_scopes": {
+    "addresses": "Manage saved shipping addresses"
+  }
+}
+```
+
+The protocol defines two scopes. `poppy:read` lets the assistant view account information, such as orders. `poppy:write` lets it make changes, such as exchanging an item. They are independent, so `poppy:write` does not include `poppy:read`. You may add your own scopes and describe each one in `auth.custom_scopes`. Names that start with `poppy:` are reserved ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)).
+
+Every sign-in request names its scopes in `scope`. Reject missing, unknown or unavailable ones with `invalid_scope`, and never grant more than was asked for and allowed for that kind of sign-in ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)). Apply the same scope rules on your website, APIs and agent ([guides: enforcing scopes](https://personalagentprotocol.org/docs/guides#company-scopes)).
+
+### Direct sign-in
+
+Direct sign-in is the standard OAuth authorization code flow with PKCE (RFC 7636). PKCE ties the one-time code to the assistant that asked for it. Your OAuth metadata must list an `authorization_endpoint` ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server), [spec 4.5](https://personalagentprotocol.org/docs/spec#direct-sign-in)).
+
+1. The assistant opens your authorization address in the person's browser.
+2. Your page shows which assistant is asking, using the name and logo from its metadata. The person signs in however you allow, sees the requested scopes, and approves some or all of them, or declines.
+3. You send the browser back to `redirect_uri` with a one-time `code`, the same `state`, and your `auth.issuer` in `iss`. The `redirect_uri` must exactly match one of the assistant's `redirect_uris`. If the person declines, send `error=access_denied` and `iss` instead.
+4. The assistant exchanges the code at your `token_endpoint`, with its client assertion, a DPoP proof and the `session_id`. Check the code, the PKCE verifier and the assertion, and that the session belongs to the same `client_id`.
+
+All of these steps are in the spec ([spec 4.5](https://personalagentprotocol.org/docs/spec#direct-sign-in)). The guides add: accept PKCE with `S256` only, and reject `plain` ([guides: consent pages](https://personalagentprotocol.org/docs/guides#company-consent)).
+
+### Device sign-in
+
+Device sign-in is the OAuth device authorization grant (RFC 8628). Your OAuth metadata must list a `device_authorization_endpoint` ([spec 4.6](https://personalagentprotocol.org/docs/spec#device-sign-in)).
+
+The assistant asks for a code and shows the person your link and the short code, or a link with the code built in. The person opens it on any device, such as their phone, signs in, and approves some or all of the scopes, or declines. Opening the link must not approve anything by itself. Meanwhile the assistant asks your `token_endpoint` every few seconds. Answer `authorization_pending` until the person finishes, then send the tokens, or `access_denied` if they declined ([spec 4.6](https://personalagentprotocol.org/docs/spec#device-sign-in)).
+
+The guides suggest asking the person to confirm that the code on your page matches the one the assistant shows, and keeping the code short lived, such as 10 minutes ([guides: device sign-in](https://personalagentprotocol.org/docs/guides#company-device)).
+
+### The consent page
+
+The spec asks your page to show which assistant is asking, by the name and logo from its metadata, and the requested scopes ([spec 4.5](https://personalagentprotocol.org/docs/spec#direct-sign-in)). The guides go further ([guides: consent pages](https://personalagentprotocol.org/docs/guides#company-consent)):
+
+- Show the domain of the assistant's `client_id` next to its name. The assistant chooses its own name, so the domain is what the person can trust.
+- Show the account being connected, each scope in plain language, and how long access lasts.
+- Protect the page against forged requests, and stop other sites from framing it with `Content-Security-Policy: frame-ancestors`.
+
+### What sign-in returns
+
+Every kind of sign-in ends the same way. You return an account token as `refresh_token`, and a signed-in session token for the current session. The person may have approved fewer scopes than asked, so `scope` says what was granted ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)):
+
+```json
+{
+  "access_token": "eyJhbGciOi…Qp4w",
+  "token_type": "DPoP",
+  "expires_in": 3600,
+  "refresh_token": "pat_8Hk2…Wq1",
+  "refresh_token_expires_in": 2592000,
+  "scope": "poppy:read poppy:write",
+  "session_id": "ses_2Lm0",
+  "signed_in": true
+}
+```
+
+The account token stands for the person's approval. It lets the assistant start signed-in sessions later without asking again. Accept it only at your `token_endpoint` and `revocation_endpoint`, and only from the `client_id` it was issued to ([spec 4.8](https://personalagentprotocol.org/docs/spec#account-tokens)).
+
+### Signing out and disconnecting
+
+To sign out, the assistant revokes its account token at your `revocation_endpoint` (RFC 7009). Revoke it and sign out every session that used it. Those sessions usually carry on signed out. Session tokens issued before sign-out may still work, so check on each request whether the session is still signed in, or keep session tokens to a few minutes ([spec 4.9](https://personalagentprotocol.org/docs/spec#sign-out)).
+
+People can also disconnect an assistant from your account settings. That revokes the assistant's account tokens for that account and signs out its sessions ([spec 4.9](https://personalagentprotocol.org/docs/spec#sign-out)). The guides suggest listing each connected assistant in account settings with its name, domain, scopes and when it was last used, with a control to disconnect each one ([guides: account settings](https://personalagentprotocol.org/docs/guides#company-account-settings)).
+
+### If you offer mediated sign-in
+
+In mediated sign-in, the assistant sends the person's credentials to `auth.mediated.endpoint`, and `auth.mediated.fields` lists the ones you need. If you offer it, you must limit how often anyone can try, and you must never return credentials in any response ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)). Assistants are told to prefer direct sign-in, then device sign-in, because then the password stays with you ([guides: choosing how to sign in](https://personalagentprotocol.org/docs/guides#agent-choosing-sign-in)).
