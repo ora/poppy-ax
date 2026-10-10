@@ -315,14 +315,14 @@
 .fig-label {
   fill: var(--color-ink);
   font-family: var(--font-sans);
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
   text-anchor: middle;
 }
 
 .fig-label--mono {
   font-family: var(--font-mono);
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 400;
 }
 

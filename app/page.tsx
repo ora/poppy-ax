@@ -50,12 +50,12 @@ export default function HomePage() {
           {steps.heading}
         </h2>
         <ThreeSteps steps={steps} />
-        <nav className="home__actions" aria-label={actions.label}>
+        <div className="home__actions">
           <CheckASiteLink sectionId={CHECK_SECTION_ID} text={actions.check.text} />
           <Link href={actions.setup.href} className="button button--secondary">
             {actions.setup.text}
           </Link>
-        </nav>
+        </div>
       </section>
     </div>
   );

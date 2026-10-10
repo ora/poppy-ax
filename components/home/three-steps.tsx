@@ -6,7 +6,7 @@ type Steps = HomeContent["steps"];
  * A small assistant: a rounded head with an antenna, on a short body. The
  * outer group is the one that animates, so CSS never fights the placement.
  */
-function Assistant({ x, className }: { x: number; className: string }) {
+function Assistant({ x, className }: { x: number; className?: string }) {
   return (
     <g className={className}>
       <g transform={`translate(${x} 0)`}>
@@ -22,14 +22,13 @@ function Assistant({ x, className }: { x: number; className: string }) {
 }
 
 /** A key: a round bow with a hole, a shaft and two teeth. */
-function Key({ className, transform }: { className: string; transform?: string }) {
+function Key({ transform }: { transform: string }) {
   return (
-    <g className={className} transform={transform}>
-      <path
-        className="fig-poppy"
-        d="M-28 0a28 28 0 1 1 56 0a28 28 0 1 1 -56 0Z M-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z M20 -7H92V7H84V22H75V7H66V17H57V7H20Z"
-      />
-    </g>
+    <path
+      transform={transform}
+      className="fig-poppy"
+      d="M-28 0a28 28 0 1 1 56 0a28 28 0 1 1 -56 0Z M-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z M20 -7H92V7H84V22H75V7H66V17H57V7H20Z"
+    />
   );
 }
 
@@ -37,6 +36,9 @@ function Key({ className, transform }: { className: string; transform?: string }
  * The three steps as one picture: an assistant at a door, a labelled key, and
  * an action inside the key's limits. It draws itself once on load, and stays
  * still for anyone who asks for reduced motion (see app/home.css).
+ *
+ * Labels are 28 units on a 720-unit canvas, so they stay about 13px tall when
+ * the picture shrinks to a 375px phone.
  */
 export function ThreeStepsPicture({ picture }: { picture: Steps["picture"] }) {
   return (
@@ -58,48 +60,45 @@ export function ThreeStepsPicture({ picture }: { picture: Steps["picture"] }) {
       ))}
 
       {/* 1. The door, with its public file on a plate above it */}
-      <g className="fig-door">
-        <rect x="126" y="132" width="88" height="168" rx="3" pathLength={1} className="fig-line fig-draw" />
-        <rect x="140" y="146" width="60" height="62" rx="2" pathLength={1} className="fig-line fig-thin fig-draw" />
-        <circle cx="200" cy="228" r="5" className="fig-ink" />
-        <rect x="98" y="88" width="144" height="34" rx="5" className="fig-line fig-thin fig-paper" />
-        <text x="170" y="112" className="fig-label fig-label--mono">
-          {picture.doorSign}
-        </text>
-      </g>
+      <rect x="126" y="140" width="88" height="160" rx="3" pathLength={1} className="fig-line fig-draw" />
+      <rect x="140" y="154" width="60" height="58" rx="2" pathLength={1} className="fig-line fig-thin fig-draw" />
+      <circle cx="200" cy="232" r="5" className="fig-ink" />
+      <rect x="76" y="84" width="188" height="42" rx="5" className="fig-line fig-thin fig-paper" />
+      <text x="170" y="114" className="fig-label fig-label--mono">
+        {picture.doorSign}
+      </text>
       <Assistant x={26} className="fig-walk" />
 
       {/* 2. The assistant gets a key with a tag */}
-      <Assistant x={258} className="fig-still" />
+      <Assistant x={256} />
       <g className="fig-key-group">
-        <Key className="fig-key" transform="translate(372 160)" />
-        <line x1="364" y1="186" x2="352" y2="236" className="fig-line fig-thin" />
-        <rect x="290" y="236" width="160" height="40" rx="6" className="fig-line fig-thin fig-paper" />
-        <circle cx="304" cy="256" r="3.5" className="fig-ink" />
-        <text x="378" y="264" className="fig-label">
+        <Key transform="translate(370 158)" />
+        <line x1="362" y1="184" x2="352" y2="234" className="fig-line fig-thin" />
+        <rect x="282" y="234" width="194" height="44" rx="6" className="fig-line fig-thin fig-paper" />
+        <circle cx="296" cy="256" r="3.5" className="fig-ink" />
+        <text x="386" y="266" className="fig-label">
           {picture.keyTag}
         </text>
       </g>
 
       {/* 3. Inside the key's limits, one action goes through; one outside does not */}
       <g className="fig-limits">
-        <rect x="496" y="96" width="210" height="124" rx="16" className="fig-boundary" />
-        <rect x="508" y="84" width="58" height="24" className="fig-paper-only" />
-        <Key className="fig-key-small" transform="translate(522 96) scale(0.42)" />
+        <rect x="486" y="96" width="230" height="124" rx="16" className="fig-boundary" />
+        <rect x="498" y="84" width="58" height="24" className="fig-paper-only" />
+        <Key transform="translate(512 96) scale(0.42)" />
       </g>
       <g className="fig-allowed">
-        <circle cx="530" cy="160" r="17" className="fig-line fig-paper" />
-        <path d="M521 160l6 7 12-14" pathLength={1} className="fig-line fig-check fig-draw-late" />
-        <text x="558" y="168" className="fig-label fig-label--start">
+        <circle cx="511" cy="160" r="15" className="fig-line fig-paper" />
+        <path d="M503 160l5 6 11-13" pathLength={1} className="fig-line fig-draw-late" />
+        <text x="534" y="170" className="fig-label fig-label--start">
           {picture.allowed}
         </text>
       </g>
       <g className="fig-refused">
-        <path d="M521 252l18 18M539 252l-18 18" className="fig-line fig-thin fig-muted" />
-        <text x="558" y="269" className="fig-label fig-label--start fig-label--muted">
+        <path d="M503 252l16 16M519 252l-16 16" className="fig-line fig-thin fig-muted" />
+        <text x="534" y="270" className="fig-label fig-label--start fig-label--muted">
           {picture.refused}
         </text>
-        <line x1="556" y1="261" x2="684" y2="261" className="fig-line fig-thin fig-muted" />
       </g>
     </svg>
   );

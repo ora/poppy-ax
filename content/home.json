@@ -1,6 +1,6 @@
 {
   "heading": "Let your customers' AI assistants in. Safely.",
-  "lede": "The Personal Agent Protocol is a new, open protocol for how an AI assistant finds a company's front door, proves who it is, and uses a person's account only within what that person approved.",
+  "lede": "The Personal Agent Protocol is a new, open protocol for how an AI assistant finds a company's front door. Then the assistant proves who it is, and uses a person's account only within what that person approved.",
   "check": {
     "label": "Check a company's site",
     "hint": "Type its domain, like example.com.",
@@ -21,8 +21,8 @@
         "id": "idea",
         "title": "The idea",
         "paragraphs": [
-          "The Personal Agent Protocol (PAP for short, which its spec calls Poppy) gives those assistants a standard front door. Your site publishes one public file that says where assistants should go, and your sign-in server confirms the file is yours.",
-          "Each assistant proves who it is and gets a short-lived key. The key is tied to a secret only that assistant holds, so a copy is no use to anyone else. When a task needs the customer's account, the customer signs in, usually on your own page, and approves what the assistant may do. The key then covers only that. Think of a valet key.",
+          "The Personal Agent Protocol (PAP for short, which its spec calls Poppy) gives those assistants a standard front door. Your site publishes [one public file](https://personalagentprotocol.org/docs/spec#discovery) that says where assistants should go, and your sign-in server [confirms the file is yours](https://personalagentprotocol.org/docs/spec#oauth-server).",
+          "Each assistant proves who it is and gets a short-lived key. The key is [tied to a secret](https://personalagentprotocol.org/docs/spec#sending-tokens) only that assistant holds, so a copy is no use to anyone else. When a task needs the customer's account, the customer signs in, usually on your own page, and [approves what the assistant may do](https://personalagentprotocol.org/docs/spec#sign-in). The key then covers only that. Think of a valet key.",
           "One exception: MCP, a common way to connect tools to assistants, can't check that secret. So a key made for an MCP server works at that one server only."
         ]
       },
@@ -30,8 +30,8 @@
         "id": "changes",
         "title": "What changes",
         "paragraphs": [
-          "When people sign in on your own page, they never give their password to an assistant. You keep your own login, your own rules, and a record of what each assistant may do. People can disconnect an assistant from their account settings.",
-          "Assistants get one way in that is the same on every PAP site. Each company still decides which assistants it lets in."
+          "When people sign in on your own page, they never give their password to an assistant. You keep your own login, your own rules, and a record of what each assistant may do. People can [disconnect](https://personalagentprotocol.org/docs/spec#sign-out) an assistant from their account settings.",
+          "Assistants get one way in that is the same on every PAP site. Each company still [decides which assistants it lets in](https://personalagentprotocol.org/docs/spec#agent-identity)."
         ]
       },
       {
@@ -68,12 +68,11 @@
       {
         "number": 3,
         "title": "Act within the key",
-        "caption": "Each request carries the key and fresh proof of the secret. The company checks both, and allows account actions only within what the person approved."
+        "caption": "Each API call carries the key and, except at MCP servers, fresh proof of the secret. The company checks them, and allows account actions only within what the person approved."
       }
     ]
   },
   "actions": {
-    "label": "Next steps",
     "check": { "text": "Check a site" },
     "setup": { "text": "Set it up", "href": "/setup" }
   }
