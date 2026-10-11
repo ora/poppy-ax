@@ -31,6 +31,26 @@ describe("content/home.json", () => {
     expect(homeContent.actions.setup).toEqual({ text: "Set it up", href: "/setup" });
   });
 
+  it("states the problem in the owner's words, citing Sierra's announcement", () => {
+    const problem = homeContent.story.beats.find((beat) => beat.id === "problem");
+    const parts = textParts(problem?.paragraphs.join(" ") ?? "");
+    expect(parts.map((part) => part.text).join("")).toBe(
+      "Your customers' assistants already use your site the way people do: loading pages, clicking through forms, and when that fails, calling your support line. It's slow, and the task often fails.",
+    );
+    expect(parts).toContainEqual({
+      text: "It's slow, and the task often fails.",
+      href: "https://sierra.ai/blog/introducing-personal-agent-protocol",
+    });
+  });
+
+  it("makes no claim that assistants ask for passwords", () => {
+    const problem = homeContent.story.beats.find((beat) => beat.id === "problem");
+    expect(problem?.paragraphs.join(" ")).not.toMatch(/password/i);
+    // The one password line left is the spec-backed one about signing in on the company's own page.
+    expect(raw.match(/password/gi)).toHaveLength(1);
+    expect(raw).toContain("When people sign in on your own page, they never give their password to an assistant.");
+  });
+
   it("says where the draft stands, with its two links", () => {
     const stands = homeContent.story.beats.find((beat) => beat.id === "stands");
     const text = stands?.paragraphs.join(" ") ?? "";

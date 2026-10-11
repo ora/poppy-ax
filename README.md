@@ -106,7 +106,7 @@ Before anyone outside sees it:
 
 - [ ] Every factual line checked against the spec, Draft 0.1 (2026-10-09). Each page's content was reviewed against the spec when it was written; before launch, run the spec anchor check again: every `personalagentprotocol.org` link with a `#section` in `content/`, `app/`, `components/` and `lib/` must land on a heading that exists on the live page. Last run 2026-10-11: 55 of 55 found (29 in the spec, 13 in the guides, 13 in the operations extension).
 - [ ] Owner review of the copy, for voice.
-- [ ] The owner confirms the home page's market claim (assistants already ask the customer for a password), or it is cut from `content/home.json`.
+- [x] The home page's problem copy: the owner chose it on 2026-10-11. It cites Sierra's announcement, and the claim about passwords is gone.
 
 Ora's side, deployed first:
 
