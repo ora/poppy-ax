@@ -1,21 +1,24 @@
 import "server-only";
-import { revalidateTag } from "next/cache";
-import { encodeFrame } from "@/lib/check-progress";
-import type { CheckResultState } from "@/lib/check-progress";
-import { normalizeDomain } from "@/lib/domain";
+import { encodeFrame, readFrames, type CheckResultFrame } from "@/lib/check-progress";
+import { resolveAuditParam } from "@/lib/audit-param";
 import { pollFreshSummary, streamScan, summaryTag } from "@/lib/ora/client";
 import { limitVisitor, type LimitResult, type LimitScope } from "@/lib/visitor-limit";
 
-// The two routes a check uses, as plain functions so tests can call them:
-// POST /api/check/[domain] starts the check and relays its progress, and
-// GET /api/check/[domain]/result waits for the saved result once the
-// progress stream has closed. The browser never talks to Ora.
+// POST /api/check/[domain], as a plain function so tests can call it. It
+// starts a check, relays Ora's cleaned progress, and once Ora's stream has
+// closed waits on the server for the saved result (Ruling R57, moved inside
+// the stream by Ruling R65). The browser never talks to Ora, and the inputs
+// of the freshness rule (when the scan began, whether Ora served a stored
+// result) never leave the server.
 
 export interface CheckDeps {
   limit?: (request: Request, scope: LimitScope) => Promise<LimitResult>;
-  /** Called with the summary's cache tag once a fresh result is saved. */
-  revalidate?: (tag: string) => void;
-  now?: () => number;
+  /**
+   * Schedules the expiry of a fresh result's cached summary, so the result
+   * page's next render asks Ora again. Called with a promise of the tag, or
+   * of null when there is nothing to expire.
+   */
+  scheduleRevalidate?: (tag: Promise<string | null>) => void;
 }
 
 const NO_STORE = { "cache-control": "no-store" } as const;
@@ -29,78 +32,164 @@ function busy(retryAfterSeconds: number | undefined): Response {
   return json({ error: "busy", retry_after: retry }, 429, retry === null ? {} : { "retry-after": String(retry) });
 }
 
-/** The domain from the path, normalized, or the 400 answer. */
-function checkedDomain(raw: string): { ok: true; domain: string } | { ok: false; response: Response } {
-  let decoded = raw;
+/**
+ * Whether a request comes from another site: the browser says so in
+ * `Sec-Fetch-Site`, or sends an `Origin` whose host is not this one. A
+ * check costs Ora's time and the visitor's budget, so only poppy.ax's own
+ * pages may start one.
+ */
+export function isCrossSite(request: Request): boolean {
+  if (request.headers.get("sec-fetch-site") === "cross-site") return true;
+  const origin = request.headers.get("origin");
+  if (origin === null) return false;
+  let originHost: string;
   try {
-    decoded = decodeURIComponent(raw);
+    originHost = new URL(origin).host;
   } catch {
-    // The normalizer refuses a stray "%".
+    return true;
   }
-  const result = normalizeDomain(decoded);
-  if (result.ok) return { ok: true, domain: result.domain };
-  return { ok: false, response: json({ error: "invalid_domain", code: result.error, message: result.message }, 400) };
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? new URL(request.url).host;
+  return originHost.toLowerCase() !== host.toLowerCase();
+}
+
+interface StreamFacts {
+  complete: boolean;
+  /** An `error` frame arrived before `scan_complete`: nothing was saved. */
+  failedBeforeComplete: boolean;
 }
 
 /**
- * Ora's cleaned progress, between a `check_started` frame and a
- * `check_closed` frame. Cancelling it (the visitor closed the tab) cancels
- * Ora's stream. If Ora's stream fails, this one fails too, and the browser
- * goes on to wait for the result, as the scan carries on without a reader.
+ * Ora's cleaned progress, then `check_result`. Cancelling it (the visitor
+ * closed the tab) cancels Ora's stream and the wait. If Ora's stream fails
+ * after it began, the scan carries on without a reader, so the wait still
+ * runs.
  */
-function framed(
-  body: ReadableStream<Uint8Array>,
-  startedAt: number,
-  servedFromCache: Promise<boolean>,
+function checkStream(
+  domain: string,
+  scan: { body: ReadableStream<Uint8Array>; startedAt: number; servedFromCache: Promise<boolean> },
+  signal: AbortSignal,
+  revalidateTag: (tag: string | null) => void,
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
-  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  const reader = scan.body.getReader();
+  const facts: StreamFacts = { complete: false, failedBeforeComplete: false };
+  let buffer = "";
+  let finished = false;
+
+  function watch(chunk: Uint8Array) {
+    buffer += decoder.decode(chunk, { stream: true });
+    const { frames, rest } = readFrames(buffer);
+    buffer = rest;
+    for (const frame of frames) {
+      if (frame.type === "scan_complete") facts.complete = true;
+      if (frame.type === "error" && !facts.complete) facts.failedBeforeComplete = true;
+    }
+  }
+
+  async function result(): Promise<CheckResultFrame> {
+    if (facts.failedBeforeComplete) return { type: "check_result", state: "failed" };
+    const wasCacheHit = await scan.servedFromCache.catch(() => false);
+    const answer = await pollFreshSummary(domain, { streamStartedAt: scan.startedAt, wasCacheHit, signal });
+    switch (answer.kind) {
+      case "ok":
+        revalidateTag(summaryTag(domain));
+        return { type: "check_result", state: "fresh", last_run: answer.summary.last_run };
+      case "stale":
+        return { type: "check_result", state: "stale", last_run: answer.summary.last_run };
+      case "not_scanned":
+        // Nothing saved yet, and no earlier result to fall back on.
+        return { type: "check_result", state: "stale" };
+      case "error":
+        if (answer.code === "busy") {
+          return { type: "check_result", state: "busy", retry_after: answer.retryAfterSeconds ?? null };
+        }
+        console.warn(`[check] no result for ${domain}: ${answer.code}`);
+        return { type: "check_result", state: "failed" };
+      default:
+        return { type: "check_result", state: "failed" };
+    }
+  }
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    revalidateTag(null);
+  }
+
   return new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(encoder.encode(encodeFrame({ type: "check_started", startedAt })));
-    },
     async pull(controller) {
-      let chunk: ReadableStreamReadResult<Uint8Array>;
+      let chunk: ReadableStreamReadResult<Uint8Array> | null;
       try {
         chunk = await reader.read();
       } catch (error) {
-        controller.error(error);
-        return;
+        console.warn(`[check] progress stream for ${domain} ended early: ${String(error)}`);
+        chunk = null;
       }
-      if (!chunk.done) {
+      if (chunk && !chunk.done) {
+        watch(chunk.value);
         controller.enqueue(chunk.value);
         return;
       }
-      const cached = await servedFromCache.catch(() => false);
-      controller.enqueue(encoder.encode(encodeFrame({ type: "check_closed", startedAt, servedFromCache: cached })));
+      if (signal.aborted) {
+        finish();
+        controller.close();
+        return;
+      }
+      controller.enqueue(encoder.encode(encodeFrame({ type: "check_saving" })));
+      const frame = await result();
+      finish();
+      if (signal.aborted) {
+        controller.close();
+        return;
+      }
+      controller.enqueue(encoder.encode(encodeFrame(frame)));
       controller.close();
     },
     cancel(reason) {
+      finish();
       return reader.cancel(reason);
     },
   });
 }
 
-/** POST /api/check/[domain]: start a check and relay its progress as server-sent events. */
+/** POST /api/check/[domain]: start a check, relay its progress, then say whether its result is saved. */
 export async function startCheck(request: Request, rawDomain: string, deps: CheckDeps = {}): Promise<Response> {
-  const checked = checkedDomain(rawDomain);
-  if (!checked.ok) return checked.response;
+  if (isCrossSite(request)) return json({ error: "forbidden" }, 403);
+
+  const param = resolveAuditParam(rawDomain);
+  if (param.kind === "invalid") {
+    return json({ error: "invalid_domain", code: param.error, message: param.message }, 400);
+  }
+  const domain = param.domain;
 
   const limit = await (deps.limit ?? limitVisitor)(request, "check");
   if (!limit.ok) return busy(limit.retryAfterSeconds);
 
   // Only the domain goes to Ora: streamScan sends `domain` and
   // `activeProbes=1`, and nothing from this request's query string.
-  const scan = await streamScan(checked.domain, request.signal);
+  const scan = await streamScan(domain, request.signal);
   if (scan.kind === "invalid") return json({ error: "invalid_domain", code: scan.code }, 400);
   if (scan.kind === "error") {
     if (scan.code === "busy") return busy(scan.retryAfterSeconds);
     if (scan.code === "aborted") return new Response(null, { status: 499 });
-    console.warn(`[check] could not start a check of ${checked.domain}: ${scan.code}`);
+    console.warn(`[check] could not start a check of ${domain}: ${scan.code}`);
     return json({ error: "unavailable" }, 502);
   }
 
-  return new Response(framed(scan.body, scan.startedAt, scan.servedFromCache), {
+  let settle: (tag: string | null) => void = () => undefined;
+  const tag = new Promise<string | null>((resolve) => {
+    settle = resolve;
+  });
+  let settled = false;
+  const revalidateOnce = (value: string | null) => {
+    if (settled) return;
+    settled = true;
+    settle(value);
+  };
+  deps.scheduleRevalidate?.(tag);
+
+  return new Response(checkStream(domain, scan, request.signal, revalidateOnce), {
     status: 200,
     headers: {
       "content-type": "text/event-stream; charset=utf-8",
@@ -108,60 +197,4 @@ export async function startCheck(request: Request, rawDomain: string, deps: Chec
       "x-accel-buffering": "no",
     },
   });
-}
-
-/** How far back a `startedAt` the browser sends back may lie. A check never runs this long. */
-const MAX_CHECK_AGE_MS = 15 * 60 * 1000;
-
-/**
- * GET /api/check/[domain]/result?startedAt=<ms>&cached=<0|1>: wait for the
- * result of the check that started at `startedAt` (Ruling R57). Fresh: the
- * summary's cache is dropped so the result page shows the new result. Stale:
- * the time ran out while Ora still had the earlier result, which the page
- * must not present as new.
- */
-export async function checkResult(request: Request, rawDomain: string, deps: CheckDeps = {}): Promise<Response> {
-  const checked = checkedDomain(rawDomain);
-  if (!checked.ok) return checked.response;
-
-  const url = new URL(request.url);
-  const startedAt = Number(url.searchParams.get("startedAt"));
-  const now = (deps.now ?? Date.now)();
-  if (!Number.isFinite(startedAt) || startedAt <= 0 || startedAt > now + 60_000 || startedAt < now - MAX_CHECK_AGE_MS) {
-    return json({ error: "bad_request" }, 400);
-  }
-  const wasCacheHit = url.searchParams.get("cached") === "1";
-
-  const limit = await (deps.limit ?? limitVisitor)(request, "result");
-  if (!limit.ok) return busy(limit.retryAfterSeconds);
-
-  const result = await pollFreshSummary(checked.domain, { streamStartedAt: startedAt, wasCacheHit, signal: request.signal });
-  let state: CheckResultState;
-  switch (result.kind) {
-    case "ok":
-      // The result page reads the summary through Next's data cache. Drop
-      // the entry from before the check, so its next render asks Ora again.
-      (deps.revalidate ?? defaultRevalidate)(summaryTag(checked.domain));
-      state = { state: "fresh" };
-      break;
-    case "stale":
-      state = { state: "stale" };
-      break;
-    case "not_scanned":
-      state = { state: "not_scanned" };
-      break;
-    case "error":
-      state = result.code === "busy" ? { state: "busy", retry_after: result.retryAfterSeconds ?? null } : { state: "error" };
-      if (result.code !== "busy") console.warn(`[check] no result for ${checked.domain}: ${result.code}`);
-      break;
-    default:
-      state = { state: "error" };
-  }
-  return json(state, 200);
-}
-
-function defaultRevalidate(tag: string): void {
-  // Expire at once: the very next render must miss the cache, not serve the
-  // pre-check result while it refreshes in the background.
-  revalidateTag(tag, { expire: 0 });
 }

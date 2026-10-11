@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import auditText from "@/content/audit.json";
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 import {
+  AUDIT_TITLE_ID,
+  afterRefresh,
+  afterStream,
   applyFrame,
   INITIAL_PROGRESS,
-  parseCheckResult,
   progressStep,
   readFrames,
   retryAfterOf,
@@ -14,50 +15,93 @@ import {
 } from "@/lib/check-progress";
 import { fill } from "@/lib/template";
 
-const t = auditText.progress;
+/** The words this component shows. The server picks them from content/audit.json. */
+export interface CheckProgressCopy {
+  label: string;
+  starting: string;
+  running: string;
+  step: string;
+  saving: string;
+  loading: string;
+  updated: string;
+  busy: string;
+  busyNoTime: string;
+  unreachable: string;
+  failed: string;
+  network: string;
+  invalid: string;
+  notReady: string;
+  stale: string;
+  tryAgain: string;
+  button: string;
+}
+
+/** The line under "Check again", worded by the server for each state. */
+export interface CheckAgainNotes {
+  available: string;
+  waiting: string;
+  /** Shown when the waiting time ends while the page is open. */
+  opened: string;
+}
 
 type Phase =
   | { kind: "idle" }
   | { kind: "running"; progress: Progress }
-  | { kind: "saving" }
   | { kind: "loading" }
   | { kind: "updated" }
-  | { kind: "busy"; retryAfter: number | null; retry: "check" | "result" }
+  | { kind: "busy"; retryAfter: number | null }
   | { kind: "failed"; reason: "unreachable" | "failed" | "network" | "invalid" }
   | { kind: "not_ready" }
   | { kind: "stale" };
 
-interface Resume {
-  startedAt: number;
-  cached: boolean;
-}
+/**
+ * Checks waiting for the page to show their result, by domain. Module state,
+ * so it outlives the component when the refresh swaps "not checked yet" for
+ * the result and this component mounts again in its new place.
+ */
+const waiting = new Map<string, { lastRun: string; refreshes: number }>();
 
 export interface CheckProgressProps {
   domain: string;
   /** Start a check as soon as the page loads: the domain has no result yet. */
   autoStart: boolean;
+  /** The `last_run` of the result this render shows, or null when it shows none. */
+  lastRun: string | null;
   /** For "Check again": whether Ora would run a new check now. */
   available?: boolean;
   /** For "Check again": when it becomes available (ISO), if it isn't yet. */
   availableAt?: string | null;
-  /** The line under the button, already worded by the server. */
-  note?: string;
+  notes?: CheckAgainNotes;
+  copy: CheckProgressCopy;
 }
 
 /**
- * Starts a check of `domain`, shows its progress, then loads the result.
+ * Starts a check of `domain`, shows its progress, then shows the result.
  * With `autoStart` it runs at once; otherwise it is the "Check again" button.
  */
-export function CheckProgress({ domain, autoStart, available = true, availableAt = null, note }: CheckProgressProps) {
+export function CheckProgress({
+  domain,
+  autoStart,
+  lastRun,
+  available = true,
+  availableAt = null,
+  notes,
+  copy,
+}: CheckProgressProps) {
   const router = useRouter();
+  const noteId = useId();
   const [phase, setPhase] = useState<Phase>(autoStart ? { kind: "running", progress: INITIAL_PROGRESS } : { kind: "idle" });
   // The `availableAt` whose time has come, and the busy phase whose wait is over.
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   const [waited, setWaited] = useState<Phase | null>(null);
-  const [, startTransition] = useTransition();
+  const [refreshing, startTransition] = useTransition();
   const controller = useRef<AbortController | null>(null);
-  const resume = useRef<Resume | null>(null);
+  const shownLastRun = useRef(lastRun);
   const encoded = encodeURIComponent(domain);
+
+  useEffect(() => {
+    shownLastRun.current = lastRun;
+  }, [lastRun]);
 
   // Enable "Check again" when Ora's window ends, if this page stays open.
   useEffect(() => {
@@ -75,60 +119,36 @@ export function CheckProgress({ domain, autoStart, available = true, availableAt
     return () => clearTimeout(timer);
   }, [phase]);
 
-  const canCheck = available || (availableAt !== null && openedAt === availableAt);
-  const retryReady = phase.kind !== "busy" || phase.retryAfter === null || phase.retryAfter <= 0 || waited === phase;
-
-  const showResult = useCallback(() => {
-    setPhase({ kind: "loading" });
-    startTransition(() => {
-      router.refresh();
-      setPhase({ kind: "updated" });
-    });
+  const refresh = useCallback(() => {
+    startTransition(() => router.refresh());
   }, [router]);
 
-  const waitForResult = useCallback(
-    async (from: Resume, signal: AbortSignal) => {
-      resume.current = from;
-      setPhase({ kind: "saving" });
-      let answer: Response;
-      try {
-        answer = await fetch(
-          `/api/check/${encoded}/result?startedAt=${Math.round(from.startedAt)}&cached=${from.cached ? 1 : 0}`,
-          { cache: "no-store", signal },
-        );
-      } catch {
-        if (!signal.aborted) setPhase({ kind: "failed", reason: "network" });
-        return;
-      }
-      const body: unknown = await answer.json().catch(() => null);
-      if (answer.status === 429) {
-        setPhase({ kind: "busy", retryAfter: retryAfterOf(body), retry: "result" });
-        return;
-      }
-      if (!answer.ok) {
-        setPhase({ kind: "failed", reason: "network" });
-        return;
-      }
-      const result = parseCheckResult(body);
-      switch (result.state) {
-        case "fresh":
-          showResult();
-          return;
-        case "stale":
+  // After each refresh: is the new result on the page yet (Ruling R57)?
+  // Refresh again a few times, about a second apart, before saying it isn't.
+  useEffect(() => {
+    if (refreshing) return;
+    const wait = waiting.get(domain);
+    if (!wait) return;
+    const decision = afterRefresh(shownLastRun.current, wait.lastRun, wait.refreshes);
+    const timer = setTimeout(
+      () => {
+        if (decision === "updated") {
+          waiting.delete(domain);
+          setPhase({ kind: "updated" });
+          document.getElementById(AUDIT_TITLE_ID)?.focus();
+        } else if (decision === "retry") {
+          waiting.set(domain, { ...wait, refreshes: wait.refreshes + 1 });
+          setPhase({ kind: "loading" });
+          refresh();
+        } else {
+          waiting.delete(domain);
           setPhase({ kind: "stale" });
-          return;
-        case "not_scanned":
-          setPhase({ kind: "not_ready" });
-          return;
-        case "busy":
-          setPhase({ kind: "busy", retryAfter: result.retry_after, retry: "result" });
-          return;
-        default:
-          setPhase({ kind: "failed", reason: "failed" });
-      }
-    },
-    [encoded, showResult],
-  );
+        }
+      },
+      decision === "retry" ? 1000 : 0,
+    );
+    return () => clearTimeout(timer);
+  }, [refreshing, lastRun, domain, refresh]);
 
   const run = useCallback(async () => {
     controller.current?.abort();
@@ -136,7 +156,6 @@ export function CheckProgress({ domain, autoStart, available = true, availableAt
     controller.current = abort;
     const { signal } = abort;
     let progress = INITIAL_PROGRESS;
-    const requestedAt = Date.now();
     setPhase({ kind: "running", progress });
 
     let response: Response;
@@ -152,7 +171,7 @@ export function CheckProgress({ domain, autoStart, available = true, availableAt
       return;
     }
     if (response.status === 429) {
-      setPhase({ kind: "busy", retryAfter: retryAfterOf(await response.json().catch(() => null)), retry: "check" });
+      setPhase({ kind: "busy", retryAfter: retryAfterOf(await response.json().catch(() => null)) });
       return;
     }
     if (response.status === 400) {
@@ -185,74 +204,75 @@ export function CheckProgress({ domain, autoStart, available = true, availableAt
     }
     if (signal.aborted) return;
 
-    // An error before the scan finished: nothing was saved.
-    if (progress.error && !progress.error.afterComplete && !progress.complete) {
-      setPhase({ kind: "failed", reason: progress.error.reason });
-      return;
+    const end = afterStream(progress, dropped);
+    switch (end.kind) {
+      case "refresh":
+        waiting.set(domain, { lastRun: end.lastRun, refreshes: 0 });
+        setPhase({ kind: "loading" });
+        refresh();
+        return;
+      case "stale":
+        setPhase(end.hasEarlier ? { kind: "stale" } : { kind: "not_ready" });
+        return;
+      case "busy":
+        setPhase({ kind: "busy", retryAfter: end.retryAfter });
+        return;
+      case "failed":
+        setPhase({ kind: "failed", reason: end.reason });
     }
-    // Finished, failed after finishing, or the connection dropped: the scan
-    // saves its result without a reader, so wait for it (never start another).
-    if (!dropped && !progress.closed && !progress.complete && !progress.error) {
-      setPhase({ kind: "failed", reason: "failed" });
-      return;
-    }
-    await waitForResult({ startedAt: progress.startedAt ?? requestedAt, cached: progress.servedFromCache }, signal);
-  }, [encoded, waitForResult]);
+  }, [domain, encoded, refresh]);
 
   // Start at once when the domain has no result yet. Strict mode runs this
   // twice in development; the cleanup cancels the first start.
   useEffect(() => {
-    if (!autoStart) return;
+    if (!autoStart || waiting.has(domain)) return;
     const timer = setTimeout(() => void run(), 0);
     return () => {
       clearTimeout(timer);
       controller.current?.abort();
     };
-  }, [autoStart, run]);
+  }, [autoStart, domain, run]);
 
   useEffect(() => () => controller.current?.abort(), []);
 
-  function retry() {
-    if (phase.kind === "busy" && phase.retry === "result" && resume.current) {
-      const abort = new AbortController();
-      controller.current = abort;
-      void waitForResult(resume.current, abort.signal);
-      return;
-    }
-    if ((phase.kind === "stale" || phase.kind === "not_ready") && resume.current) {
-      const abort = new AbortController();
-      controller.current = abort;
-      void waitForResult(resume.current, abort.signal);
-      return;
-    }
-    void run();
-  }
-
-  const status = statusText(phase, domain);
+  const status = statusText(phase, domain, copy);
   const step = phase.kind === "running" ? progressStep(phase.progress) : null;
-  const showButton = phase.kind === "idle" || phase.kind === "updated";
+  const busyNow = phase.kind === "running" || phase.kind === "loading";
+  const opened = !available && availableAt !== null && openedAt === availableAt;
+  const canCheck = (available || opened) && !busyNow;
+  const retryReady = phase.kind !== "busy" || phase.retryAfter === null || phase.retryAfter <= 0 || waited === phase;
   const showRetry =
     phase.kind === "busy" || phase.kind === "failed" || phase.kind === "stale" || phase.kind === "not_ready";
+  const note = notes ? (available ? notes.available : opened ? notes.opened : notes.waiting) : null;
 
   return (
     <div className="check">
-      {showButton && !autoStart && (
+      {!autoStart && (
         <div className="check__again">
-          <button type="button" className="button button--secondary" onClick={() => void run()} disabled={!canCheck}>
-            {auditText.checkAgain.button}
+          {/* Stays mounted and focusable while a check runs; aria-disabled says it can't be used now. */}
+          <button
+            type="button"
+            className="button button--secondary"
+            aria-disabled={!canCheck}
+            aria-describedby={note ? noteId : undefined}
+            onClick={() => {
+              if (canCheck) void run();
+            }}
+          >
+            {copy.button}
           </button>
-          {note && <p className="check__note">{note}</p>}
+          {note && (
+            <p id={noteId} className="check__note">
+              {note}
+            </p>
+          )}
         </div>
       )}
       {phase.kind === "running" && (
         <div className="check__bar">
-          <progress
-            aria-label={t.label}
-            max={step ? step.total : undefined}
-            value={step ? step.step : undefined}
-          />
+          <progress aria-label={copy.label} max={step ? step.total : undefined} value={step ? step.step : undefined} />
           <p className="check__step" aria-hidden="true">
-            {step ? fill(t.step, { step: step.step, total: step.total }) : " "}
+            {step ? fill(copy.step, { step: step.step, total: step.total }) : " "}
           </p>
         </div>
       )}
@@ -263,10 +283,12 @@ export function CheckProgress({ domain, autoStart, available = true, availableAt
         <button
           type="button"
           className="button button--primary"
-          onClick={retry}
-          disabled={phase.kind === "busy" && !retryReady}
+          aria-disabled={!retryReady}
+          onClick={() => {
+            if (retryReady) void run();
+          }}
         >
-          {t.tryAgain}
+          {copy.tryAgain}
         </button>
       )}
     </div>
@@ -274,25 +296,24 @@ export function CheckProgress({ domain, autoStart, available = true, availableAt
 }
 
 /** The one line a screen reader hears. It changes with the phase, not with every check. */
-function statusText(phase: Phase, domain: string): string {
+function statusText(phase: Phase, domain: string, copy: CheckProgressCopy): string {
   switch (phase.kind) {
     case "idle":
       return "";
     case "running":
-      return phase.progress.total === null ? fill(t.starting, { domain }) : fill(t.running, { domain });
-    case "saving":
-      return t.saving;
+      if (phase.progress.saving) return copy.saving;
+      return phase.progress.total === null ? fill(copy.starting, { domain }) : fill(copy.running, { domain });
     case "loading":
-      return t.loading;
+      return copy.loading;
     case "updated":
-      return t.updated;
+      return copy.updated;
     case "busy":
-      return phase.retryAfter === null ? t.busyNoTime : fill(t.busy, { seconds: phase.retryAfter });
+      return phase.retryAfter === null ? copy.busyNoTime : fill(copy.busy, { seconds: phase.retryAfter });
     case "failed":
-      return fill(t[phase.reason], { domain });
+      return fill(copy[phase.reason], { domain });
     case "not_ready":
-      return t.notReady;
+      return copy.notReady;
     case "stale":
-      return t.stale;
+      return copy.stale;
   }
 }

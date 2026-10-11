@@ -55,7 +55,13 @@ export class WindowLimiter {
   }
 }
 
-/** The visitor's IP as Vercel reports it, else the first forwarded address. */
+/**
+ * The visitor's IP as Vercel reports it, else the first forwarded address.
+ * On Vercel, `x-real-ip` is set by the platform. Off Vercel both headers come
+ * from whatever is in front of the server, and a client can spoof them when
+ * nothing there overwrites them, so the local limit is only as good as the
+ * proxy.
+ */
 export function visitorIp(headers: Headers): string {
   const real = headers.get("x-real-ip")?.trim();
   if (real) return real;

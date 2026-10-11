@@ -1,9 +1,35 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/check/[domain]/route";
+import nextConfig from "@/next.config";
 import { readFrames, type CheckFrame } from "@/lib/check-progress";
-import { checkResult, startCheck } from "@/lib/check-route";
+import { isCrossSite, startCheck } from "@/lib/check-route";
 import { configureOraClient, resetOraClient } from "@/lib/ora/client";
 import { limitVisitor, visitorIp, WindowLimiter } from "@/lib/visitor-limit";
+
+// The route hands its cache expiry to Next's `after` and `revalidateTag`,
+// which need a live request. Here they are recorded instead.
+const next = vi.hoisted(() => ({
+  afterCallbacks: [] as Array<() => Promise<void> | void>,
+  revalidated: [] as Array<{ tag: string; profile: unknown }>,
+}));
+vi.mock("next/server", async (original) => ({
+  ...(await original<typeof import("next/server")>()),
+  after: (callback: () => Promise<void> | void) => {
+    next.afterCallbacks.push(callback);
+  },
+}));
+vi.mock("next/cache", async (original) => ({
+  ...(await original<typeof import("next/cache")>()),
+  revalidateTag: (tag: string, profile: unknown) => {
+    next.revalidated.push({ tag, profile });
+  },
+}));
+
+async function runAfter(): Promise<void> {
+  for (const callback of next.afterCallbacks.splice(0)) await callback();
+}
 
 function post(domain: string, ip = "203.0.113.7", query = ""): [Request, { params: Promise<{ domain: string }> }] {
   return [
@@ -21,6 +47,8 @@ const allow = async () => ({ ok: true }) as const;
 let warn: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
+  next.afterCallbacks.length = 0;
+  next.revalidated.length = 0;
   resetOraClient();
   configureOraClient({ fixtureFrameDelayMs: 0, pollIntervalMs: 1, pollBudgetMs: 50, requestTimeoutMs: 50, connectTimeoutMs: 50 });
   warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
@@ -39,25 +67,38 @@ describe("POST /api/check/[domain] in fixture mode", () => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("fixture mode must not call the network"))));
   });
 
-  it("relays the cleaned frames between poppy.ax's start and close frames", async () => {
-    const response = await POST(...post("example.org", "203.0.113.1"));
+  it("relays the cleaned frames, then says the result is saved, and expires the cached summary", async () => {
+    const response = await POST(...post("example.com", "203.0.113.1"));
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("text/event-stream");
     expect(response.headers.get("cache-control")).toContain("no-cache");
     const list = await frames(response);
-    expect(list[0]).toMatchObject({ type: "check_started" });
-    expect(list.at(-1)).toMatchObject({ type: "check_closed", servedFromCache: false });
     expect(list.some((frame) => frame.type === "scan_complete")).toBe(true);
     expect(list.filter((frame) => frame.type === "check_complete").length).toBeGreaterThan(0);
-    // The relay drops what the contract does not list: no roster, no result.
+    expect(list.at(-2)).toEqual({ type: "check_saving" });
+    expect(list.at(-1)).toEqual({ type: "check_result", state: "fresh", last_run: "2026-10-10T22:31:57.151Z" });
+    // The freshness inputs stay on the server.
     const text = JSON.stringify(list);
+    expect(text).not.toContain("startedAt");
+    expect(text).not.toContain("servedFromCache");
+    // The relay drops what the contract does not list: no roster, no result.
     expect(text).not.toContain("checkRoster");
     expect(text).not.toContain("layerMaxScores");
     expect(text).not.toContain('"result"');
+    await runAfter();
+    expect(next.revalidated).toEqual([{ tag: "ora-summary:example.com", profile: { expire: 0 } }]);
+  });
+
+  it("says nothing is saved yet for a domain with no result, and expires nothing", async () => {
+    const list = await frames(await POST(...post("unknown-site.example.net", "203.0.113.4")));
+    expect(list.at(-1)).toEqual({ type: "check_result", state: "stale" });
+    await runAfter();
+    expect(next.revalidated).toEqual([]);
   });
 
   it("normalizes the domain before checking it", async () => {
     const list = await frames(await POST(...post("WWW.Example.org", "203.0.113.2")));
+    await runAfter();
     const discovery = list.find((frame) => frame.type === "discovery_phase");
     expect(JSON.stringify(discovery)).toContain("example.org");
     expect(JSON.stringify(list)).not.toContain("WWW.");
@@ -126,8 +167,9 @@ describe("POST /api/check/[domain] against Ora", () => {
     });
     expect(response.status).toBe(200);
     await response.text();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const url = new URL(String(fetchMock.mock.calls[0]?.[0]));
+    const streams = fetchMock.mock.calls.map(([input]) => new URL(String(input))).filter((u) => u.pathname === "/api/scan/stream");
+    expect(streams).toHaveLength(1);
+    const url = streams[0] as URL;
     expect(url.pathname).toBe("/api/scan/stream");
     expect([...url.searchParams.keys()].sort()).toEqual(["activeProbes", "domain"]);
     expect(url.searchParams.get("domain")).toBe("example.com");
@@ -149,52 +191,126 @@ describe("POST /api/check/[domain] against Ora", () => {
   });
 });
 
-describe("GET /api/check/[domain]/result", () => {
-  function resultRequest(domain: string, query: string) {
-    return new Request(`http://poppy.test/api/check/${domain}/result${query}`, { headers: { "x-real-ip": "203.0.113.50" } });
+describe("the result wait inside the stream (Rulings R57, R65)", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+  const base = JSON.parse(readFileSync(join(process.cwd(), "fixtures", "summary-failing-p0.json"), "utf8")) as Record<
+    string,
+    unknown
+  >;
+
+  function stream(body: string, headers: Record<string, string> = {}): Response {
+    return new Response(body, { status: 200, headers: { "content-type": "text/event-stream", ...headers } });
   }
 
+  function summaryAnswer(lastRun: string): Response {
+    return Response.json({ ...base, last_run: lastRun });
+  }
+
+  function route(scanBody: string, summary: () => Response, scanHeaders: Record<string, string> = {}) {
+    fetchMock.mockImplementation(async (input) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/api/scan/stream") return stream(scanBody, scanHeaders);
+      if (url.pathname === "/api/pap/v1/summary") return summary();
+      throw new Error(`unexpected ${url.pathname}`);
+    });
+  }
+
+  const COMPLETE = 'data: {"type":"kind_detected","kind":"domain"}\n\ndata: {"type":"scan_complete","result":{}}\n\n';
+
   beforeEach(() => {
-    vi.stubEnv("ORA_FIXTURES", "1");
-    vi.stubEnv("ORA_SERVICE_TOKEN", "");
+    vi.stubEnv("ORA_FIXTURES", "0");
+    vi.stubEnv("ORA_SERVICE_TOKEN", "test-token");
+    vi.stubEnv("ORA_BASE_URL", "https://ora.test");
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("answers fresh for a saved result and drops the summary's cached copy", async () => {
-    const revalidate = vi.fn();
-    const response = await checkResult(resultRequest("example.com", `?startedAt=${Date.now()}&cached=0`), "example.com", {
+  async function check(scheduleRevalidate = vi.fn()) {
+    const response = await startCheck(post("failing-p0.example.com")[0], "failing-p0.example.com", {
       limit: allow,
-      revalidate,
+      scheduleRevalidate,
     });
-    expect(await response.json()).toEqual({ state: "fresh" });
-    expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(revalidate).toHaveBeenCalledWith("ora-summary:example.com");
+    const list = await frames(response);
+    const [tag] = scheduleRevalidate.mock.calls[0] ?? [];
+    return { list, tag: tag === undefined ? undefined : await (tag as Promise<string | null>) };
+  }
+
+  it("fresh: a summary saved after the scan began", async () => {
+    const saved = new Date(Date.now() + 1_000).toISOString();
+    route(COMPLETE, () => summaryAnswer(saved));
+    const { list, tag } = await check();
+    expect(list.at(-1)).toEqual({ type: "check_result", state: "fresh", last_run: saved });
+    expect(tag).toBe("ora-summary:failing-p0.example.com");
   });
 
-  it("answers not_scanned when no result was saved, and keeps the cache", async () => {
-    const revalidate = vi.fn();
-    const response = await checkResult(
-      resultRequest("unknown-site.example.net", `?startedAt=${Date.now()}`),
-      "unknown-site.example.net",
-      { limit: allow, revalidate },
+  it("stale: Ora still answers with the result from before the scan, which is never called new", async () => {
+    route(COMPLETE, () => summaryAnswer("2026-10-01T00:00:00.000Z"));
+    const { list, tag } = await check();
+    expect(list.at(-1)).toEqual({ type: "check_result", state: "stale", last_run: "2026-10-01T00:00:00.000Z" });
+    expect(tag).toBeNull();
+  });
+
+  it("fresh for an old result when Ora served it from its store", async () => {
+    route(COMPLETE, () => summaryAnswer("2026-10-01T00:00:00.000Z"), { age: "120" });
+    const { list } = await check();
+    expect(list.at(-1)).toMatchObject({ state: "fresh" });
+  });
+
+  it("failed: an error frame before scan_complete means nothing was saved, so no wait", async () => {
+    route('data: {"type":"error","message":"Domain is not reachable"}\n\n', () => {
+      throw new Error("must not ask for the summary");
+    });
+    const { list, tag } = await check();
+    expect(list.at(-1)).toEqual({ type: "check_result", state: "failed" });
+    expect(list.some((frame) => frame.type === "error")).toBe(true);
+    expect(tag).toBeNull();
+  });
+
+  it("busy: Ora's 429 during the wait", async () => {
+    route(COMPLETE, () => new Response("{}", { status: 429, headers: { "retry-after": "12" } }));
+    const { list } = await check();
+    expect(list.at(-1)).toEqual({ type: "check_result", state: "busy", retry_after: 12 });
+  });
+});
+
+describe("cross-site protection", () => {
+  function request(headers: Record<string, string>): Request {
+    return new Request("https://poppy.ax/api/check/example.com", { method: "POST", headers: { host: "poppy.ax", ...headers } });
+  }
+
+  it.each([
+    [{ "sec-fetch-site": "cross-site" }],
+    [{ origin: "https://evil.example" }],
+    [{ origin: "https://poppy.ax.evil.example" }],
+    [{ origin: "null" }],
+  ])("refuses %j with 403 before doing anything", async (headers) => {
+    expect(isCrossSite(request(headers))).toBe(true);
+    const limit = vi.fn(allow);
+    const response = await startCheck(request(headers), "example.com", { limit });
+    expect(response.status).toBe(403);
+    expect(limit).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [{}],
+    [{ "sec-fetch-site": "same-origin", origin: "https://poppy.ax" }],
+    [{ origin: "https://POPPY.ax" }],
+    [{ "sec-fetch-site": "none" }],
+  ])("allows %j", (headers) => {
+    expect(isCrossSite(request(headers))).toBe(false);
+  });
+});
+
+describe("frame-ancestors on result pages", () => {
+  it("sends frame-ancestors 'none' on /audit and every page under it", async () => {
+    const rules = (await nextConfig.headers?.()) ?? [];
+    const policy = { key: "Content-Security-Policy", value: "frame-ancestors 'none'" };
+    expect(rules).toEqual(
+      expect.arrayContaining([
+        { source: "/audit", headers: [policy] },
+        { source: "/audit/:path*", headers: [policy] },
+      ]),
     );
-    expect(await response.json()).toEqual({ state: "not_scanned" });
-    expect(revalidate).not.toHaveBeenCalled();
-  });
-
-  it.each(["", "?startedAt=abc", "?startedAt=0", `?startedAt=${Date.now() + 3_600_000}`, `?startedAt=${Date.now() - 3_600_000}`])(
-    "refuses a start time it can't use (%s)",
-    async (query) => {
-      const response = await checkResult(resultRequest("example.com", query), "example.com", { limit: allow });
-      expect(response.status).toBe(400);
-    },
-  );
-
-  it("is limited per visitor too", async () => {
-    const response = await checkResult(resultRequest("example.com", `?startedAt=${Date.now()}`), "example.com", {
-      limit: async () => ({ ok: false, retryAfterSeconds: 9 }),
-    });
-    expect(response.status).toBe(429);
-    expect(await response.json()).toEqual({ error: "busy", retry_after: 9 });
   });
 });
 

@@ -15,6 +15,7 @@ import {
   resolveAuditParam,
 } from "@/lib/audit";
 import { parseSummary } from "@/lib/ora/guards";
+import { fill } from "@/lib/template";
 import type { Summary } from "@/lib/ora/types";
 import { fixtureCatalog } from "@/lib/rows";
 
@@ -150,12 +151,15 @@ describe("buildResultView with the six fixtures", () => {
   });
 
   it("links to Ora only where the page is allowed to", () => {
-    // The page's Ora links: the report, owner verification, and the one line after "Working".
-    expect(auditContent.passing.href).toBe("https://ora.ai/");
+    // The page's Ora links: the report (from the summary), owner verification,
+    // and the one line after "Working" to the domain's agent-readiness audit (R63).
+    expect(fill(auditContent.passing.href, { domain: receiver.domain })).toBe(
+      "https://ora.ai/score/poppy-receiver.roundtrip.workers.dev",
+    );
     expect(auditContent.notChecked.groups["2b"].href).toBe("https://app.ora.ai/");
     const text = JSON.stringify(auditJson);
     const oraLinks = text.match(/https:\/\/[a-z.]*ora\.ai[^"]*/g) ?? [];
-    expect(oraLinks.sort()).toEqual(["https://app.ora.ai/", "https://ora.ai/"]);
+    expect(oraLinks.sort()).toEqual(["https://app.ora.ai/", "https://ora.ai/score/{domain}"]);
   });
 });
 

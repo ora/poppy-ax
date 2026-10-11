@@ -1,5 +1,4 @@
 import auditText from "@/content/audit.json";
-import { normalizeDomain, type DomainError } from "@/lib/domain";
 import type { Catalog, CountKey, OutcomeCounts, Row, Severity, Summary, SummaryResult } from "@/lib/ora/types";
 import { displayTitle, rowContent } from "@/lib/rows";
 import { fill } from "@/lib/template";
@@ -16,29 +15,8 @@ export const auditContent: AuditContent = auditText;
 /** Ora runs a domain at most once in this window and serves the stored result inside it. */
 export const CHECK_WINDOW_MS = 6 * 60 * 60 * 1000;
 
-// ---- The domain in the URL ---------------------------------------------------
-
-export type AuditParam =
-  | { kind: "ok"; domain: string }
-  | { kind: "redirect"; domain: string }
-  | { kind: "invalid"; error: DomainError; message: string };
-
-/**
- * What to do with the `[domain]` segment: render it, send the visitor to its
- * one canonical spelling (case, "www.", a trailing dot, an international
- * name), or say why it can't be checked.
- */
-export function resolveAuditParam(raw: string): AuditParam {
-  let decoded = raw;
-  try {
-    decoded = decodeURIComponent(raw);
-  } catch {
-    // A stray "%" stays as written; the normalizer refuses it.
-  }
-  const result = normalizeDomain(decoded);
-  if (!result.ok) return { kind: "invalid", error: result.error, message: result.message };
-  return result.domain === decoded ? { kind: "ok", domain: result.domain } : { kind: "redirect", domain: result.domain };
-}
+export { resolveAuditParam, type AuditParam } from "@/lib/audit-param";
+import type { AuditParam } from "@/lib/audit-param";
 
 // ---- Times --------------------------------------------------------------------
 

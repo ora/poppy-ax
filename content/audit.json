@@ -88,15 +88,16 @@
   "passing": {
     "before": "Agents can sign in. ",
     "linkText": "Whether they finish the job depends on the rest of your site.",
-    "href": "https://ora.ai/"
+    "href": "https://ora.ai/score/{domain}"
   },
   "checkAgain": {
     "button": "Check again",
-    "available": "The result above is from {relative}.",
-    "waiting": "Checked less than 6 hours ago. You can check again after {time} ({relative})."
+    "available": "The result above is from {relative}. You can check again now.",
+    "waiting": "Checked less than 6 hours ago. You can check again after {time} ({relative}).",
+    "opened": "You can check again now."
   },
   "notScanned": {
-    "lede": "We haven't checked this site yet. Checking it now. It can take a minute.",
+    "lede": "We haven't checked this site yet.",
     "noscript": "Checking a site runs in your browser, so it needs JavaScript. Turn it on and reload this page."
   },
   "error": {
@@ -110,7 +111,7 @@
   },
   "progress": {
     "label": "Check progress",
-    "starting": "Starting the check of {domain}.",
+    "starting": "Starting the check of {domain}. It can take a minute.",
     "running": "Checking {domain}.",
     "step": "Step {step} of {total}",
     "saving": "The check is done. Saving the result.",

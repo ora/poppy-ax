@@ -127,16 +127,6 @@
   font-size: var(--text-sm);
 }
 
-.check .button:disabled {
-  border-color: var(--color-rule);
-  color: var(--color-ink-muted);
-  cursor: not-allowed;
-}
-
-.check .button--primary:disabled {
-  background-color: var(--color-surface);
-}
-
 .check__bar {
   display: grid;
   gap: var(--space-2);
@@ -362,4 +352,24 @@
 
 .audit__report {
   font-weight: 700;
+}
+
+/* "Check again" stays focusable while it can't be used, so its reason is read out. */
+.check .button[aria-disabled="true"] {
+  border-color: var(--color-rule);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+.check .button--primary[aria-disabled="true"] {
+  background-color: var(--color-surface);
+}
+
+/* The global reduced-motion rule does not reach the progress bar's vendor parts. */
+@media (prefers-reduced-motion: reduce) {
+  .check progress,
+  .check progress::-webkit-progress-value,
+  .check progress::-moz-progress-bar {
+    transition: none;
+  }
 }

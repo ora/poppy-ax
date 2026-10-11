@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  afterRefresh,
+  afterStream,
   applyFrame,
   encodeFrame,
   INITIAL_PROGRESS,
-  parseCheckResult,
+  MAX_REFRESHES,
   progressStep,
   readFrames,
   retryAfterOf,
@@ -16,9 +18,9 @@ function fold(frames: CheckFrame[]) {
 
 describe("readFrames", () => {
   it("returns whole frames and keeps a partial one for later", () => {
-    const text = `${encodeFrame({ type: "check_started", startedAt: 5 })}data: {"type":"scan_in`;
+    const text = `${encodeFrame({ type: "check_saving" })}data: {"type":"scan_in`;
     const { frames, rest } = readFrames(text);
-    expect(frames).toEqual([{ type: "check_started", startedAt: 5 }]);
+    expect(frames).toEqual([{ type: "check_saving" }]);
     expect(rest).toBe('data: {"type":"scan_in');
     const next = readFrames(`${rest}it","totalChecks":3}\n\n`);
     expect(next.frames).toEqual([{ type: "scan_init", totalChecks: 3 }]);
@@ -46,24 +48,12 @@ describe("progress", () => {
     expect(progressStep(fold([{ type: "check_complete" }]))).toBeNull();
   });
 
-  it("reaches the total at scan_complete, and records a stored result", () => {
-    const progress = fold([
-      { type: "scan_init", totalChecks: 105 },
-      { type: "check_complete" },
-      { type: "scan_complete", servedFromCache: true },
-    ]);
-    expect(progressStep(progress)).toEqual({ step: 105, total: 105, percent: 100 });
-    expect(progress.complete).toBe(true);
-    expect(progress.servedFromCache).toBe(true);
-  });
-
-  it("takes when the scan began and how it ended from poppy.ax's own frames", () => {
-    const progress = fold([
-      { type: "check_started", startedAt: 1000 },
-      { type: "scan_complete" },
-      { type: "check_closed", startedAt: 1000, servedFromCache: true },
-    ]);
-    expect(progress).toMatchObject({ startedAt: 1000, servedFromCache: true, closed: true });
+  it("reaches the total at scan_complete, and while the result is saving", () => {
+    const complete = fold([{ type: "scan_init", totalChecks: 105 }, { type: "check_complete" }, { type: "scan_complete" }]);
+    expect(progressStep(complete)).toEqual({ step: 105, total: 105, percent: 100 });
+    const saving = fold([{ type: "scan_init", totalChecks: 105 }, { type: "check_saving" }]);
+    expect(saving.saving).toBe(true);
+    expect(progressStep(saving)?.percent).toBe(100);
   });
 
   it("records an error frame, and whether it came after the scan finished", () => {
@@ -76,22 +66,105 @@ describe("progress", () => {
       afterComplete: true,
     });
   });
+
+  it("reads check_result defensively", () => {
+    const read = (frame: unknown) => fold([frame as CheckFrame]).result;
+    expect(read({ type: "check_result", state: "fresh", last_run: "2026-10-11T00:00:00Z" })).toEqual({
+      type: "check_result",
+      state: "fresh",
+      last_run: "2026-10-11T00:00:00Z",
+    });
+    // "Fresh" with no time to compare against cannot be shown as new.
+    expect(read({ type: "check_result", state: "fresh" })).toEqual({ type: "check_result", state: "stale" });
+    expect(read({ type: "check_result", state: "fresh", last_run: "soon" })).toEqual({ type: "check_result", state: "stale" });
+    expect(read({ type: "check_result", state: "busy", retry_after: 4.2 })).toEqual({
+      type: "check_result",
+      state: "busy",
+      retry_after: 5,
+    });
+    expect(read({ type: "check_result", state: "<b>x</b>" })).toEqual({ type: "check_result", state: "failed" });
+  });
 });
 
-describe("result answers", () => {
-  it("reads the states the result route sends", () => {
-    expect(parseCheckResult({ state: "fresh" })).toEqual({ state: "fresh" });
-    expect(parseCheckResult({ state: "stale" })).toEqual({ state: "stale" });
-    expect(parseCheckResult({ state: "not_scanned" })).toEqual({ state: "not_scanned" });
-    expect(parseCheckResult({ state: "busy", retry_after: 30 })).toEqual({ state: "busy", retry_after: 30 });
-    expect(parseCheckResult({ state: "busy" })).toEqual({ state: "busy", retry_after: null });
+describe("afterStream", () => {
+  const T = "2026-10-11T00:00:00.000Z";
+
+  it("fresh: refresh until the page shows a result this new", () => {
+    expect(afterStream(fold([{ type: "check_result", state: "fresh", last_run: T }]), false)).toEqual({
+      kind: "refresh",
+      lastRun: T,
+    });
   });
 
-  it("treats anything else as an error", () => {
-    expect(parseCheckResult(null)).toEqual({ state: "error" });
-    expect(parseCheckResult({ state: "<b>hi</b>" })).toEqual({ state: "error" });
+  it("stale with an earlier result, and stale with none", () => {
+    expect(afterStream(fold([{ type: "check_result", state: "stale", last_run: T }]), false)).toEqual({
+      kind: "stale",
+      hasEarlier: true,
+    });
+    expect(afterStream(fold([{ type: "check_result", state: "stale" }]), false)).toEqual({ kind: "stale", hasEarlier: false });
   });
 
+  it("busy, with and without a wait", () => {
+    expect(afterStream(fold([{ type: "check_result", state: "busy", retry_after: 30 }]), false)).toEqual({
+      kind: "busy",
+      retryAfter: 30,
+    });
+    expect(afterStream(fold([{ type: "check_result", state: "busy", retry_after: null }]), false)).toEqual({
+      kind: "busy",
+      retryAfter: null,
+    });
+  });
+
+  it("failed: the error frame's reason when the scan stopped before finishing", () => {
+    const unreachable = fold([
+      { type: "error", reason: "unreachable", after_complete: false },
+      { type: "check_result", state: "failed" },
+    ]);
+    expect(afterStream(unreachable, false)).toEqual({ kind: "failed", reason: "unreachable" });
+    expect(afterStream(fold([{ type: "check_result", state: "failed" }]), false)).toEqual({ kind: "failed", reason: "failed" });
+    const late = fold([
+      { type: "scan_complete" },
+      { type: "error", reason: "failed", after_complete: true },
+      { type: "check_result", state: "failed" },
+    ]);
+    expect(afterStream(late, false)).toEqual({ kind: "failed", reason: "failed" });
+  });
+
+  it("no answer: a dropped connection, an early error, or a stream that just ended", () => {
+    expect(afterStream(fold([{ type: "scan_complete" }]), true)).toEqual({ kind: "failed", reason: "network" });
+    expect(afterStream(fold([{ type: "error", reason: "unreachable", after_complete: false }]), true)).toEqual({
+      kind: "failed",
+      reason: "unreachable",
+    });
+    expect(afterStream(fold([{ type: "scan_complete" }]), false)).toEqual({ kind: "failed", reason: "failed" });
+  });
+});
+
+describe("afterRefresh (Ruling R57 on the page)", () => {
+  const target = "2026-10-11T00:00:00.000Z";
+
+  it("is updated once the page shows a result at least as new as the saved one", () => {
+    expect(afterRefresh(target, target, 0)).toBe("updated");
+    expect(afterRefresh("2026-10-11T00:00:05.000Z", target, 2)).toBe("updated");
+  });
+
+  it("refreshes again while the page still shows an older result, or none", () => {
+    expect(afterRefresh("2026-10-10T23:00:00.000Z", target, 0)).toBe("retry");
+    expect(afterRefresh(null, target, MAX_REFRESHES - 1)).toBe("retry");
+  });
+
+  it("gives up after the last refresh and says the result is not shown yet", () => {
+    expect(afterRefresh("2026-10-10T23:00:00.000Z", target, MAX_REFRESHES)).toBe("stale");
+    expect(afterRefresh(null, target, MAX_REFRESHES)).toBe("stale");
+  });
+
+  it("never calls an unreadable time updated", () => {
+    expect(afterRefresh("not a time", target, MAX_REFRESHES)).toBe("stale");
+    expect(afterRefresh(target, "not a time", 0)).toBe("retry");
+  });
+});
+
+describe("retryAfterOf", () => {
   it("reads retry_after from a 429 body", () => {
     expect(retryAfterOf({ error: "busy", retry_after: 17.2 })).toBe(18);
     expect(retryAfterOf({ error: "busy", retry_after: null })).toBeNull();

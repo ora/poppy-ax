@@ -1,10 +1,14 @@
-import { CheckProgress } from "@/components/audit/check-progress";
+import { CheckProgress, type CheckProgressCopy } from "@/components/audit/check-progress";
+import { AUDIT_TITLE_ID } from "@/lib/check-progress";
 import { DomainForm } from "@/components/home/domain-form";
 import { homeContent } from "@/lib/home";
 import { auditContent, type ResultView } from "@/lib/audit";
 import { fill } from "@/lib/template";
 
 const t = auditContent;
+
+/** Only the words the client component needs, so the rest of content/audit.json stays on the server. */
+const progressCopy: CheckProgressCopy = { ...t.progress, button: t.checkAgain.button };
 
 /** The question the page answers first, above the domain. */
 function Question() {
@@ -16,7 +20,8 @@ export function AuditHeading({ domain, verdict, kind }: { domain: string; verdic
   return (
     <header className="audit__head">
       <Question />
-      <h1 className="audit__title">
+      {/* Focus lands here when a new result arrives, so it is read out. */}
+      <h1 id={AUDIT_TITLE_ID} className="audit__title" tabIndex={-1}>
         <span className="audit__domain">{domain}</span>
         {verdict && (
           <>
@@ -176,12 +181,14 @@ function NotChecked({ view }: { view: ResultView }) {
 /** The whole answer for a domain with a stored result. */
 export function AuditResult({ view }: { view: ResultView }) {
   const again = view.checkAgain;
-  const note = again.available
-    ? fill(t.checkAgain.available, { relative: view.lastRun.relative })
-    : fill(t.checkAgain.waiting, {
-        time: again.availableAt?.absolute ?? "",
-        relative: again.availableAt?.relative ?? "",
-      });
+  const notes = {
+    available: fill(t.checkAgain.available, { relative: view.lastRun.relative }),
+    waiting: fill(t.checkAgain.waiting, {
+      time: again.availableAt?.absolute ?? "",
+      relative: again.availableAt?.relative ?? "",
+    }),
+    opened: t.checkAgain.opened,
+  };
   return (
     <article className="audit">
       <AuditHeading domain={view.domain} verdict={view.headline.text} kind={view.headline.kind} />
@@ -190,14 +197,16 @@ export function AuditResult({ view }: { view: ResultView }) {
       <CheckProgress
         domain={view.domain}
         autoStart={false}
+        lastRun={view.lastRun.iso}
         available={again.available}
         availableAt={again.availableAt?.iso ?? null}
-        note={note}
+        notes={notes}
+        copy={progressCopy}
       />
       {view.passingLine && (
         <p className="audit__passing">
           {t.passing.before}
-          <a href={t.passing.href}>{t.passing.linkText}</a>
+          <a href={fill(t.passing.href, { domain: view.domain })}>{t.passing.linkText}</a>
         </p>
       )}
       <FixFirst view={view} />
@@ -215,7 +224,7 @@ export function AuditNotScanned({ domain }: { domain: string }) {
     <article className="audit">
       <AuditHeading domain={domain} />
       <p className="audit__explain">{t.notScanned.lede}</p>
-      <CheckProgress domain={domain} autoStart />
+      <CheckProgress domain={domain} autoStart lastRun={null} copy={progressCopy} />
       <noscript>
         <p className="audit__plain">{t.notScanned.noscript}</p>
       </noscript>
