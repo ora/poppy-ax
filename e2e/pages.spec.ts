@@ -179,6 +179,10 @@ test.describe("result pages", () => {
     await expect(groups.nth(0)).toContainText("Coming soon");
     await expect(groups.nth(1)).toContainText("Requires opt-in");
     await expect(groups.nth(2)).toContainText("Signed-in flows");
+    await expect(page.getByRole("link", { name: "Verify you own the domain on Ora", includeHidden: true })).toHaveAttribute(
+      "href",
+      "https://app.ora.ai/verify?domain=poppy-receiver.roundtrip.workers.dev",
+    );
   });
 
   test("an address that isn't a domain gets its reason and the box", async ({ page }) => {

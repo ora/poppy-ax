@@ -180,7 +180,11 @@ function NotChecked({ view }: { view: ResultView }) {
                 {"href" in words && (
                   <>
                     {" "}
-                    <TrackedLink href={words.href} event="owner_verification_clicked" eventProps={{ domain: view.domain }}>
+                    <TrackedLink
+                      href={fill(words.href, { domain: encodeURIComponent(view.domain) })}
+                      event="owner_verification_clicked"
+                      eventProps={{ domain: view.domain }}
+                    >
                       {words.linkText}
                     </TrackedLink>
                     .

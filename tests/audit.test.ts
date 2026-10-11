@@ -214,10 +214,13 @@ describe("buildResultView with the six fixtures", () => {
     expect(fill(auditContent.passing.href, { domain: receiver.domain })).toBe(
       "https://ora.ai/score/poppy-receiver.roundtrip.workers.dev",
     );
-    expect(auditContent.notChecked.groups["2b"].href).toBe("https://app.ora.ai/");
+    // Owner verification (Ruling R72): Ora's verify page, with the domain filled in per result.
+    expect(fill(auditContent.notChecked.groups["2b"].href, { domain: failing.domain })).toBe(
+      "https://app.ora.ai/verify?domain=failing-p0.example.com",
+    );
     const text = JSON.stringify(auditJson);
     const oraLinks = text.match(/https:\/\/[a-z.]*ora\.ai[^"]*/g) ?? [];
-    expect(oraLinks.sort()).toEqual(["https://app.ora.ai/", "https://ora.ai/score/{domain}"]);
+    expect(oraLinks.sort()).toEqual(["https://app.ora.ai/verify?domain={domain}", "https://ora.ai/score/{domain}"]);
   });
 });
 

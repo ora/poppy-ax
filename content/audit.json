@@ -75,7 +75,7 @@
         "title": "Requires opt-in",
         "intro": "These run only for a site owner who verifies the domain and opts in.",
         "linkText": "Verify you own the domain on Ora",
-        "href": "https://app.ora.ai/"
+        "href": "https://app.ora.ai/verify?domain={domain}"
       },
       "3": {
         "title": "Signed-in flows",
