@@ -646,3 +646,132 @@ main {
     margin-inline-start: calc(6.5rem + var(--space-4));
   }
 }
+
+/* Buttons, shared by the domain box, the home page and the result page */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: var(--space-2) var(--space-6);
+  border: 2px solid transparent;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button--primary {
+  background-color: var(--color-poppy);
+  color: var(--color-on-poppy);
+}
+
+.button--primary:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.button--secondary {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.button--secondary:hover {
+  border-color: var(--color-poppy);
+  color: var(--color-ink);
+}
+
+/* The domain box */
+
+.domain-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 34rem;
+  margin-block-start: var(--space-4);
+}
+
+.domain-form__label {
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.domain-form__hint {
+  margin-block: var(--space-1) var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.domain-form__row {
+  display: flex;
+  min-width: 0;
+  border: 2px solid var(--color-ink);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+}
+
+.domain-form__row:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.domain-form__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-radius: 4px 0 0 4px;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+}
+
+.domain-form__input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+/* The row draws the focus ring, around the input and its button together. */
+.domain-form__input:focus-visible {
+  outline: none;
+}
+
+.domain-form__row .button {
+  flex: none;
+  border-radius: 0 3px 3px 0;
+  margin: -2px -2px -2px 0;
+}
+
+.domain-form__row .button:focus-visible {
+  outline-offset: -6px;
+  outline-color: var(--color-on-poppy);
+}
+
+.domain-form__message {
+  min-height: 1.6em;
+  margin-block-start: var(--space-3);
+  font-weight: 700;
+}
+
+.domain-form__message:not(:empty) {
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--color-poppy);
+}
+
+/* Without JavaScript, app/audit/route.ts sends a refused domain back to
+   /?error=<code>#domain-error-<code>; only that one message shows. */
+.domain-form__fallback {
+  display: none;
+  margin-block-start: var(--space-3);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--color-poppy);
+  font-weight: 700;
+}
+
+.domain-form__fallback:target {
+  display: block;
+}

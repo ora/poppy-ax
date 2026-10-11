@@ -19,3 +19,11 @@ export function submitStep(raw: string, normalize: ((input: string) => DomainRes
   const result = normalize(raw);
   return result.ok ? { kind: "navigate", path: `/audit/${result.domain}` } : { kind: "message", message: result.message };
 }
+
+/**
+ * The id of the message the home page shows without JavaScript, for
+ * `/?error=<code>#<id>`. `code` is a key of DOMAIN_MESSAGES in lib/domain.ts.
+ */
+export function domainErrorAnchor(code: string): string {
+  return `domain-error-${code}`;
+}

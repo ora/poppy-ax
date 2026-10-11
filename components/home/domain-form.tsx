@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
-import { submitStep } from "@/lib/domain-submit";
+import { domainErrorAnchor, submitStep } from "@/lib/domain-submit";
 import type { HomeContent } from "@/lib/home";
 
 export const DOMAIN_INPUT_ID = "domain-input";
@@ -21,15 +21,35 @@ function preload() {
   void loadNormalizer();
 }
 
-export function DomainForm({ copy }: { copy: HomeContent["check"] }) {
+export interface DomainFormProps {
+  copy: HomeContent["check"];
+  /** A message to show from the start, such as why the last domain can't be checked. */
+  initialMessage?: string;
+  /**
+   * Messages for the no-JavaScript path (Ruling R38), keyed by code. Each is
+   * hidden until the URL's fragment names it (`/?error=<code>#domain-error-<code>`),
+   * so the page stays static. Only known codes have one.
+   */
+  fallbackMessages?: Readonly<Record<string, string>>;
+}
+
+/** Drop a no-JavaScript message's fragment once the visitor moves on. */
+function clearFallbackFragment() {
+  if (window.location.hash.startsWith(`#${domainErrorAnchor("")}`)) {
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+  }
+}
+
+export function DomainForm({ copy, initialMessage = "", fallbackMessages }: DomainFormProps) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialMessage);
   const hintId = useId();
   const messageId = useId();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    clearFallbackFragment();
     const normalizer = await loadNormalizer();
     const step = submitStep(input.current?.value ?? "", normalizer?.normalizeDomain ?? null);
     if (step.kind === "navigate") {
@@ -42,7 +62,9 @@ export function DomainForm({ copy }: { copy: HomeContent["check"] }) {
   }
 
   return (
-    <form className="domain-form" onSubmit={onSubmit} noValidate>
+    // Without JavaScript the form goes to app/audit/route.ts, which sends the
+    // visitor to the result page or back with the message's code.
+    <form className="domain-form" action="/audit" method="get" onSubmit={onSubmit} noValidate>
       <label htmlFor={DOMAIN_INPUT_ID} className="domain-form__label">
         {copy.label}
       </label>
@@ -75,6 +97,12 @@ export function DomainForm({ copy }: { copy: HomeContent["check"] }) {
       <p id={messageId} className="domain-form__message" aria-live="polite">
         {message}
       </p>
+      {fallbackMessages &&
+        Object.entries(fallbackMessages).map(([code, text]) => (
+          <p key={code} id={domainErrorAnchor(code)} className="domain-form__fallback" tabIndex={-1}>
+            {text}
+          </p>
+        ))}
     </form>
   );
 }

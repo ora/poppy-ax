@@ -3,6 +3,7 @@ import { CheckASiteLink } from "@/components/home/check-a-site";
 import { DomainForm } from "@/components/home/domain-form";
 import { RichText } from "@/components/home/rich-text";
 import { ThreeSteps } from "@/components/home/three-steps";
+import { DOMAIN_MESSAGES } from "@/lib/domain";
 import { homeContent } from "@/lib/home";
 import "./home.css";
 
@@ -17,7 +18,7 @@ export default function HomePage() {
           {heading}
         </h1>
         <p className="lede">{lede}</p>
-        <DomainForm copy={check} />
+        <DomainForm copy={check} fallbackMessages={DOMAIN_MESSAGES} />
       </section>
 
       <section className="story" aria-label={story.label}>
