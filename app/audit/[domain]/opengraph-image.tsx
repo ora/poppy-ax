@@ -5,18 +5,15 @@ import { getCatalog, getSummary } from "@/lib/ora/client";
 import { fixtureCatalog } from "@/lib/rows";
 
 // The preview image for a result: domain, verdict, pass counts and profile.
-// Made on request and cached as long as the summary it shows (60 seconds,
-// Ora's own max-age).
-export const revalidate = 60;
+// Made on request, never stored by Next (any path can be asked for, so
+// stored images would grow without bound). Caching is by Cache-Control: a
+// result's image as long as its summary (60 seconds, Ora's own max-age),
+// shared caches included; the "Check <domain>" and neutral cards for a
+// minute in the browser only.
+export const dynamic = "force-dynamic";
 export const alt = auditContent.image.alt;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
-// No domain is drawn at build time. Listing none makes each image cacheable
-// when first asked for, for `revalidate` seconds, instead of drawn per request.
-export function generateStaticParams(): Array<{ domain: string }> {
-  return [];
-}
 
 // next/og cannot read CSS variables, so the light palette of app/globals.css
 // is copied here, each value named by its token. Keep them in step.
@@ -121,6 +118,12 @@ export default async function Image({ params }: { params: Promise<{ domain: stri
         )}
       </div>
     ),
-    size,
+    {
+      ...size,
+      headers: {
+        "cache-control":
+          card.kind === "result" ? "public, max-age=60, s-maxage=60, stale-while-revalidate=60" : "public, max-age=60",
+      },
+    },
   );
 }
