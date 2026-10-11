@@ -157,6 +157,11 @@ export function relayScanEvents(upstream: ReadableStream<Uint8Array>, context: R
   const encoder = new TextEncoder();
   // Text after the last frame boundary, with LF line ends only.
   let buffer = "";
+  // The UTF-8 size of `buffer`, kept as text is added and frames are cut
+  // off, so a frame arriving in many tiny chunks costs linear time.
+  let bufferBytes = 0;
+  // The last character of `buffer`, or "" when it is empty.
+  let lastChar = "";
   // Where the next search for a boundary starts: nothing before it can begin one.
   let scanFrom = 0;
   // A CR at the end of a chunk may be the first half of a CRLF.
@@ -188,27 +193,43 @@ export function relayScanEvents(upstream: ReadableStream<Uint8Array>, context: R
     out.push(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
   }
 
-  /** Add decoded text and pull out every finished frame. */
+  /**
+   * Add decoded text and pull out every finished frame. Work is linear in the
+   * text added: the buffer is searched only when the new text (with the
+   * character before it) holds a frame boundary, and its byte size is a
+   * running total.
+   */
   function take(text: string, final: boolean, out: Uint8Array[]): void {
     let chunk = (pendingCr ? "\r" : "") + text;
     pendingCr = !final && chunk.endsWith("\r");
     if (pendingCr) chunk = chunk.slice(0, -1);
-    buffer += toLf(chunk);
-    let start = 0;
-    for (let at = buffer.indexOf("\n\n", scanFrom); at !== -1; at = buffer.indexOf("\n\n", start)) {
-      emit(buffer.slice(start, at), out);
-      start = at + 2;
+    const added = toLf(chunk);
+    const boundary = (lastChar + added).includes("\n\n");
+    buffer += added;
+    bufferBytes += utf8Length(added);
+    if (added !== "") lastChar = added[added.length - 1] ?? "";
+    if (boundary) {
+      let start = 0;
+      for (let at = buffer.indexOf("\n\n", scanFrom); at !== -1; at = buffer.indexOf("\n\n", start)) {
+        emit(buffer.slice(start, at), out);
+        start = at + 2;
+      }
+      if (start > 0) {
+        bufferBytes -= utf8Length(buffer.slice(0, start));
+        buffer = buffer.slice(start);
+        if (buffer === "") lastChar = "";
+      }
     }
-    if (start > 0) buffer = buffer.slice(start);
     // A boundary can start on the last character only.
     scanFrom = Math.max(0, buffer.length - 1);
     if (final) {
       if (buffer.trim() !== "") emit(buffer, out);
       buffer = "";
+      bufferBytes = 0;
+      lastChar = "";
       scanFrom = 0;
     }
-    // Cheap first: a string never has more characters than UTF-8 bytes.
-    if (buffer.length > maxFrameBytes || (buffer.length * 3 > maxFrameBytes && utf8Length(buffer) > maxFrameBytes)) {
+    if (bufferBytes > maxFrameBytes) {
       throw new RelayStop(`a frame from Ora grew past ${maxFrameBytes} bytes`);
     }
   }

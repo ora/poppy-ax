@@ -811,6 +811,29 @@ describe("relayScanEvents", () => {
     expect(parseSseFrames(await new Response(relay).text())).toEqual([{ type: "kind_detecting" }]);
   });
 
+  it("counts bytes per frame, not per stream, as frames are cut off", async () => {
+    const frame = `${DATA({ type: "check_complete", details: "é✓" })}\n\n`;
+    const frameBytes = new TextEncoder().encode(frame).length;
+    // Ten frames, one character at a time: far past the cap in total, each one at it.
+    const { stream } = chunked([...frame.repeat(10)]);
+    const relay = relayScanEvents(stream, { domain: "example.com", maxFrameBytes: frameBytes });
+    expect(parseSseFrames(await new Response(relay).text())).toHaveLength(10);
+  });
+
+  it("reads a large frame in many small chunks in linear time", async () => {
+    // About 600 KB in 100 byte chunks. Recounting the whole buffer on every
+    // chunk took seconds here; a running total takes a few milliseconds.
+    const details = "x".repeat(600_000);
+    const text = `${DATA({ type: "check_complete", details })}\n\n`;
+    const parts: string[] = [];
+    for (let at = 0; at < text.length; at += 100) parts.push(text.slice(at, at + 100));
+    const { stream } = chunked(parts);
+    const started = performance.now();
+    const frames = parseSseFrames(await relayText(stream));
+    expect(performance.now() - started).toBeLessThan(1_500);
+    expect(frames).toEqual([{ type: "check_complete", details }]);
+  });
+
   it("cuts a stream that sends nothing for the idle time", async () => {
     const log = vi.fn();
     const { stream, state } = chunked([`${DATA({ type: "kind_detecting" })}\n\n`], { close: false });
