@@ -1,0 +1,60 @@
+/* Sites page styles. Everything is scoped under .sites. */
+
+.sites__order,
+.sites__note {
+  margin-block-start: var(--space-6);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.sites__state {
+  margin-block-start: var(--space-8);
+  max-width: var(--measure);
+}
+
+.sites__list {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  border-block-start: 1px solid var(--color-rule);
+}
+
+.sites__row {
+  display: grid;
+  gap: var(--space-1) var(--space-6);
+  padding-block: var(--space-4);
+  border-block-end: 1px solid var(--color-rule);
+}
+
+.sites__domain {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.sites__meta {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.sites__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  justify-self: start;
+}
+
+.sites__arc {
+  margin-block-start: var(--space-8);
+}
+
+@media (min-width: 40rem) {
+  .sites__row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+  }
+
+  .sites__link {
+    justify-self: end;
+  }
+}

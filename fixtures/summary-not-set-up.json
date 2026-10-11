@@ -1,0 +1,947 @@
+{
+  "domain": "example.com",
+  "profile": "pap-0.1@2026-10-09",
+  "last_run": "2026-10-10T22:31:57.151Z",
+  "verdict": "not_set_up",
+  "counts": {
+    "tier0": {
+      "pass": 0,
+      "fail": 0,
+      "na": 30,
+      "blocked": 0,
+      "not_tested": 0
+    },
+    "tier1": {
+      "pass": 0,
+      "fail": 0,
+      "na": 7,
+      "blocked": 0,
+      "not_tested": 0
+    },
+    "tier2a": {
+      "pass": 0,
+      "fail": 0,
+      "na": 0,
+      "blocked": 0,
+      "not_tested": 10
+    },
+    "tier2b": {
+      "pass": 0,
+      "fail": 0,
+      "na": 0,
+      "blocked": 0,
+      "not_tested": 36
+    },
+    "tier3": {
+      "pass": 0,
+      "fail": 0,
+      "na": 0,
+      "blocked": 0,
+      "not_tested": 17
+    }
+  },
+  "rows": [
+    {
+      "id": "T0-01",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": "No poppy.json: HTTP 404"
+    },
+    {
+      "id": "T0-02",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-03",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-04",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-05",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-06",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-07",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-08",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-SIB",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-09",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-10",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-11",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-12",
+      "tier": 0,
+      "level": "0",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-21",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "ADV-PKCE",
+      "tier": 0,
+      "level": "0",
+      "severity": "Adv",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-13",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-14",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-19",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-20",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-15",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-16",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-17",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T0-18",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "X-01",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "X-02",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "X-04",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "X-07",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "X-08",
+      "tier": 0,
+      "level": "0",
+      "severity": "Adv",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "X-10",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "X-12",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T1-01",
+      "tier": 1,
+      "level": "1",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T1-02",
+      "tier": 1,
+      "level": "1",
+      "severity": "Adv",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T1-03",
+      "tier": 1,
+      "level": "1",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T1-05",
+      "tier": 1,
+      "level": "1",
+      "severity": "P1",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T1-07",
+      "tier": 1,
+      "level": "1",
+      "severity": "P0",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T1-09",
+      "tier": 1,
+      "level": "1",
+      "severity": "P2",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "ADV-REDIRECT",
+      "tier": 1,
+      "level": "1",
+      "severity": "Adv",
+      "outcome": "na",
+      "reason": null,
+      "note": null
+    },
+    {
+      "id": "T2-M1",
+      "tier": 2,
+      "level": "2a",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-M5",
+      "tier": 2,
+      "level": "2a",
+      "severity": "Adv",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-01",
+      "tier": 2,
+      "level": "2a",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-02",
+      "tier": 2,
+      "level": "2a",
+      "severity": "P2",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-05",
+      "tier": 2,
+      "level": "2a",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-14",
+      "tier": 2,
+      "level": "2a",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-16",
+      "tier": 2,
+      "level": "2a",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-18",
+      "tier": 2,
+      "level": "2a",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-19",
+      "tier": 2,
+      "level": "2a",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-25",
+      "tier": 2,
+      "level": "2a",
+      "severity": "Adv",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T2-M2",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-M3",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-M4",
+      "tier": 2,
+      "level": "2b",
+      "severity": "Adv",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T1-12",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-03",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-04",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-06",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-07",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-08",
+      "tier": 2,
+      "level": "2b",
+      "severity": "Adv",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-09",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-10",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-11",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-12",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-13",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-15",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-17",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-20",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-21",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-22",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-23",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-24",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-26",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-27",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-28",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-29",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-30",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P2",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-31",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-32",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-33",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P2",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-34",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-35",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P2",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-36",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-37",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P2",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-38",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-39",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T2-40",
+      "tier": 2,
+      "level": "2b",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "opt_in_required",
+      "note": null
+    },
+    {
+      "id": "T3-01",
+      "tier": 3,
+      "level": "3",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-02",
+      "tier": 3,
+      "level": "3",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-03",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-04",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-05",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-06",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-07",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-08",
+      "tier": 3,
+      "level": "3",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-09",
+      "tier": 3,
+      "level": "3",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-10",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-11",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-12",
+      "tier": 3,
+      "level": "3",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-13",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-14",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-15",
+      "tier": 3,
+      "level": "3",
+      "severity": "P0",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-16",
+      "tier": 3,
+      "level": "3",
+      "severity": "P1",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    },
+    {
+      "id": "T3-17",
+      "tier": 3,
+      "level": "3",
+      "severity": "Adv",
+      "outcome": "not_tested",
+      "reason": "not_available",
+      "note": null
+    }
+  ],
+  "probed_at": null,
+  "report_url": "https://ora.ai/pap/example.com"
+}

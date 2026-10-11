@@ -37,19 +37,33 @@
   },
   "footerNavLabel": "Footer",
   "pages": {
-    "home": {
-      "heading": "Let your customers' AI assistants in. Safely.",
-      "lede": "A plain guide to how an AI assistant can find a company's front door, prove who it is, and act for a person only within what that person approved. The checker arrives on this page soon."
-    },
     "setup": {
       "title": "Set it up",
       "heading": "Set it up, one level at a time",
-      "lede": "Four levels, and you can stop at any of them. Each one says what to build, roughly how big it is, and which checks turn green. The guide arrives on this page soon."
+      "lede": "Four levels, and you can stop at any of them. Each one says what to build, roughly how big it is, and which of the checker's rows turn green. Every claim links the section of the spec it comes from."
     },
     "sites": {
       "title": "Sites",
       "heading": "Sites that publish a PAP file",
-      "lede": "Every site Ora has seen publishing the protocol's public file, with the date it was first seen. The list arrives on this page soon."
+      "lede": "Every site Ora has seen publishing the protocol's public file, with the date it was first seen. Pick one to see its result.",
+      "description": "Every domain Ora has seen publishing a PAP file, with the date it was first seen and a link to its result.",
+      "order": "Most recently seen first.",
+      "listLabel": "Sites that publish a PAP file",
+      "firstSeen": "First seen",
+      "resultLinkText": "See result",
+      "empty": "No site has shown up yet. Be the first.",
+      "emptyLink": {
+        "text": "Here is how to set it up",
+        "href": "/setup"
+      },
+      "unavailable": "The list is not available right now. Please try again in a few minutes.",
+      "arc": {
+        "before": "For adoption over time, see ",
+        "linkText": "ARC",
+        "href": "https://www.arcreport.ai/protocols/pap",
+        "after": "."
+      },
+      "note": "This is not every site that publishes the file. Ora lists only the domains it has scanned."
     }
   }
 }

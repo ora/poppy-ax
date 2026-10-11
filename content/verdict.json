@@ -1,0 +1,25 @@
+{
+  "headlines": {
+    "not_set_up": "Not set up",
+    "unreachable": "Couldn't reach it",
+    "not_checked": "Ora couldn't check it",
+    "problems": "Set up, with problems",
+    "working": "Working (Tier 0 and 1 pass)",
+    "no_problems_found": "No problems found",
+    "unknown": "Result not available"
+  },
+  "reasons": {
+    "timeout": "the site took too long to answer",
+    "deadline": "the scan ran out of time before this check could finish",
+    "probe_cooldown": "checked recently, showing the earlier result",
+    "check_error": "the checker failed to run this check",
+    "owner_opt_out": "the owner turned off active checks",
+    "out_of_scope": "this check was outside what the scan covers for this site",
+    "not_available": "the checker does not run this check yet",
+    "opt_in_required": "this check runs only when the site owner opts in"
+  },
+  "outcomes": {
+    "blocked": "something stopped this check before it could finish",
+    "not_tested": "this check did not run"
+  }
+}

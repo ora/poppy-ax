@@ -34,6 +34,7 @@
   /* Type */
   --font-serif: var(--font-display), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --font-sans: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --text-xs: 0.8125rem;
   --text-sm: 0.875rem;
   --text-base: 1.125rem;
@@ -336,4 +337,443 @@ main {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;
+}
+
+/* Visually hidden text, still read by screen readers */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Setup guide */
+
+.setup__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-8);
+  margin-block-start: var(--space-12);
+}
+
+.setup__levels {
+  min-width: 0;
+}
+
+/* The level nav: a short ordered list on a phone, a sticky column on wide screens. */
+
+.level-nav ol {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block: 1px solid var(--color-rule);
+  padding-block: var(--space-3);
+}
+
+.level-nav a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-height: 2.75rem;
+  padding-block: var(--space-2);
+  text-decoration-line: none;
+}
+
+.level-nav a:hover .level-nav__title {
+  text-decoration-line: underline;
+}
+
+.level-nav__number {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-poppy);
+  min-width: 1.25rem;
+}
+
+.level-nav__title {
+  font-weight: 700;
+  text-decoration-color: var(--color-poppy);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+}
+
+@media (min-width: 64rem) {
+  .setup__layout {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: var(--space-12);
+  }
+
+  .level-nav {
+    position: sticky;
+    inset-block-start: var(--space-8);
+    align-self: start;
+  }
+}
+
+/* One level */
+
+.level {
+  padding-block: var(--space-12) var(--space-16);
+  border-block-start: 1px solid var(--color-rule);
+  scroll-margin-block-start: var(--space-4);
+}
+
+.level:first-child {
+  border-block-start: 0;
+  padding-block-start: 0;
+}
+
+.level__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+/* The level number, set large: the one bold mark on the page. */
+.level__number {
+  font-family: var(--font-serif);
+  font-size: clamp(4rem, 3rem + 4vw, 7rem);
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: var(--color-poppy);
+}
+
+.level__title {
+  font-size: clamp(1.875rem, 1.5rem + 1.6vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  max-width: 20ch;
+}
+
+.level__summary {
+  font-size: var(--text-lede);
+  line-height: 1.45;
+  max-width: var(--measure);
+}
+
+.level__facts {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  max-width: var(--measure);
+  padding-block: var(--space-4);
+  border-block: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.level__facts dt {
+  font-weight: 700;
+}
+
+.level__facts dd {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+@media (min-width: 40rem) {
+  .level__head {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+  }
+
+  .level__number {
+    grid-row: 1 / span 3;
+    text-align: end;
+    padding-inline-end: var(--space-2);
+  }
+
+  .level__head > :not(.level__number) {
+    grid-column: 2;
+  }
+
+  .level .prose,
+  .level-checks {
+    margin-inline-start: calc(6.5rem + var(--space-4));
+  }
+
+  .level__facts {
+    grid-template-columns: 9rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+  }
+
+  .level__facts > div {
+    display: contents;
+  }
+}
+
+/* Long-form text inside a level, from content/setup/*.mdx */
+
+.prose {
+  max-width: var(--measure);
+  margin-block-start: var(--space-8);
+}
+
+.prose > * + * {
+  margin-block-start: var(--space-4);
+}
+
+.prose h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-block-start: var(--space-12);
+}
+
+.prose > h3:first-child {
+  margin-block-start: var(--space-8);
+}
+
+.prose h3 + * {
+  margin-block-start: var(--space-3);
+}
+
+.prose ul,
+.prose ol {
+  padding-inline-start: var(--space-6);
+}
+
+.prose li + li {
+  margin-block-start: var(--space-2);
+}
+
+.prose li::marker {
+  color: var(--color-poppy);
+}
+
+.prose ol li::marker {
+  font-weight: 700;
+}
+
+.prose :not(pre) > code,
+.level-checks code {
+  padding: 0.05em 0.3em;
+  border-radius: 3px;
+  background-color: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+
+/* Code blocks scroll sideways inside themselves, never the page. */
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-block: var(--space-6);
+  padding: var(--space-4);
+  border: 1px solid var(--color-rule);
+  border-inline-start: 3px solid var(--color-poppy);
+  border-radius: 4px;
+  background-color: var(--color-surface);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+.prose pre code {
+  font-size: inherit;
+  white-space: pre;
+}
+
+/* The checker rows a level turns green */
+
+.level-checks {
+  max-width: var(--measure);
+  margin-block-start: var(--space-12);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.level-checks h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.level-checks > p {
+  margin-block: var(--space-2) var(--space-4);
+  color: var(--color-ink-muted);
+}
+
+.level-checks details {
+  border-block-start: 1px solid var(--color-rule);
+}
+
+.level-checks details:last-of-type {
+  border-block-end: 1px solid var(--color-rule);
+}
+
+.level-checks summary {
+  min-height: 2.75rem;
+  padding-block: var(--space-3);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.level-checks__count {
+  font-weight: 400;
+  color: var(--color-ink-muted);
+}
+
+.level-checks ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0 0 var(--space-4);
+  list-style: none;
+}
+
+/* The one note after the guide */
+
+.hosted-note {
+  max-width: var(--measure);
+  margin-block-start: var(--space-8);
+  padding: var(--space-6);
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
+  color: var(--color-ink-muted);
+}
+
+@media (min-width: 40rem) {
+  .hosted-note {
+    margin-inline-start: calc(6.5rem + var(--space-4));
+  }
+}
+
+/* Buttons, shared by the domain box, the home page and the result page */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: var(--space-2) var(--space-6);
+  border: 2px solid transparent;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button--primary {
+  background-color: var(--color-poppy);
+  color: var(--color-on-poppy);
+}
+
+.button--primary:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* Transparent, so a <button> drops the browser's own grey (ButtonFace) and matches a link styled as one. */
+.button--secondary {
+  border-color: var(--color-ink);
+  background-color: transparent;
+  color: var(--color-ink);
+}
+
+.button--secondary:hover {
+  border-color: var(--color-poppy);
+  color: var(--color-ink);
+}
+
+/* The domain box */
+
+.domain-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 34rem;
+  margin-block-start: var(--space-4);
+}
+
+.domain-form__label {
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.domain-form__hint {
+  margin-block: var(--space-1) var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.domain-form__row {
+  display: flex;
+  min-width: 0;
+  border: 2px solid var(--color-ink);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+}
+
+.domain-form__row:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.domain-form__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-radius: 4px 0 0 4px;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+}
+
+.domain-form__input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+/* The row draws the focus ring, around the input and its button together. */
+.domain-form__input:focus-visible {
+  outline: none;
+}
+
+.domain-form__row .button {
+  flex: none;
+  border-radius: 0 3px 3px 0;
+  margin: -2px -2px -2px 0;
+}
+
+.domain-form__row .button:focus-visible {
+  outline-offset: -6px;
+  outline-color: var(--color-on-poppy);
+}
+
+.domain-form__message {
+  min-height: 1.6em;
+  margin-block-start: var(--space-3);
+  font-weight: 700;
+}
+
+.domain-form__message:not(:empty) {
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--color-poppy);
+}
+
+/* Without JavaScript, app/audit/route.ts sends a refused domain back to
+   /?error=<code>#domain-error-<code>; only that one message shows. */
+.domain-form__fallback {
+  display: none;
+  margin-block-start: var(--space-3);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--color-poppy);
+  font-weight: 700;
+}
+
+.domain-form__fallback:target {
+  display: block;
 }

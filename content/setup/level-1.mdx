@@ -1,0 +1,80 @@
+### Publish one public file
+
+A person's AI assistant (the spec calls it a Personal Agent) starts at one public file on your domain, at `https://example.com/.well-known/poppy.json`. You must serve it over HTTPS. The address may redirect, for example to a provider that hosts the file for you, but every redirect must go to an HTTPS address ([spec 3](https://personalagentprotocol.org/docs/spec#discovery)).
+
+The smallest useful file names your company and your website. This one follows the shape of the spec's example, cut down to what level 1 needs ([spec 3](https://personalagentprotocol.org/docs/spec#discovery), [spec 3.1](https://personalagentprotocol.org/docs/spec#fields)):
+
+<CodeLabel>poppy.json, the whole file</CodeLabel>
+
+```json
+{
+  "protocol_version": "0.1",
+  "organization": {
+    "name": "Example Company",
+    "domain": "example.com"
+  },
+  "web": {}
+}
+```
+
+With only `web`, assistants browse your site as ordinary signed-out visitors ([spec 3.1](https://personalagentprotocol.org/docs/spec#fields)). That is a real first step: assistants can find you, and the checker can read your file.
+
+### What each field means
+
+All of these come from the spec's field list ([spec 3.1](https://personalagentprotocol.org/docs/spec#fields)).
+
+- `protocol_version` is the version of the protocol the file follows. For this draft it is `"0.1"`.
+- `organization` holds your display `name` and your `domain`. The `domain` must match the host the assistant asked for, ignoring a leading `www.`. If the address redirected, the host that finally served the file does not count.
+- `agent`, `apis` and `web` say what assistants can use, and you need at least one of them. `web` is your website. `apis` lists your APIs, which level 2 covers. `agent` lists ways to talk with your own AI agent, which level 4 covers.
+- `auth` names your sign-in server. You need it as soon as the file lists `agent`, `apis` or `web.browser_session_endpoint`. A company without `auth` can only be browsed like an ordinary website.
+- `extensions` is optional. It lists extra features you support, such as `operations` (level 4).
+
+<details>
+<summary>Details for implementers: naming extensions</summary>
+
+Extensions defined with the protocol have plain names, such as `operations`. Anyone else must start an extension's name with a domain they control, such as `example.com/gift-wrap`. Each entry has a `version`, the extension's major version ([spec 3.3](https://personalagentprotocol.org/docs/spec#extensions)).
+
+</details>
+
+### Name your sign-in server
+
+Levels 2 and 3 need a sign-in server, and you can name it now. It is an OAuth server: OAuth is the standard most sign-in servers already speak. Its name, an HTTPS address, goes in `auth.issuer`, and it identifies your company ([spec 3.1](https://personalagentprotocol.org/docs/spec#fields), [spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)):
+
+<CodeLabel>Excerpt from poppy.json</CodeLabel>
+
+```json
+"auth": {
+  "issuer": "https://auth.example.com"
+}
+```
+
+The server must publish a second public file, its OAuth metadata (RFC 8414). In the spec's example it lives at `https://auth.example.com/.well-known/oauth-authorization-server` ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)):
+
+<CodeLabel>OAuth metadata (excerpt)</CodeLabel>
+
+```json
+{
+  "issuer": "https://auth.example.com",
+  "token_endpoint": "https://auth.example.com/oauth/token",
+  "revocation_endpoint": "https://auth.example.com/oauth/revoke",
+  "poppy_domains": ["example.com"]
+}
+```
+
+The two files point at each other. Before an assistant uses your `poppy.json`, it fetches this metadata and checks two things: its `issuer` exactly matches `auth.issuer`, and `poppy_domains` includes your `organization.domain`. So `poppy_domains` must list every domain whose `poppy.json` names this issuer. Without that check, any domain could claim your sign-in server and receive its tokens ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)).
+
+The assistant takes its addresses from this metadata ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)):
+
+- `token_endpoint` issues tokens. Required. Level 2 makes it work for assistants.
+- `revocation_endpoint` is where an assistant signs out. Required. Level 3 uses it.
+- `authorization_endpoint` and `device_authorization_endpoint` start the two kinds of sign-in in level 3. You need each one only if you offer that kind.
+
+If you run a domain for each country, several domains may name the same issuer. They then count as one company: the same user IDs, sessions and account tokens apply across all of them ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)). A session is one person's activity at your company through one assistant; level 2 explains sessions and user IDs, and level 3 account tokens.
+
+Assistants should cache both files according to their HTTP caching headers ([spec 3](https://personalagentprotocol.org/docs/spec#discovery), [spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)), so send caching headers that match how often the files change.
+
+### Tools that help
+
+[A reference implementation is promised.](https://sierra.ai/blog/introducing-personal-agent-protocol) Sierra's announcement gives no date.
+
+Datalayer publishes an open source SDK for Python and TypeScript ([on PyPI](https://pypi.org/project/personal-agent-protocol/0.3.0/), [on GitHub](https://github.com/datalayer/personal-agent-protocol)). It is pre-beta. Its command line tool has a `pap company verify` command that checks a company's setup from the assistant's side.

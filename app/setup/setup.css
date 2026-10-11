@@ -1,0 +1,44 @@
+/* Setup guide styles that only /setup uses. Everything is scoped under .setup. */
+
+.setup code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+/* A caption above a code block: says what the JSON is, and whether it is a whole document or an excerpt. */
+.setup .code-label {
+  margin-block-start: var(--space-6);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+.setup .code-label + pre {
+  margin-block-start: var(--space-2);
+}
+
+/* "Details for implementers": collapsed by default, so the main path stays short. */
+.setup .prose details {
+  margin-block: var(--space-6);
+  border-block: 1px solid var(--color-rule);
+}
+
+.setup .prose details > summary {
+  min-height: 2.75rem;
+  padding-block: var(--space-3);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.setup .prose details[open] {
+  padding-block-end: var(--space-4);
+}
+
+.setup .prose details > :not(summary) + * {
+  margin-block-start: var(--space-4);
+}
+
+.setup .prose details + details {
+  margin-block-start: 0;
+  border-block-start: 0;
+}

@@ -1,0 +1,79 @@
+{
+  "heading": "Let your customers' AI assistants in. Safely.",
+  "lede": "The Personal Agent Protocol is a new, open protocol for how an AI assistant finds a company's front door. Then the assistant proves who it is, and uses a person's account only within what that person approved.",
+  "check": {
+    "label": "Check a company's site",
+    "hint": "Type its domain, like example.com.",
+    "placeholder": "example.com",
+    "button": "Check"
+  },
+  "story": {
+    "label": "The story in four parts",
+    "beats": [
+      {
+        "id": "problem",
+        "title": "The problem",
+        "paragraphs": [
+          "Your customers' assistants already use your site the way people do: loading pages, clicking through forms, and when that fails, calling your support line. [It's slow, and the task often fails.](https://sierra.ai/blog/introducing-personal-agent-protocol)"
+        ]
+      },
+      {
+        "id": "idea",
+        "title": "The idea",
+        "paragraphs": [
+          "The Personal Agent Protocol (PAP for short, which its spec calls Poppy) gives those assistants a standard front door. Your site publishes [one public file](https://personalagentprotocol.org/docs/spec#discovery) that says where assistants should go, and your sign-in server [confirms the file is yours](https://personalagentprotocol.org/docs/spec#oauth-server).",
+          "Each assistant proves who it is and gets a short-lived key. The key is [tied to a secret](https://personalagentprotocol.org/docs/spec#sending-tokens) only that assistant holds, so a copy is no use to anyone else. When a task needs the customer's account, the customer signs in, usually on your own page, and [approves what the assistant may do](https://personalagentprotocol.org/docs/spec#sign-in). The key then covers only that. Think of a valet key.",
+          "One exception: MCP, a common way to connect tools to assistants, can't check that secret. So a key made for an MCP server works at that one server only."
+        ]
+      },
+      {
+        "id": "changes",
+        "title": "What changes",
+        "paragraphs": [
+          "When people sign in on your own page, they never give their password to an assistant. You keep your own login, your own rules, and a record of what each assistant may do. People can [disconnect](https://personalagentprotocol.org/docs/spec#sign-out) an assistant from their account settings.",
+          "Assistants get one way in that is the same on every PAP site. Each company still [decides which assistants it lets in](https://personalagentprotocol.org/docs/spec#agent-identity)."
+        ]
+      },
+      {
+        "id": "stands",
+        "title": "Where it stands",
+        "paragraphs": [
+          "PAP is Draft 0.1, published 2026-10-09. Any part of it can still change. [A reference implementation is promised.](https://sierra.ai/blog/introducing-personal-agent-protocol)"
+        ],
+        "link": { "text": "Read the spec", "href": "https://personalagentprotocol.org/docs/spec" }
+      }
+    ]
+  },
+  "steps": {
+    "heading": "How it works, in three steps",
+    "stepPrefix": "Step",
+    "picture": {
+      "label": "Three steps in one picture. One: an assistant walks up to a company's door, marked with its public file, poppy.json. Two: the assistant gets a key whose tag reads View orders. Three: inside the key's limits it can track an order, while changing the card on the account stays outside them.",
+      "doorSign": "poppy.json",
+      "keyTag": "View orders",
+      "allowed": "Track order",
+      "refused": "Change card"
+    },
+    "items": [
+      {
+        "number": 1,
+        "title": "Find the door",
+        "caption": "A public file at a fixed address on the company's site tells assistants where to go."
+      },
+      {
+        "number": 2,
+        "title": "Get a key",
+        "caption": "The assistant proves who it is and gets a short-lived key tied to a secret it holds. To reach an account, the person signs in, usually on the company's own page."
+      },
+      {
+        "number": 3,
+        "title": "Act within the key",
+        "caption": "Each API call carries the key and, except at MCP servers, fresh proof of the secret. The company checks them, and allows account actions only within what the person approved."
+      }
+    ]
+  },
+  "actions": {
+    "check": { "text": "Check a site" },
+    "setup": { "text": "Set it up", "href": "/setup" }
+  }
+}
