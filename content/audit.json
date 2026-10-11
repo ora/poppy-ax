@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "title": "{domain}: {headline}",
+    "descriptions": {
+      "not_set_up": "{domain} doesn't publish a PAP file yet. See what it takes to let people's AI assistants in.",
+      "unreachable": "The checker couldn't reach the PAP file on {domain}, so nothing could be measured.",
+      "problems": "{domain} publishes a PAP file, but at least one of the most serious checks failed. See what to fix first.",
+      "working": "{domain} passes every Tier 0 and Tier 1 check the checker runs today.",
+      "no_problems_found": "No serious check failed on {domain}, but some could not be measured on the last run.",
+      "unknown": "The latest PAP result for {domain}, from an independent checker."
+    },
+    "checkTitle": "Check {domain}",
+    "checkDescription": "See whether {domain} lets people's AI assistants in, using the Personal Agent Protocol (PAP).",
+    "errorDescription": "The PAP result for {domain} could not be loaded right now.",
+    "invalidTitle": "Not a domain we can check"
+  },
+  "verdict": {
+    "question": "Does it work for agents?",
+    "explain": {
+      "not_set_up": "",
+      "unreachable": "Its PAP file never answered, so the checker could not measure anything. The site may have been down or slow when it was checked.",
+      "problems": "It publishes a PAP file, but at least one of the most serious checks (P0 or P1) failed.",
+      "working": "Every P0 and P1 check the checker runs today passed. Tier 2 and Tier 3 checks don't run yet.",
+      "no_problems_found": "No P0 or P1 check failed. But some could not be measured on this run, so it can't count as working yet. They are listed below.",
+      "unknown": "The checker gave a result this site can't show yet. The full report has every detail."
+    },
+    "invitation": {
+      "before": "{domain} doesn't publish a PAP file yet. ",
+      "linkText": "Here's what it takes",
+      "href": "/setup",
+      "after": "."
+    },
+    "factsLabel": "About this result",
+    "tiers": {
+      "tier0": "Tier 0 checks",
+      "tier1": "Tier 1 checks"
+    },
+    "counts": {
+      "pass": "{n} passed",
+      "fail": "{n} failed",
+      "na": "{n} didn't apply",
+      "unmeasured": "{n} not measured",
+      "none": "none"
+    },
+    "profile": "Profile",
+    "lastRun": "Last checked",
+    "profileHelp": "the PAP version and check list used"
+  },
+  "fixFirst": {
+    "question": "What do I fix first?",
+    "intro": "The failed checks that matter most, P0 first. Each one links the setup step that fixes it.",
+    "none": "Nothing. No P0 or P1 check failed.",
+    "unreachable": "First make sure {domain}/.well-known/poppy.json answers over HTTPS. Then check again.",
+    "saw": "What the checker saw:",
+    "fixLink": "How to fix it",
+    "specLink": "What the spec says"
+  },
+  "notChecked": {
+    "question": "What wasn't checked?",
+    "intro": "Phase 1 of the checker runs Tier 0 and Tier 1. These checks did not run.",
+    "unmeasured": {
+      "title": "Not measured on this run",
+      "intro": "These P0 and P1 checks run today, but this run could not measure them.",
+      "why": "Why:"
+    },
+    "groups": {
+      "2a": {
+        "title": "Coming soon",
+        "intro": "The checker doesn't run these yet."
+      },
+      "2b": {
+        "title": "Requires opt-in",
+        "intro": "These run only for a site owner who verifies the domain and opts in.",
+        "linkText": "Verify you own the domain on Ora",
+        "href": "https://app.ora.ai/"
+      },
+      "3": {
+        "title": "Signed-in flows",
+        "intro": "What an assistant can do once a person signs in. The checker doesn't run these yet."
+      }
+    },
+    "count": "{n} checks"
+  },
+  "report": {
+    "linkText": "See every check in the full report",
+    "host": "on ora.ai"
+  },
+  "passing": {
+    "before": "Agents can sign in. ",
+    "linkText": "Whether they finish the job depends on the rest of your site.",
+    "href": "https://ora.ai/"
+  },
+  "checkAgain": {
+    "button": "Check again",
+    "available": "The result above is from {relative}.",
+    "waiting": "Checked less than 6 hours ago. You can check again after {time} ({relative})."
+  },
+  "notScanned": {
+    "lede": "We haven't checked this site yet. Checking it now. It can take a minute.",
+    "noscript": "Checking a site runs in your browser, so it needs JavaScript. Turn it on and reload this page."
+  },
+  "error": {
+    "lede": "We couldn't get the result for {domain} right now. Try again in a minute.",
+    "busy": "The checker is busy. Try again in {seconds} seconds.",
+    "retry": "Try again"
+  },
+  "invalid": {
+    "heading": "We can't check that",
+    "fallback": "That doesn't look like a domain. Type just the company's domain, like example.com."
+  },
+  "progress": {
+    "label": "Check progress",
+    "starting": "Starting the check of {domain}.",
+    "running": "Checking {domain}.",
+    "step": "Step {step} of {total}",
+    "saving": "The check is done. Saving the result.",
+    "loading": "Loading the result.",
+    "updated": "The result is up to date.",
+    "busy": "Too many checks right now. Try again in {seconds} seconds.",
+    "busyNoTime": "Too many checks right now. Try again in a minute.",
+    "unreachable": "We couldn't reach {domain}. Check the spelling, or try again later.",
+    "failed": "The check stopped before it finished. Try again in a few minutes.",
+    "network": "We lost the connection to the checker. Try again.",
+    "invalid": "That doesn't look like a domain we can check.",
+    "notReady": "The check finished, but its result isn't saved yet. Try again in a minute.",
+    "stale": "The new result isn't saved yet, so the result below is still the earlier one. Try again in a minute.",
+    "tryAgain": "Try again"
+  },
+  "image": {
+    "alt": "A poppy.ax result card with the domain, its verdict, pass counts and profile.",
+    "check": "Check {domain}",
+    "checkSub": "Does it let people's AI assistants in?",
+    "fallback": "The Personal Agent Protocol in plain words"
+  }
+}
