@@ -69,8 +69,8 @@ export function visitorIp(headers: Headers): string {
   return forwarded || "unknown";
 }
 
-/** Which budget a request spends: starting a check, or reading its result. */
-export type LimitScope = "check" | "result";
+/** Which budget a request spends. Only starting a check is limited. */
+export type LimitScope = "check";
 
 export interface LimitDeps {
   env?: Readonly<Record<string, string | undefined>>;

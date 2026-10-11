@@ -364,7 +364,7 @@ describe("visitor limit", () => {
     });
     const local = new WindowLimiter(1, 60_000);
     const env = { POPPY_CHECK_RATE_LIMIT_ID: "poppy-checks", VERCEL: "1" };
-    expect(await limitVisitor(request, "result", { env, firewall, local, now: 0 })).toEqual({ ok: true });
-    expect((await limitVisitor(request, "result", { env, firewall, local, now: 0 })).ok).toBe(false);
+    expect(await limitVisitor(request, "check", { env, firewall, local, now: 0 })).toEqual({ ok: true });
+    expect((await limitVisitor(request, "check", { env, firewall, local, now: 0 })).ok).toBe(false);
   });
 });
