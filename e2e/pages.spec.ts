@@ -268,6 +268,7 @@ test.describe("setup and sites", () => {
     const row = page.locator(".sites__row", { hasText: "poppy-receiver.roundtrip.workers.dev" });
     await expect(row).toBeVisible();
     await expect(row.getByRole("link")).toHaveAttribute("href", "/audit/poppy-receiver.roundtrip.workers.dev");
+    await expect(page.locator(".sites__order")).toHaveText("Most recently seen first.");
     await expect(page.getByRole("link", { name: "ARC" })).toHaveAttribute("href", "https://www.arcreport.ai/protocols/pap");
   });
 

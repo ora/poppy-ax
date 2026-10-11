@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
+import { connection } from "next/server";
 import { PageIntro } from "@/components/page-intro";
 import { content } from "@/lib/content";
 import { getSites } from "@/lib/ora/client";
@@ -21,7 +21,8 @@ export const metadata: Metadata = {
 export default async function SitesPage() {
   const sites = await getSites();
   // A render with no list must not be kept for the full five minutes.
-  if (sites === null) noStore();
+  // connection() replaces unstable_noStore, which Next 16 lists as legacy.
+  if (sites === null) await connection();
   const view = buildSitesView(sites);
   return (
     <div className="sites">

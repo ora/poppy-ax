@@ -30,7 +30,7 @@ export function formatFirstSeen(iso: string): { isoDate: string; text: string } 
   return { isoDate, text: `${date.getUTCDate()} ${MONTHS[month]} ${date.getUTCFullYear()}` };
 }
 
-/** Rows in the order Ora sent them. A row whose date cannot be read is left out. */
+/** Rows in the order Ora sent them: most recently seen first. A row whose date cannot be read is left out. */
 export function buildSiteRows(sites: readonly Site[]): SiteRow[] {
   const rows: SiteRow[] = [];
   for (const site of sites) {
