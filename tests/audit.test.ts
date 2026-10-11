@@ -148,6 +148,9 @@ describe("buildResultView with the six fixtures", () => {
     expect(view.passingLine).toBe(false);
     expect(view.reportUrl).toBe("https://ora.ai/pap/not-checked.example.com");
     expect(view.checkAgain).toEqual({ available: true, availableAt: null });
+    // Open at once, even inside Ora's 6 hour window: Ora does not serve this result from its cache.
+    const soon = Date.parse(notChecked.last_run) + 60_000;
+    expect(buildResultView(notChecked, fixtureCatalog, soon).checkAgain).toEqual({ available: true, availableAt: null });
     expect(view.tiers.map((tier) => tier.text)).toEqual(["30 not measured", "7 not measured"]);
   });
 

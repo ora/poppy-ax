@@ -187,7 +187,7 @@ Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`, exc
 | --- | --- | --- |
 | `not_set_up` | No valid `poppy.json` was found. In the captures (example.com, example.org) every Tier 0 and Tier 1 row is `na`, and T0-01's note gives the reason, such as `No poppy.json: HTTP 404`. | `summary-not-set-up.json` (example.com) |
 | `unreachable` | Ora could not measure `poppy.json`: it never answered. Every Tier 0 and Tier 1 row is `not_tested` with reason `timeout`. | `summary-unreachable.json` |
-| `not_checked` | Ora's own discovery check failed, so nothing was measured. This says nothing about the site: show it as Ora's failure, never the site's. Every Tier 0 and Tier 1 row is `not_tested` with reason `check_error`. Before this change, Ora answered `unreachable` here (from Ora's change set dated 2026-10-11, not yet captured live). | none: the tests build one from `summary-unreachable.json` |
+| `not_checked` | Ora's own discovery check failed, so nothing was measured. This says nothing about the site: show it as Ora's failure, never the site's. Every Tier 0 and Tier 1 row is `not_tested` with reason `check_error`. Before this change, Ora answered `unreachable` here. Ora does not serve this result from its freshness cache, so the next check runs fresh at once (both from Ora's change set dated 2026-10-11, not yet captured live). | none: the tests build one from `summary-unreachable.json` |
 | `problems` | At least one P0 or P1 row failed. | `summary-failing-p0.json` (T0-11, P0) |
 | `working` | `poppy.json` is there and no measured P0 or P1 row failed. | `summary-demo-receiver.json` |
 

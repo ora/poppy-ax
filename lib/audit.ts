@@ -251,7 +251,9 @@ export function buildResultView(
     unchecked: uncheckedGroups(summary, catalog),
     reportUrl: summary.report_url,
     passingLine: top.kind === "working",
-    checkAgain: checkAgain(summary.last_run, now),
+    // Ora does not serve a result it could not check from its cache, so a
+    // not_checked result can be checked again at once.
+    checkAgain: summary.verdict === "not_checked" ? { available: true, availableAt: null } : checkAgain(summary.last_run, now),
   };
 }
 
