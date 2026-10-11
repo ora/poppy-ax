@@ -23,7 +23,14 @@ test.describe("preview images", () => {
 
   test("a result's image is cached as long as its summary", async ({ request }) => {
     const response = await request.get(`/audit/${DOMAINS.working}/opengraph-image`);
-    expect(response.headers()["cache-control"]).toContain("s-maxage=60");
+    expect(response.headers()["cache-control"]).toBe("public, max-age=60, s-maxage=60");
+  });
+
+  test("the check and invalid cards stay in the browser only", async ({ request }) => {
+    for (const domain of [DOMAINS.not_checked_yet, DOMAINS.invalid]) {
+      const response = await request.get(`/audit/${domain}/opengraph-image`);
+      expect(response.headers()["cache-control"], domain).toBe("private, max-age=60");
+    }
   });
 
   test("the result page points its preview at the image", async ({ page }) => {

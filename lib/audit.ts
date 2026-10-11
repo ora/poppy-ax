@@ -349,3 +349,14 @@ export function imageCard(
   if (result.kind === "invalid") return { kind: "neutral", title: t.fallback };
   return { kind: "check", domain: param.domain, title: fill(t.check, { domain: param.domain }), subtitle: t.checkSub };
 }
+
+/**
+ * The preview image's Cache-Control. An image drawn from a stored summary is
+ * cached as long as the summary (60 seconds, Ora's own max-age), shared
+ * caches included. Every other card ("Check <domain>", the neutral fallback)
+ * is kept a minute in the browser only, so a shared cache never holds it
+ * once a result exists.
+ */
+export function imageCacheControl(result: SummaryResult | null): string {
+  return result?.kind === "ok" ? "public, max-age=60, s-maxage=60" : "private, max-age=60";
+}

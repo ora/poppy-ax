@@ -1,15 +1,15 @@
 import { ImageResponse } from "next/og";
-import { auditContent, imageCard, resolveAuditParam } from "@/lib/audit";
+import { auditContent, imageCacheControl, imageCard, resolveAuditParam } from "@/lib/audit";
 import { content } from "@/lib/content";
 import { getCatalog, getSummary } from "@/lib/ora/client";
 import { fixtureCatalog } from "@/lib/rows";
 
 // The preview image for a result: domain, verdict, pass counts and profile.
 // Made on request, never stored by Next (any path can be asked for, so
-// stored images would grow without bound). Caching is by Cache-Control: a
-// result's image as long as its summary (60 seconds, Ora's own max-age),
-// shared caches included; the "Check <domain>" and neutral cards for a
-// minute in the browser only.
+// stored images would grow without bound). Caching is by Cache-Control (see
+// imageCacheControl in lib/audit.ts): a result's image as long as its summary
+// (60 seconds, Ora's own max-age), shared caches included, and no stale
+// copies after that; every other card for a minute in the browser only.
 export const dynamic = "force-dynamic";
 export const alt = auditContent.image.alt;
 export const size = { width: 1200, height: 630 };
@@ -120,10 +120,7 @@ export default async function Image({ params }: { params: Promise<{ domain: stri
     ),
     {
       ...size,
-      headers: {
-        "cache-control":
-          card.kind === "result" ? "public, max-age=60, s-maxage=60, stale-while-revalidate=60" : "public, max-age=60",
-      },
+      headers: { "cache-control": imageCacheControl(result) },
     },
   );
 }

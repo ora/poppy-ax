@@ -11,6 +11,7 @@ import {
   countText,
   formatAbsolute,
   formatRelative,
+  imageCacheControl,
   imageCard,
   resolveAuditParam,
 } from "@/lib/audit";
@@ -342,5 +343,19 @@ describe("imageCard", () => {
     expect(
       imageCard({ kind: "invalid", error: "invalid", message: "x" }, null, fixtureCatalog).kind,
     ).toBe("neutral");
+  });
+});
+
+describe("imageCacheControl", () => {
+  it("shares a result's image for as long as the summary, with no stale copies", () => {
+    expect(imageCacheControl({ kind: "ok", summary: failing })).toBe("public, max-age=60, s-maxage=60");
+    expect(imageCacheControl({ kind: "ok", summary: notSetUp })).not.toContain("stale-while-revalidate");
+  });
+
+  it("keeps the check, error and invalid cards in the browser only", () => {
+    expect(imageCacheControl({ kind: "not_scanned" })).toBe("private, max-age=60");
+    expect(imageCacheControl({ kind: "invalid", code: "invalid_domain" })).toBe("private, max-age=60");
+    expect(imageCacheControl({ kind: "error", code: "busy", status: 429 })).toBe("private, max-age=60");
+    expect(imageCacheControl(null)).toBe("private, max-age=60");
   });
 });
