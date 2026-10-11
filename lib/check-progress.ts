@@ -173,6 +173,13 @@ export function afterStream(progress: Progress, dropped: boolean): StreamEnd {
 export const MAX_REFRESHES = 3;
 
 /**
+ * The longest one refresh may take. A refresh that never settles would leave
+ * the page on "Loading the result" for good, so after this the page stops
+ * waiting and says the new result isn't shown yet.
+ */
+export const REFRESH_TIMEOUT_MS = 5_000;
+
+/**
  * After a refresh: is the page now showing the check's result? `rendered`
  * is the `last_run` the page shows (null when it shows none); `target` is
  * the one the server found saved. `refreshes` counts the refreshes so far.

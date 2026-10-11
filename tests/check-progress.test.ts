@@ -8,6 +8,7 @@ import {
   MAX_REFRESHES,
   progressStep,
   readFrames,
+  REFRESH_TIMEOUT_MS,
   retryAfterOf,
   type CheckFrame,
 } from "@/lib/check-progress";
@@ -169,5 +170,12 @@ describe("retryAfterOf", () => {
     expect(retryAfterOf({ error: "busy", retry_after: 17.2 })).toBe(18);
     expect(retryAfterOf({ error: "busy", retry_after: null })).toBeNull();
     expect(retryAfterOf("busy")).toBeNull();
+  });
+});
+
+describe("the refresh safety timeout", () => {
+  it("gives a refresh about 5 seconds, longer than the gap between refreshes", () => {
+    expect(REFRESH_TIMEOUT_MS).toBe(5_000);
+    expect(REFRESH_TIMEOUT_MS).toBeGreaterThan(1_000);
   });
 });

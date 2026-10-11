@@ -10,6 +10,7 @@ import {
   INITIAL_PROGRESS,
   progressStep,
   readFrames,
+  REFRESH_TIMEOUT_MS,
   retryAfterOf,
   type Progress,
 } from "@/lib/check-progress";
@@ -132,6 +133,8 @@ export function CheckProgress({
     const decision = afterRefresh(shownLastRun.current, wait.lastRun, wait.refreshes);
     const timer = setTimeout(
       () => {
+        // The safety timeout below may have given up on this wait meanwhile.
+        if (waiting.get(domain) !== wait) return;
         if (decision === "updated") {
           waiting.delete(domain);
           setPhase({ kind: "updated" });
@@ -149,6 +152,17 @@ export function CheckProgress({
     );
     return () => clearTimeout(timer);
   }, [refreshing, lastRun, domain, refresh]);
+
+  // A safety net: if a refresh never settles, stop waiting after about 5
+  // seconds. Each new "loading" phase (one per refresh) starts the clock again.
+  useEffect(() => {
+    if (phase.kind !== "loading") return;
+    const timer = setTimeout(() => {
+      if (!waiting.delete(domain)) return;
+      setPhase(shownLastRun.current === null ? { kind: "not_ready" } : { kind: "stale" });
+    }, REFRESH_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [phase, domain]);
 
   const run = useCallback(async () => {
     controller.current?.abort();
