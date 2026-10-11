@@ -120,7 +120,7 @@ The Vercel project:
 - [ ] `ORA_SERVICE_TOKEN` set to that key (production and preview), and `ORA_BASE_URL` left at `https://ora.ai`. `ORA_FIXTURES` unset in production.
 - [ ] `NEXT_PUBLIC_SITE_URL` unset in production (it defaults to https://poppy.ax) and on previews (each uses its own branch address), and Vercel's system environment variables exposed to the build, so `NEXT_PUBLIC_VERCEL_ENV` and `NEXT_PUBLIC_VERCEL_BRANCH_URL` are set.
 - [ ] The project is on a plan that allows `maxDuration = 330` for `/api/check/[domain]`, or lower it to 300 in `app/api/check/[domain]/route.ts`.
-- [ ] A Vercel Firewall rate-limit rule (10 checks a minute per IP) created in the dashboard, and its id set as `POPPY_CHECK_RATE_LIMIT_ID`.
+- [ ] A Vercel Firewall rate-limit rule (60 checks an hour per IP) created in the dashboard, and its id set as `POPPY_CHECK_RATE_LIMIT_ID`. Keep the window at one hour: the "Try again in 60 minutes" message (`FIREWALL_RETRY_SECONDS` in `lib/visitor-limit.ts`) assumes it.
 - [ ] Vercel Web Analytics turned on for the project.
 - [x] Bump next, @next/mdx and eslint-config-next to 16.3.8 or later (fixes the high-severity advisories in 16.3.6). Done 2026-10-11: `npm audit` reports 0 vulnerabilities and the tests pass.
 
