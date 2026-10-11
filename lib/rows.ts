@@ -21,6 +21,8 @@ export interface RowContent {
   id: string;
   /** The file's title, else the catalog title, else the id. */
   title: string;
+  /** Where `title` came from. */
+  title_source: "file" | "catalog" | "id";
   /** One plain line: what failed, or for a planned check, what it will look for. */
   what_failed: string;
   /** One plain line on why it matters. Null when the row has no content file. */
@@ -88,6 +90,7 @@ export function createRowContentLoader(dir: string, catalog: Catalog): (id: stri
     const fallback: RowContent = {
       id,
       title,
+      title_source: entry ? "catalog" : "id",
       what_failed: title,
       why_it_matters: null,
       setup_step: setupAnchorFor(id),
@@ -108,6 +111,7 @@ export function createRowContentLoader(dir: string, catalog: Catalog): (id: stri
     return {
       id,
       title: field("title") ?? title,
+      title_source: field("title") ? "file" : fallback.title_source,
       what_failed: field("what_failed") ?? fallback.what_failed,
       why_it_matters: field("why_it_matters") ?? fallback.why_it_matters,
       setup_step: field("setup_step") ?? fallback.setup_step,
@@ -131,3 +135,15 @@ export function createRowContentLoader(dir: string, catalog: Catalog): (id: stri
 
 /** The plain explanation for one catalog row, from content/rows/<id>.md. */
 export const rowContent = createRowContentLoader(ROW_CONTENT_DIR, fixtureCatalog);
+
+/**
+ * The title every surface shows for a row (Ruling R56): the row file's own
+ * title when it has one, else the catalog title the caller holds (the live
+ * catalog may be newer than the fixture), else the fixture catalog's title,
+ * else the id.
+ */
+export function displayTitle(id: string, catalogTitle?: string): string {
+  const content = rowContent(id);
+  if (content.title_source === "file") return content.title;
+  return catalogTitle || content.title;
+}

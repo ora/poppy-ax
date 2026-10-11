@@ -1,5 +1,6 @@
 import verdictText from "@/content/verdict.json";
 import type { Catalog, CatalogRow, Outcome, Reason, Row, Severity, Summary, Verdict } from "@/lib/ora/types";
+import { displayTitle } from "@/lib/rows";
 
 export type VerdictContent = typeof verdictText;
 
@@ -11,7 +12,7 @@ export interface RowRef {
   id: string;
   severity: Severity;
   outcome: Outcome;
-  /** The catalog title, or the id when the catalog does not know the row. */
+  /** The title to show (see displayTitle in lib/rows.ts): the row file's, else the catalog's, else the id. */
   title: string;
   row: Row;
   catalog: CatalogRow | undefined;
@@ -65,7 +66,7 @@ function select(summary: Summary, catalog: Catalog, keep: (row: Row, entry: Cata
       id: row.id,
       severity: row.severity,
       outcome: row.outcome,
-      title: entry?.row.title ?? row.id,
+      title: displayTitle(row.id, entry?.row.title),
       row,
       catalog: entry?.row,
     }));

@@ -3,8 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import setup from "@/content/setup/index.json";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { LevelSection } from "@/components/setup-level";
 import {
   createRowContentLoader,
+  displayTitle,
   fixtureCatalog,
   parseRowFile,
   ROW_CONTENT_DIR,
@@ -67,10 +71,41 @@ describe("content/rows", () => {
     }
   });
 
-  it("gives every setup step heading a unique id", () => {
+  it("gives every setup step heading a unique id that no other id on the page uses", () => {
     expect(stepAnchors.length).toBeGreaterThan(20);
     expect(new Set(stepAnchors).size).toBe(stepAnchors.length);
     expect(stepAnchors).toContain("level-1-name-your-sign-in-server");
+    const otherIds = new Set(setup.levels.flatMap((level) => [level.id, `${level.id}-title`, `${level.id}-checks`]));
+    const collisions = stepAnchors.filter((id) => otherIds.has(id));
+    expect(collisions, `step ids that collide with level ids: ${collisions.join(", ")}`).toEqual([]);
+  });
+
+  it("links each row to a step in the level that lists it, unless the row is allowed to cross", () => {
+    // Rows whose fix is taught in another level than the one whose checks list
+    // them (Tier 0 rows all sit in level 1, but some read fields a later level explains).
+    const CROSS_LEVEL: Record<string, string> = {
+      "ADV-PKCE": "level-3: S256-only PKCE is taught under direct sign-in",
+      "T0-13": "level-3: scopes and auth.custom_scopes are taught with the sign-in types",
+      "T0-14": "level-3: the auth.mediated entry is taught with mediated sign-in",
+      "T0-15": "level-4: agent.protocols is taught with conversations",
+      "T0-16": "level-2: apis entries are taught under List your APIs",
+      "T0-17": "level-2: OpenAPI descriptions are taught under List your APIs",
+      "T0-18": "level-2: MCP protected resource metadata is taught with Bearer tokens for MCP",
+      "T0-20": "level-4: extensions.operations is taught with operations",
+      "X-01": "level-2: the MCP server's url is taught with Bearer tokens for MCP",
+      "X-12": "level-2: MCP protected resource metadata is taught with Bearer tokens for MCP",
+    };
+    const unexpected: string[] = [];
+    for (const id of fileIds) {
+      const stepLevel = /^\/setup#(level-\d)/.exec(parsed.get(id)?.data.setup_step ?? "")?.[1];
+      const listedIn = setup.levels.find((level) => level.rows.includes(id))?.id;
+      const allowed = CROSS_LEVEL[id];
+      if (stepLevel !== listedIn && !allowed?.startsWith(`${stepLevel}:`)) {
+        unexpected.push(`${id}: listed in ${listedIn}, links to ${stepLevel}`);
+      }
+      if (stepLevel === listedIn && allowed) unexpected.push(`${id}: on the allowlist but no longer crosses levels`);
+    }
+    expect(unexpected, unexpected.join("\n")).toEqual([]);
   });
 
   it("links each row to an anchor the setup page renders", () => {
@@ -111,9 +146,23 @@ describe("content/rows", () => {
     expect(problems, problems.join("\n")).toEqual([]);
   });
 
-  it("shows no row title that mentions Ora", () => {
-    const named = catalogIds.filter((id) => /\bOra\b/i.test(rowContent(id).title));
+  it("shows no row title that mentions Ora, whichever catalog title the caller holds", () => {
+    const named = fixtureCatalog.rows
+      .filter((row) => [rowContent(row.id).title, displayTitle(row.id), displayTitle(row.id, row.title)].some((t) => /\bOra\b/i.test(t)))
+      .map((row) => row.id);
     expect(named, `row titles naming Ora: ${named.join(", ")}`).toEqual([]);
+  });
+
+  it("renders the setup page's row lists with the content titles", () => {
+    const html = setup.levels
+      .map((level) => renderToStaticMarkup(createElement(LevelSection, { level, Body: () => null })))
+      .join("");
+    expect(html).not.toMatch(/\bOra\b/);
+    for (const id of ["T2-M4", "T2-M5", "T2-07", "T2-38", "T3-02"]) {
+      const title = rowContent(id).title;
+      expect(rowContent(id).title_source, id).toBe("file");
+      expect(html, id).toContain(`<code>${id}</code> ${title.replace(/'/g, "&#x27;")}`);
+    }
   });
 
   it("describes a planned check as planned, and a check that runs today as a finding", () => {
@@ -167,6 +216,7 @@ describe("rowContent", () => {
     expect(load("T0-01")).toEqual({
       id: "T0-01",
       title: "Document exists",
+      title_source: "catalog",
       what_failed: "Document exists",
       why_it_matters: null,
       setup_step: "/setup#level-1",

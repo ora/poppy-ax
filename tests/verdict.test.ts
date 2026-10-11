@@ -274,6 +274,15 @@ describe("headline", () => {
   });
 });
 
+describe("row titles", () => {
+  it("come from the row content, not a catalog title that names the checker's operator", () => {
+    const s = summary("problems", [row("T3-02", "fail", { severity: "P0", tier: 3, level: "3" })]);
+    const [ref] = fixFirst(s, fixtureCatalog);
+    expect(ref?.title).toBe("Redirect URI not in the assistant's redirect_uris");
+    expect(ref?.title).not.toMatch(/\bOra\b/);
+  });
+});
+
 describe("the captured summaries in fixtures/", () => {
   const load = (name: string) =>
     JSON.parse(readFileSync(join(__dirname, "..", "fixtures", `summary-${name}.json`), "utf8")) as Summary;

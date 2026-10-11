@@ -1,6 +1,7 @@
 import type { MDXComponents, MDXContent } from "mdx/types";
 import { Children, isValidElement, type ReactNode } from "react";
 import { groupedRows, setupContent, stepId, type SetupLevel } from "@/lib/setup";
+import { displayTitle } from "@/lib/rows";
 
 /** The plain text inside a heading, for its id. */
 function textOf(node: ReactNode): string {
@@ -105,7 +106,7 @@ function LevelChecks({ level }: { level: SetupLevel }) {
           <ul>
             {rows.map((row) => (
               <li key={row.id}>
-                <code>{row.id}</code> {row.title}
+                <code>{row.id}</code> {displayTitle(row.id, row.title)}
               </li>
             ))}
           </ul>
