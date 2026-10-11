@@ -32,7 +32,7 @@ Pages poppy.ax links to (it never calls them):
 2. **Limit the visitor.** Apply poppy.ax's own per-IP limit before calling Ora (see [Limits](#limits)).
 3. **Open one stream per domain.** Do not open a second stream for a domain while one is running: Ora would start a second scan.
 4. **Start the stream** from the server and note the time you opened it. Call `GET /api/scan/stream?domain=<host>&activeProbes=1` with the token. Never add `force` or `fresh`. Relay progress to the visitor.
-5. **Read until the stream closes.** `scan_complete` is not the end. Ora sends it before it saves the result, and the save finishes before the connection closes.
+5. **Read until the stream closes.** `scan_complete` is not the end. Ora sends it before it saves the result. When the save succeeds, it finishes before the connection closes.
 6. **Fetch the summary** with `GET /api/pap/v1/summary?domain=<host>`. Trust it only if the stream was a cache hit, or if its `last_run` is at or after the stream's start time minus 5 seconds.
 7. **Poll if it is not fresh yet.** If the summary is older than that, or answers `404 not_scanned`, poll every 1 to 2 seconds. Send `Cache-Control: no-cache` and bypass any fetch cache. Stop after about 30 seconds.
 8. **Fail cleanly after 30 seconds.** If no fresh summary arrived, tell the visitor the check could not finish. Offer the previous result, if there is one, clearly marked with its date.
@@ -69,7 +69,7 @@ Never send `force` or `fresh`. Both skip the stored result and run a full new sc
 | `scan_init` | `layerMaxScores`, `staticOnly`, `timestamp`; the first one also has `checkRoster`, the second `totalChecks` | Sent twice. |
 | `discovery_phase` | `step`, `label`, `stepIndex`, `totalSteps`, `timestamp` | A human-readable step, such as "Fetching example.org". `stepIndex` can exceed `totalSteps`. |
 | `check_start` | `layerId`, `layerName`, `checkId`, `checkName`, `mcpKind`, `mcpUrl`, `timestamp` | One check began. |
-| `check_complete` | the same, plus `status` (`pass`, `fail`, `warning`, `na`), `score`, `maxScore`, `details` | One check ended. `details` is text about the scanned site: plain text only. |
+| `check_complete` | the same, plus `status` (`pass`, `fail`, `warning`, `na`, `error`, `pending`), `score`, `maxScore`, `details` | One check ended. `details` is text about the scanned site: plain text only. |
 | `layer_complete` | `layerId`, `layerName`, `timestamp` | A group of checks ended. A scan has four. |
 | `scan_complete` | `result`, `timestamp` | The checks are done. The result is not saved yet: read on until the connection closes. `result` is Ora's full general scan and not part of this contract, so do not read it. |
 | `error` | `message` | The scan stopped. See [Errors](#errors). |
@@ -175,7 +175,7 @@ Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`, exc
 | `400` | `localhost` | `localhost` |
 | `401` | `unauthorized` | No token, an unknown token, or a token without PAP read access. All three look the same. |
 | `404` | `not_scanned` | No PAP result is stored for the domain. Either Ora has never scanned it, or its last scan predates the PAP checks. Start a scan. |
-| `405` | none (empty body) | Any method other than `GET` |
+| `405` | none (empty body) | `POST`, `PUT`, `PATCH` or `DELETE` |
 | `500` | `internal_error` | Ora could not read the result. Retry once after 2 seconds, then show a failure. |
 
 ## Verdicts
@@ -242,7 +242,7 @@ Hosts where a scan found a `poppy.json` that parses and whose `organization.doma
 How the list is built:
 
 - Newest `last_seen` first, at most 1000 entries.
-- At most 5 hosts per registrable domain (the newest 5).
+- At most 5 hosts per registrable domain.
 - Left out: test domains (reserved names such as `.example` and `.test`), hosts an Ora operator hid, and domains whose verified owner asked to be left out.
 
 So the list is not every site that publishes `poppy.json`: Ora lists only hosts it has scanned. poppy.ax sends no parameters. Errors are as for the summary: `401 unauthorized` and `500 internal_error`.

@@ -4,7 +4,7 @@ Real responses from Ora's public API, recorded so poppy.ax can run with `ORA_FIX
 
 ## How they were captured
 
-On 10 October 2026 (UTC) we ran a local Ora instance and called its public API with a partner key, exactly as poppy.ax does in production. On 11 October, after Ora changed its catalog, sites list and notes, we captured `catalog.json`, `sites.json`, `summary-not-set-up.json` and `summary-demo-receiver.json` again from the same stored scans.
+On 10 October 2026 (UTC) we ran a local Ora instance and called its public API with a partner key, exactly as poppy.ax does in production. On 11 October, after Ora changed its catalog, sites list and notes, we captured `catalog.json`, `sites.json`, `summary-not-set-up.json` and `summary-demo-receiver.json` again from the stored scans (the demo receiver's had been rescanned at 23:51 UTC).
 
 - `example.com`, `poppy-receiver.roundtrip.workers.dev` and `example.org` were scanned live through the scan stream.
 - The four test sites (failing P0, timeout, unreachable, owner opt-out) cannot be scanned live, so Ora stored scans for them that it had built from recorded responses. We then read their summaries through the same public API.
