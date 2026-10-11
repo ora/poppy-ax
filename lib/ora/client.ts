@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
 import { normalizeDomain, type DomainError } from "@/lib/domain";
 import {
@@ -78,10 +79,19 @@ function warnOnce(key: string, message: string): void {
   console.warn(`[ora] ${message}`);
 }
 
+/**
+ * The longest domain a summary tag spells out. Next refuses tags over 256
+ * characters and a domain can have 253, so a longer one is hashed.
+ */
+const MAX_TAG_DOMAIN_LENGTH = 200;
+
 /** The Next data cache tag of one domain's summary, for `revalidateTag` after a scan. */
 export function summaryTag(domain: string): string {
   const result = normalizeDomain(domain);
-  return `ora-summary:${result.ok ? result.domain : domain.trim().toLowerCase()}`;
+  const key = result.ok ? result.domain : domain.trim().toLowerCase();
+  if (key.length <= MAX_TAG_DOMAIN_LENGTH) return `ora-summary:${key}`;
+  // A domain never holds ":", so a hashed tag can't equal a spelled-out one.
+  return `ora-summary:sha256:${createHash("sha256").update(key).digest("hex")}`;
 }
 
 /** Summary freshness: a summary saved this long before the stream began still counts. */

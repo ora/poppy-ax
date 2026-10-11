@@ -958,6 +958,22 @@ describe("fix round 1, network mode", () => {
     expect(calledInit().next).toEqual({ revalidate: 60, tags: [summaryTag("example.com")] });
   });
 
+  it("hashes a domain too long to spell out in a cache tag", () => {
+    // 253 characters, the longest a domain can be; Next refuses tags over 256.
+    const long = `${"a".repeat(63)}.${"b".repeat(63)}.${"c".repeat(63)}.${"d".repeat(57)}.com`;
+    const other = `${"a".repeat(63)}.${"b".repeat(63)}.${"c".repeat(63)}.${"e".repeat(57)}.com`;
+    expect(long).toHaveLength(253);
+    const tag = summaryTag(long);
+    expect(tag).toMatch(/^ora-summary:sha256:[0-9a-f]{64}$/);
+    expect(tag.length).toBeLessThanOrEqual(256);
+    expect(summaryTag(`https://www.${long}/`)).toBe(tag);
+    expect(summaryTag(other)).not.toBe(tag);
+    // Up to 200 characters the domain is spelled out.
+    const short = `${"a".repeat(63)}.${"b".repeat(63)}.${"c".repeat(63)}.com`;
+    expect(short.length).toBeLessThanOrEqual(200);
+    expect(summaryTag(short)).toBe(`ora-summary:${short}`);
+  });
+
   it("warns once, naming it, about a 400 code it does not know", async () => {
     fetchMock.mockResolvedValue(json(400, { error: "something_new" }));
     await getSummary("example.com");
