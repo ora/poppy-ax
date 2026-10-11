@@ -127,8 +127,11 @@ export type InvalidDomainCode = (typeof INVALID_DOMAIN_CODES)[number];
  *   not https (plain http only for a loopback host or outside Vercel
  *   production), or ORA_FIXTURES=1 in Vercel production.
  * - `unauthorized`: Ora refused the token.
- * - `busy`: Ora answered 429; `retryAfterSeconds` says when to try again, if it said.
- * - `upstream`: any other status Ora should not have answered.
+ * - `busy`: Ora answered 429, including `key_daily_cap` when the service key
+ *   spent its daily budget of new scans; `retryAfterSeconds` says when to try
+ *   again, if it said.
+ * - `upstream`: any other status Ora should not have answered, such as 403
+ *   `force_not_allowed`.
  * - `timeout`, `aborted`, `network`: no answer arrived.
  * - `bad_response`: the answer did not match ORA_API.md.
  * - `fixture_missing`: fixture mode could not read a file in fixtures/.

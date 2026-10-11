@@ -623,11 +623,24 @@ export async function streamScan(domain: string, signal?: AbortSignal): Promise<
     return { kind: "ok", body, ageSeconds, startedAt, servedFromCache: cacheHit.promise };
   }
 
-  // Not a stream. Only a 429 body is worth reading, briefly: the daily limit
-  // says when to retry in JSON, the burst limit in plain text with only the header.
+  // Not a stream. Only a 429 or 403 body is worth reading, briefly: the
+  // daily limits say when to retry in JSON, the burst limit in plain text
+  // with only the header.
   if (response.status === 429) {
     const json = parseJson(await textWithin(response, config.requestTimeoutMs));
+    if (errorCodeOf(json) === "key_daily_cap") {
+      // The service key spent its daily budget of new scans (ORA_API.md, Limits).
+      warnOnce("key_daily_cap", "the service key reached its daily cap of new scans; checks answer busy until it resets");
+    }
     return error("busy", 429, retryAfter(response.headers, json));
+  }
+  if (response.status === 403) {
+    const json = parseJson(await textWithin(response, config.requestTimeoutMs));
+    if (errorCodeOf(json) === "force_not_allowed") {
+      // poppy.ax never sends force or fresh, so this means the request was changed on its way.
+      warnOnce("force_not_allowed", "Ora refused force or fresh from the service key; poppy.ax should never send either");
+    }
+    return error("upstream", 403);
   }
   await response.body?.cancel().catch(() => undefined);
   if (response.status === 200) return error("bad_response", 200);

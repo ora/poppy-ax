@@ -2,12 +2,12 @@
 
 poppy.ax has no backend of its own. It asks Ora to check a domain and reads the result. This file is the contract: every endpoint poppy.ax uses, what it sends back and how to call it. Real responses for each case are in [`fixtures/`](fixtures/README.md).
 
-We wrote it from responses captured from a local Ora instance on 10 and 11 October 2026, and from the public behaviour of each route. Where a statement rests on one observation, it says so. Ignore any field or frame type not listed here, and expect new ones to appear.
+We wrote it from responses captured from a local Ora instance on 10 and 11 October 2026, and from the public behaviour of each route. Where a statement rests on one observation, it says so. A few statements come from Ora's change set dated 2026-10-11 and have not been captured from a running Ora yet; each one is marked "from Ora's change set dated 2026-10-11, not yet captured live". Ignore any field or frame type not listed here, and expect new ones to appear.
 
 ## Basics
 
 - **Base URL:** `https://ora.ai`. In poppy.ax it comes from `ORA_BASE_URL`.
-- **Auth:** `Authorization: Bearer <ORA_SERVICE_TOKEN>`. The token is a partner key that Ora issues with PAP read access. Send it from the server only. It must never reach a browser, a log line or the repo.
+- **Auth:** `Authorization: Bearer <ORA_SERVICE_TOKEN>`. The token is a partner key that Ora issues with PAP read access (`pap:read`). Send it from the server only. It must never reach a browser, a log line or the repo.
 - **Fixture mode:** with `ORA_FIXTURES=1`, poppy.ax reads `fixtures/` instead of calling Ora.
 - **Spec label:** the checks follow the PAP draft spec. Ora labels it "PAP Draft 0.1 (published 2026-10-09; may change)" on its reports. The catalog carries the same facts as `spec_version` and `draft`.
 
@@ -25,13 +25,14 @@ Pages poppy.ax links to (it never calls them):
 - `https://ora.ai/pap/<domain>`: the full row-by-row report. Each summary carries it as `report_url`.
 - `https://poppy.ora.ai/<domain>`: a short link. It answers `301` to `https://ora.ai/pap/<domain>`. It removes one leading `www.`, so `poppy.ora.ai/www.example.com` goes to `/pap/example.com`.
 - `https://ora.ai/pap/managed`: the managed-PAP waitlist. Link only.
+- `https://app.ora.ai/verify?domain=<domain>`: owner verification, for the "requires opt-in" (Tier 2b) checks. The owner signs in and verifies `<domain>` there. poppy.ax fills in the result's `domain` (from Ora's change set dated 2026-10-11, not yet captured live).
 
 ## Checking a domain
 
 1. **Validate first.** Turn the visitor's input into a bare, lowercase host with poppy.ax's own parser. Reject a scheme, path, port, IP address or `localhost`. Map `www.example.com` to `example.com`.
 2. **Limit the visitor.** Apply poppy.ax's own per-IP limit before calling Ora (see [Limits](#limits)).
 3. **Open one stream per domain.** Do not open a second stream for a domain while one is running: Ora would start a second scan.
-4. **Start the stream** from the server and note the time you opened it. Call `GET /api/scan/stream?domain=<host>&activeProbes=1` with the token. Never add `force` or `fresh`. Relay progress to the visitor.
+4. **Start the stream** from the server and note the time you opened it. Call `GET /api/scan/stream?domain=<host>&activeProbes=1` with the token. Never add `force` or `fresh`: Ora refuses either from a PAP read key with `403` (from Ora's change set dated 2026-10-11, not yet captured live). Relay progress to the visitor.
 5. **Read until the stream closes.** `scan_complete` is not the end. Ora sends it before it saves the result. When the save succeeds, it finishes before the connection closes.
 6. **Fetch the summary** with `GET /api/pap/v1/summary?domain=<host>`. Trust it only if the stream was a cache hit, or if its `last_run` is at or after the stream's start time minus 5 seconds.
 7. **Poll if it is not fresh yet.** If the summary is older than that, or answers `404 not_scanned`, poll every 1 to 2 seconds. Send `Cache-Control: no-cache` and bypass any fetch cache. Stop after about 30 seconds.
@@ -54,7 +55,7 @@ Starts a check of `domain` and streams its progress as server-sent events. This 
 | `domain` | The bare host. The parameter is `domain`; `url` is not accepted. |
 | `activeProbes` | `1`. Asks Ora to run the Tier 1 active probes, within the limit below. |
 
-Never send `force` or `fresh`. Both skip the stored result and run a full new scan (see [Limits](#limits)).
+Never send `force` or `fresh`. Both skip the stored result and run a full new scan (see [Limits](#limits)). A PAP read key that sends either gets `403` `{"error": "force_not_allowed"}` (from Ora's change set dated 2026-10-11, not yet captured live).
 
 ### Response
 
@@ -96,10 +97,12 @@ The stream never answers `401`. With no token, or a token Ora does not know, the
 | `localhost`, an IP address, or not a domain | `400`, plain text: `Invalid domain. Please provide a real domain (e.g. stripe.com)` |
 | Too many requests in a short time (anonymous callers only) | `429`, plain text: `Too many requests - please try again later`, with `Retry-After` (seconds; `60` seen) |
 | Daily scan budget spent (anonymous callers only) | `429`, JSON `{"error": "<text>", "retry_after_ms": <number>}`, with `Retry-After` (seconds) |
+| A PAP read key sent `force` or `fresh` | `403`, JSON `{"error": "force_not_allowed"}` (from Ora's change set dated 2026-10-11, not yet captured live) |
+| A PAP read key spent its daily cap of new scans (see [Limits](#limits)) | `429`, JSON `{"error": "key_daily_cap", "retry_after_ms": <number>}`, with `Retry-After` (seconds) (from Ora's change set dated 2026-10-11, not yet captured live) |
 | The domain does not answer | `200` and one frame: `{"type":"error","message":"Domain is not reachable"}`. No `scan_complete`, nothing saved. |
 | The scan fails part way | `200`, then an `error` frame |
 
-Either `429` means the token is not being recognised: check it with the summary. Treat any other non-`200` status as a failure.
+The two anonymous `429`s mean the token is not being recognised: check it with the summary. A `key_daily_cap` `429` means the opposite: Ora knows the key, and it has used up its new scans for the day. poppy.ax answers every `429` as `busy`, with `retryAfterSeconds` from `Retry-After` or, failing that, `retry_after_ms`, and it logs a `key_daily_cap` once. Treat any other non-`200` status as a failure.
 
 An `error` frame's `message` is free text. It can be Ora's internal error text, so log it and never show it to visitors; show your own words instead. An `error` frame ends the scan. If one arrives after `scan_complete`, the checks may have finished, so fetch the summary as usual.
 
@@ -183,7 +186,8 @@ Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`, exc
 | `verdict` | Meaning | Fixture |
 | --- | --- | --- |
 | `not_set_up` | No valid `poppy.json` was found. In the captures (example.com, example.org) every Tier 0 and Tier 1 row is `na`, and T0-01's note gives the reason, such as `No poppy.json: HTTP 404`. | `summary-not-set-up.json` (example.com) |
-| `unreachable` | Ora could not measure `poppy.json`: it never answered, or Ora's discovery check itself failed. In the timeout case every Tier 0 and Tier 1 row is `not_tested` with reason `timeout`. When Ora's check failed, the reason is `check_error`. | `summary-unreachable.json` |
+| `unreachable` | Ora could not measure `poppy.json`: it never answered. Every Tier 0 and Tier 1 row is `not_tested` with reason `timeout`. | `summary-unreachable.json` |
+| `not_checked` | Ora's own discovery check failed, so nothing was measured. This says nothing about the site: show it as Ora's failure, never the site's. Every Tier 0 and Tier 1 row is `not_tested` with reason `check_error`. Before this change, Ora answered `unreachable` here (from Ora's change set dated 2026-10-11, not yet captured live). | none: the tests build one from `summary-unreachable.json` |
 | `problems` | At least one P0 or P1 row failed. | `summary-failing-p0.json` (T0-11, P0) |
 | `working` | `poppy.json` is there and no measured P0 or P1 row failed. | `summary-demo-receiver.json` |
 
@@ -210,7 +214,7 @@ Every `reason` value:
 | `out_of_scope` | The target is off the domain, a refused private address, or past one of Ora's size or count limits. |
 | `not_available` | Ora does not run these checks yet: every Tier 2a and Tier 3 row. Show as "coming soon". |
 | `opt_in_required` | These run only for a verified owner who opts in: every Tier 2b row. |
-| `check_error` | Ora's own check failed to run, so nothing was measured. Never show it as N/A. |
+| `check_error` | Ora's own check failed to run, so nothing was measured. Never show it as N/A. On a `not_checked` summary every Tier 0 and Tier 1 row has it (from Ora's change set dated 2026-10-11, not yet captured live). |
 | `null` | Not measured, with no single cause. On Tier 1 the captured note reads: "Active probes run only on a scan requested for this domain. No probe result from the last 30 days." |
 
 Only `not_tested` rows carry a reason. Treat any reason not listed here as "not measured", with generic text. The fixtures contain `timeout`, `owner_opt_out`, `not_available`, `opt_in_required` and `null`; the other values were not seen in a capture.
@@ -283,7 +287,8 @@ Each row:
 
 - **Stored results: 6 hours.** A stream request for a domain checked in the last 6 hours normally returns the stored result and runs nothing (see [A stored result](#response)).
 - **Active probes: one round per registrable domain per 6 hours.** The limit covers sibling hosts too: `a.example.com` and `b.example.com` share one round. It is also shared with the issuer the site's `poppy.json` names. A scan inside the window keeps the last stored round's Tier 1 results, from up to 30 days back, and `probed_at` says when that round ran. With no stored round, `probed_at` is `null`, and on a site with a `poppy.json` the Tier 1 rows are `not_tested`. No parameter changes this.
-- **Never send `force` or `fresh`.** Each skips the stored result and runs a full new scan every time.
+- **Never send `force` or `fresh`.** Each skips the stored result and runs a full new scan every time. Ora refuses either from a PAP read key with `403` `{"error": "force_not_allowed"}` (from Ora's change set dated 2026-10-11, not yet captured live).
+- **Daily cap per PAP read key: 1000 new scans per UTC day.** Only scans Ora actually runs count; a stored result served from the 6-hour window is free. Past the cap the stream answers `429` `{"error": "key_daily_cap", "retry_after_ms": <number>}` with `Retry-After`, until the next UTC day. poppy.ax shows it as busy, with the wait (from Ora's change set dated 2026-10-11, not yet captured live).
 - **Rate-limit visitors yourself.** Every request reaches Ora from poppy.ax's server with the same token, so Ora cannot tell visitors apart. poppy.ax must limit checks per visitor IP at its own edge before it calls the stream.
 
 ## Caching

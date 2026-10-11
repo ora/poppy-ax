@@ -620,6 +620,30 @@ describe("network mode", () => {
       expect(await streamScan("example.com")).toMatchObject({ code: "busy", retryAfterSeconds: 8 });
     });
 
+    it("answers the service key's daily cap as busy, with when to retry, and warns once", async () => {
+      // From Ora's change set dated 2026-10-11 (ORA_API.md, Limits); not yet captured live.
+      fetchMock.mockResolvedValue(json(429, { error: "key_daily_cap", retry_after_ms: 7_200_000 }, { "retry-after": "7200" }));
+      expect(await streamScan("example.com")).toEqual({ kind: "error", code: "busy", status: 429, retryAfterSeconds: 7200 });
+      fetchMock.mockResolvedValue(json(429, { error: "key_daily_cap", retry_after_ms: 59_001 }));
+      expect(await streamScan("example.com")).toEqual({ kind: "error", code: "busy", status: 429, retryAfterSeconds: 60 });
+      const lines = warn.mock.calls.map((call) => String(call[0])).filter((line) => line.includes("daily cap"));
+      expect(lines).toHaveLength(1);
+    });
+
+    it("answers a 403 force_not_allowed as upstream, and warns once", async () => {
+      fetchMock.mockResolvedValue(json(403, { error: "force_not_allowed" }));
+      expect(await streamScan("example.com")).toEqual({ kind: "error", code: "upstream", status: 403 });
+      await streamScan("example.com");
+      const lines = warn.mock.calls.map((call) => String(call[0])).filter((line) => line.includes("force or fresh"));
+      expect(lines).toHaveLength(1);
+      // poppy.ax itself never asks for one.
+      for (const [input] of fetchMock.mock.calls) {
+        const url = new URL(String(input));
+        expect(url.searchParams.has("force")).toBe(false);
+        expect(url.searchParams.has("fresh")).toBe(false);
+      }
+    });
+
     it("answers other statuses and a non-stream 200 as errors", async () => {
       fetchMock.mockResolvedValueOnce(new Response("Missing domain parameter", { status: 400 }));
       expect(await streamScan("example.com")).toEqual({ kind: "invalid", code: "invalid_domain" });
