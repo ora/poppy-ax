@@ -122,7 +122,7 @@ The Vercel project:
 - [ ] The project is on a plan that allows `maxDuration = 330` for `/api/check/[domain]`, or lower it to 300 in `app/api/check/[domain]/route.ts`.
 - [ ] A Vercel Firewall rate-limit rule (10 checks a minute per IP) created in the dashboard, and its id set as `POPPY_CHECK_RATE_LIMIT_ID`.
 - [ ] Vercel Web Analytics turned on for the project.
-- [ ] Bump next, @next/mdx and eslint-config-next to 16.3.8 or later (fixes the high-severity advisories in 16.3.6; due on or after 2026-10-14), then re-run `npm audit` and the tests.
+- [x] Bump next, @next/mdx and eslint-config-next to 16.3.8 or later (fixes the high-severity advisories in 16.3.6). Done 2026-10-11: `npm audit` reports 0 vulnerabilities and the tests pass.
 
 On a preview deploy, check by hand:
 
