@@ -4,7 +4,7 @@ Real responses from Ora's public API, recorded so poppy.ax can run with `ORA_FIX
 
 ## How they were captured
 
-On 10 October 2026 (UTC) we ran a local Ora instance and called its public API with a partner key, exactly as poppy.ax does in production:
+On 10 October 2026 (UTC) we ran a local Ora instance and called its public API with a partner key, exactly as poppy.ax does in production. On 11 October, after Ora changed its catalog, sites list and notes, we captured `catalog.json`, `sites.json`, `summary-not-set-up.json` and `summary-demo-receiver.json` again from the same stored scans.
 
 - `example.com`, `poppy-receiver.roundtrip.workers.dev` and `example.org` were scanned live through the scan stream.
 - The four test sites (failing P0, timeout, unreachable, owner opt-out) cannot be scanned live, so Ora stored scans for them that it had built from recorded responses. We then read their summaries through the same public API.
@@ -28,14 +28,14 @@ These names are made up; Ora never scanned them. `example.com` in `summary-not-s
 
 | File | Request | What it shows |
 | --- | --- | --- |
-| `summary-not-set-up.json` | `GET /api/pap/v1/summary?domain=example.com` | Verdict `not_set_up`: no `poppy.json`. |
-| `summary-demo-receiver.json` | `GET /api/pap/v1/summary?domain=poppy-receiver.roundtrip.workers.dev` | Verdict `working` for the public demo receiver. Tier 1 probes ran (`probed_at` is set). It has no browser endpoint, so T1-07 is `na`. |
+| `summary-not-set-up.json` | `GET /api/pap/v1/summary?domain=example.com` | Verdict `not_set_up`: no `poppy.json`. T0-01's note gives the reason (`No poppy.json: HTTP 404`). |
+| `summary-demo-receiver.json` | `GET /api/pap/v1/summary?domain=poppy-receiver.roundtrip.workers.dev` | Verdict `working` for the public demo receiver. Tier 1 probes ran (`probed_at` is set). The last scan came inside the probe limit, so `probed_at` is earlier than `last_run`. It has no browser endpoint, so T1-07 is `na`. |
 | `summary-failing-p0.json` | summary for `failing-p0.example.com` | Verdict `problems`: T0-11 (P0) fails. No probe round yet, so Tier 1 is `not_tested`. |
 | `summary-timeout.json` | summary for `timeout.example.com` | Verdict `working` with the issuer-metadata rows (T0-09 to T0-12, T0-21, ADV-PKCE) `not_tested`, reason `timeout`. |
 | `summary-unreachable.json` | summary for `unreachable.example.com` | Verdict `unreachable`: `poppy.json` never answered, so every Tier 0 and Tier 1 row is `not_tested`, reason `timeout`. |
 | `summary-owner-opt-out.json` | summary for `opt-out.example.com` | Verdict `working`; the owner turned active probes off, so T1-01 and T1-03 are `not_tested`, reason `owner_opt_out`. |
-| `sites.json` | `GET /api/pap/v1/sites` | The sites list at capture time: one site. The test sites are never listed. |
-| `catalog.json` | `GET /pap/catalog.json` | The full check catalog (100 rows). |
+| `sites.json` | `GET /api/pap/v1/sites` | The sites list at capture time: one site. Test domains are never listed. |
+| `catalog.json` | `GET /pap/catalog.json` | The full check catalog: 100 rows, with `spec_version`, `draft`, `tier1_policy` and a `pass_when` on every row. |
 | `scan-in-progress.sse` | `GET /api/scan/stream?domain=example.org&activeProbes=1` | The first 131 frames of a live scan, up to the tenth `check_complete`. The stream had 279 frames and ended with `scan_complete`. |
 | `errors/not-scanned.json` | summary for a domain Ora has not scanned | 404 |
 | `errors/invalid-domain.json` | summary with `domain=not_a_domain` (also a missing or empty `domain`) | 400 |

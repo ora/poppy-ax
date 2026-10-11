@@ -2,54 +2,63 @@
 
 poppy.ax has no backend of its own. It asks Ora to check a domain and reads the result. This file is the contract: every endpoint poppy.ax uses, what it sends back and how to call it. Real responses for each case are in [`fixtures/`](fixtures/README.md).
 
-Every statement here was checked against responses from Ora on 10 October 2026. Ignore any field or frame type not listed here, and expect new ones to appear.
+We wrote it from responses captured from a local Ora instance on 10 and 11 October 2026, and from the public behaviour of each route. Where a statement rests on one observation, it says so. Ignore any field or frame type not listed here, and expect new ones to appear.
 
 ## Basics
 
 - **Base URL:** `https://ora.ai`. In poppy.ax it comes from `ORA_BASE_URL`.
 - **Auth:** `Authorization: Bearer <ORA_SERVICE_TOKEN>`. The token is a partner key that Ora issues with PAP read access. Send it from the server only. It must never reach a browser, a log line or the repo.
 - **Fixture mode:** with `ORA_FIXTURES=1`, poppy.ax reads `fixtures/` instead of calling Ora.
+- **Spec label:** the checks follow the PAP draft spec. Ora labels it "PAP Draft 0.1 (published 2026-10-09; may change)" on its reports. The catalog carries the same facts as `spec_version` and `draft`.
 
 | Endpoint | Auth | What it is for |
 | --- | --- | --- |
-| `GET /api/scan/stream?domain=<host>&activeProbes=1` | token | Start a check (or get the cached one) and follow its progress |
+| `GET /api/scan/stream?domain=<host>&activeProbes=1` | token (not enforced: see [Errors](#errors)) | Start a check (or get the stored one) and follow its progress |
 | `GET /api/pap/v1/summary?domain=<host>` | token | The PAP result for one domain |
-| `GET /api/pap/v1/sites` | token | Domains where Ora found a `poppy.json` |
-| `GET /pap/catalog.json` | none | Every check, with its tier, severity and spec section |
+| `GET /api/pap/v1/sites` | token | Domains that publish a `poppy.json` naming themselves |
+| `GET /pap/catalog.json` | none | Every check, with its tier, severity, spec section and pass rule |
+
+**Check the token with the summary, not the stream.** The stream never answers `401`: a missing or unknown token just makes the caller anonymous. Any summary call with a bad token answers `401`, so a `401` there means poppy.ax is misconfigured.
 
 Pages poppy.ax links to (it never calls them):
 
 - `https://ora.ai/pap/<domain>`: the full row-by-row report. Each summary carries it as `report_url`.
-- `https://poppy.ora.ai/<domain>`: a short link. It answers `301` to `https://ora.ai/pap/<domain>`, keeping the path as given (`www.` is not stripped), so link the apex.
+- `https://poppy.ora.ai/<domain>`: a short link. It answers `301` to `https://ora.ai/pap/<domain>`. It removes one leading `www.`, so `poppy.ora.ai/www.example.com` goes to `/pap/example.com`.
 - `https://ora.ai/pap/managed`: the managed-PAP waitlist. Link only.
 
 ## Checking a domain
 
-1. **Validate first.** Turn the visitor's input into a bare, lowercase host with poppy.ax's own parser: no scheme, path, port, IP address or `localhost`. Map `www.example.com` to `example.com`.
-2. **Start the stream** from the server: `GET /api/scan/stream?domain=<host>&activeProbes=1` with the token. Never add `force`. Relay progress to the visitor.
-3. **Wait for `scan_complete`.** By then the result is saved. Read on until the connection closes.
-4. **Fetch the summary:** `GET /api/pap/v1/summary?domain=<host>`, and show it.
+1. **Validate first.** Turn the visitor's input into a bare, lowercase host with poppy.ax's own parser. Reject a scheme, path, port, IP address or `localhost`. Map `www.example.com` to `example.com`.
+2. **Limit the visitor.** Apply poppy.ax's own per-IP limit before calling Ora (see [Limits](#limits)).
+3. **Open one stream per domain.** Do not open a second stream for a domain while one is running: Ora would start a second scan.
+4. **Start the stream** from the server and note the time you opened it. Call `GET /api/scan/stream?domain=<host>&activeProbes=1` with the token. Never add `force` or `fresh`. Relay progress to the visitor.
+5. **Read until the stream closes.** `scan_complete` is not the end. Ora sends it before it saves the result, and the save finishes before the connection closes.
+6. **Fetch the summary** with `GET /api/pap/v1/summary?domain=<host>`. Trust it only if the stream was a cache hit, or if its `last_run` is at or after the stream's start time minus 5 seconds.
+7. **Poll if it is not fresh yet.** If the summary is older than that, or answers `404 not_scanned`, poll every 1 to 2 seconds. Send `Cache-Control: no-cache` and bypass any fetch cache. Stop after about 30 seconds.
+8. **Fail cleanly after 30 seconds.** If no fresh summary arrived, tell the visitor the check could not finish. Offer the previous result, if there is one, clearly marked with its date.
 
-If the stream drops, do not start another. The scan carries on and saves its result without a client: in our test a stream cut after 6 frames still produced a summary about 4 seconds later. Poll the summary every 1 to 2 seconds, sending `Cache-Control: no-cache` and bypassing any fetch cache, until it answers `200`, for up to about 30 seconds. While the scan runs, the summary answers `404 not_scanned`.
+While a scan runs, the summary does not change. For a domain never checked before it answers `404 not_scanned`. For a domain checked before it answers `200` with the old result, and its `last_run` gives it away. In our test a rescan of example.org started at 00:34:14 UTC. Polls during the scan returned the previous `last_run` (23:49:33 the day before). The first poll after the stream closed returned 00:34:20.
+
+**If the stream drops,** do not open another one. Go straight to step 7. On a local instance, a scan cut off after 6 frames still saved its result, and the summary appeared about 4 seconds later. That was not tested on production, so the 30-second failure path matters.
 
 To show a stored result without starting a scan, call the summary alone. A `404 not_scanned` means it is time to start one.
 
 ## `GET /api/scan/stream`
 
-Starts a check of `domain` and streams its progress as server-sent events. This is Ora's general scan: it runs many checks besides PAP, and the stream reports all of them. poppy.ax uses it only to start the check and to show progress, then reads the PAP result from the summary.
+Starts a check of `domain` and streams its progress as server-sent events. This is Ora's general scan: it runs many checks besides PAP, and the stream reports all of them. poppy.ax uses it only to start the check and to show progress. It reads the PAP result from the summary.
 
 ### Request
 
 | Param | Value |
 | --- | --- |
 | `domain` | The bare host. The parameter is `domain`; `url` is not accepted. |
-| `activeProbes` | `1`. Asks Ora to run the Tier 1 active probes, subject to the limit below. |
+| `activeProbes` | `1`. Asks Ora to run the Tier 1 active probes, within the limit below. |
 
-Never send `force` (see [Limits](#limits)).
+Never send `force` or `fresh`. Both skip the stored result and run a full new scan (see [Limits](#limits)).
 
 ### Response
 
-`200`, `content-type: text/event-stream`, `cache-control: no-cache`. Each frame is one `data: <json>` line followed by a blank line. There are no `event:` lines, no ids and no heartbeat, so set a read timeout of at least 60 seconds. Branch on `type` and ignore types you do not know.
+`200`, `content-type: text/event-stream`, `cache-control: no-cache`. Each frame is one `data: <json>` line followed by a blank line. There are no `event:` lines, no ids and no heartbeat. Allow at least 60 seconds between frames, and give up on the whole stream after 5 minutes, which is the longest Ora keeps one open. Branch on `type` and ignore types you do not know.
 
 **A fresh scan** (`fixtures/scan-in-progress.sse` holds the first 131 frames of one):
 
@@ -59,14 +68,15 @@ Never send `force` (see [Limits](#limits)).
 | `kind_detected` | `kind` (`"domain"`), `hint`, `timestamp` | The input was read as a domain. |
 | `scan_init` | `layerMaxScores`, `staticOnly`, `timestamp`; the first one also has `checkRoster`, the second `totalChecks` | Sent twice. |
 | `discovery_phase` | `step`, `label`, `stepIndex`, `totalSteps`, `timestamp` | A human-readable step, such as "Fetching example.org". `stepIndex` can exceed `totalSteps`. |
-| `check_start` | `layerId`, `layerName`, `checkId`, `checkName`, `timestamp` | One check began. |
+| `check_start` | `layerId`, `layerName`, `checkId`, `checkName`, `mcpKind`, `mcpUrl`, `timestamp` | One check began. |
 | `check_complete` | the same, plus `status` (`pass`, `fail`, `warning`, `na`), `score`, `maxScore`, `details` | One check ended. `details` is text about the scanned site: plain text only. |
-| `layer_complete` | `layerId`, `layerName`, `timestamp` | A group of checks ended (four per scan). |
-| `scan_complete` | `result`, `timestamp` | Done, and saved. `result` is Ora's full general scan; it is not part of this contract, so do not read it. |
+| `layer_complete` | `layerId`, `layerName`, `timestamp` | A group of checks ended. A scan has four. |
+| `scan_complete` | `result`, `timestamp` | The checks are done. The result is not saved yet: read on until the connection closes. `result` is Ora's full general scan and not part of this contract, so do not read it. |
+| `error` | `message` | The scan stopped. See [Errors](#errors). |
 
-Timestamps are Unix milliseconds. In the captured scan of `example.org`, `totalChecks` was 105 but 131 `check_start` and 131 `check_complete` frames arrived, so a progress bar built on `check_complete / totalChecks` must cap at 100%. That scan took about 4 seconds on a local instance; production adds network time.
+Timestamps are Unix milliseconds. In the captured scan of `example.org`, `totalChecks` was 105 but 131 `check_start` and 131 `check_complete` frames arrived. A progress bar built on `check_complete / totalChecks` must therefore cap at 100%. That scan took about 4 to 6 seconds on a local instance; production adds network time.
 
-**A cached result.** If Ora checked the domain in the last 6 hours, it does not scan again. The response carries an `Age` header (seconds) and exactly two frames:
+**A stored result.** If Ora checked the domain in the last 6 hours, it normally returns the stored result and does not scan again. A stored scan whose analysis is still finishing does not count, so that request starts a new scan. A stored result comes with an `Age` header (seconds) and exactly two frames:
 
 ```
 data: {"type":"kind_detected","kind":"domain","timestamp":1791676179641}
@@ -74,17 +84,24 @@ data: {"type":"kind_detected","kind":"domain","timestamp":1791676179641}
 data: {"type":"scan_complete","result":{...},"timestamp":1791676179641,"servedFromCache":true,"resultAgeSeconds":6}
 ```
 
-`servedFromCache` and `resultAgeSeconds` appear only on a cached result. The summary's `last_run` gives the same age; show it as "last checked N minutes ago". `www.example.org` was served the cached `example.org` result.
+`servedFromCache` and `resultAgeSeconds` appear only on a stored result. The summary's `last_run` gives the same age; show it as "last checked N minutes ago". `www.example.org` was served the stored `example.org` result.
 
 ### Errors
+
+The stream never answers `401`. With no token, or a token Ora does not know, the request still runs, as an anonymous caller under per-IP limits. Those limits then apply to all of poppy.ax's traffic at once, because every request comes from poppy.ax's server.
 
 | When | Response |
 | --- | --- |
 | `domain` missing (or `url` sent instead) | `400`, plain text: `Missing domain parameter` |
 | `localhost`, an IP address, or not a domain | `400`, plain text: `Invalid domain. Please provide a real domain (e.g. stripe.com)` |
-| The domain does not answer | `200` and one frame, `{"type":"error","message":"Domain is not reachable"}`; no `scan_complete`, nothing saved |
+| Too many requests in a short time (anonymous callers only) | `429`, plain text: `Too many requests - please try again later`, with `Retry-After` (seconds; `60` seen) |
+| Daily scan budget spent (anonymous callers only) | `429`, JSON `{"error": "<text>", "retry_after_ms": <number>}`, with `Retry-After` (seconds) |
+| The domain does not answer | `200` and one frame: `{"type":"error","message":"Domain is not reachable"}`. No `scan_complete`, nothing saved. |
+| The scan fails part way | `200`, then an `error` frame |
 
-An `error` frame ends the scan. Show it as a failure, as plain text. Treat any other non-`200` status as a failure too.
+Either `429` means the token is not being recognised: check it with the summary. Treat any other non-`200` status as a failure.
+
+An `error` frame's `message` is free text. It can be Ora's internal error text, so log it and never show it to visitors; show your own words instead. An `error` frame ends the scan. If one arrives after `scan_complete`, the checks may have finished, so fetch the summary as usual.
 
 ## `GET /api/pap/v1/summary`
 
@@ -92,7 +109,7 @@ The PAP result of the latest stored scan of one domain.
 
 ### Request
 
-`domain`: the host. Ora lowercases it, drops a scheme (`https://example.com`) and reads `www.example.com` as `example.com`. Send the bare apex anyway.
+`domain`: the host. Ora lowercases it, drops a scheme (`https://example.com`) and removes one leading `www.`. Other subdomains stay as they are: `docs.example.com` is its own domain. Send the host already in that form anyway.
 
 ### Response `200`
 
@@ -122,10 +139,10 @@ The PAP result of the latest stored scan of one domain.
 
 | Field | Meaning |
 | --- | --- |
-| `domain` | The domain the result is stored under: the apex. Asking for `www.example.com` returns `"example.com"`. Use this value in poppy.ax URLs (`/audit/www.x` should become `/audit/x`). |
+| `domain` | The requested host with one leading `www.` removed: the domain the result is stored under. Asking for `www.example.com` returns `"example.com"`. Use this value in poppy.ax URLs (`/audit/www.x` should become `/audit/x`). |
 | `profile` | The PAP check profile the run used, such as `pap-0.1@2026-10-09`. Matches the catalog's `profile`. |
 | `last_run` | ISO 8601 UTC time of the scan this result comes from. |
-| `probed_at` | ISO 8601 UTC time of the active-probe round that the Tier 1 rows show, or `null` if there is none. It can be earlier than `last_run`: a scan inside the probe limit (below) keeps the earlier round's results. In `fixtures/summary-demo-receiver.json`, `probed_at` is 22:32 and `last_run` 22:50. |
+| `probed_at` | ISO 8601 UTC time of the active-probe round that the Tier 1 rows show. `null` when no round from the last 30 days is stored. It can be earlier than `last_run` (see [Limits](#limits)). In `fixtures/summary-demo-receiver.json`, `probed_at` is 22:32 and `last_run` 23:51. |
 | `verdict` | One word for the domain; see [Verdicts](#verdicts). |
 | `counts` | Rows per outcome, for each of `tier0`, `tier1`, `tier2a`, `tier2b` and `tier3`. All five outcome keys are always present, zeros included. |
 | `rows` | One entry per catalog row, in catalog order, for every row in the profile (100 today). Fields below. |
@@ -140,14 +157,14 @@ Each row:
 | `level` | `"0"`, `"1"`, `"2a"`, `"2b"` or `"3"` (a string). Splits Tier 2 into 2a and 2b. |
 | `severity` | `P0`, `P1`, `P2` or `Adv` (advisory). |
 | `outcome` | `pass`, `fail`, `na`, `blocked` or `not_tested`; see [Outcomes and reasons](#outcomes-and-reasons). |
-| `reason` | Why a row was not measured, or `null`. |
+| `reason` | Why a `not_tested` row was not measured, or `null`. |
 | `note` | A short detail or `null`. **Untrusted:** it can quote the scanned site's own URLs and values. Render it as plain text only, never as HTML or Markdown, and do not turn it into a link. |
 
 The summary gives ids and outcomes only. poppy.ax writes the plain-language explanation of each row, using the catalog's `title` when it has none.
 
 ### Errors
 
-Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`.
+Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`, except `405`.
 
 | Status | `error` | When |
 | --- | --- | --- |
@@ -156,20 +173,21 @@ Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`.
 | `400` | `has_port` | A port, such as `example.com:8443` |
 | `400` | `ip_address` | An IP address |
 | `400` | `localhost` | `localhost` |
-| `401` | `unauthorized` | No token, an unknown token, or a token without PAP read access (all three look the same) |
-| `404` | `not_scanned` | No PAP result is stored for the domain: Ora has never scanned it, or its last scan predates the PAP checks. Start a scan. |
-| `405` | (empty body) | Any method other than `GET` |
+| `401` | `unauthorized` | No token, an unknown token, or a token without PAP read access. All three look the same. |
+| `404` | `not_scanned` | No PAP result is stored for the domain. Either Ora has never scanned it, or its last scan predates the PAP checks. Start a scan. |
+| `405` | none (empty body) | Any method other than `GET` |
+| `500` | `internal_error` | Ora could not read the result. Retry once after 2 seconds, then show a failure. |
 
 ## Verdicts
 
 | `verdict` | Meaning | Fixture |
 | --- | --- | --- |
-| `not_set_up` | No valid `poppy.json` was found. In the captures (example.com, example.org) every Tier 0 and Tier 1 row is `na`. | `summary-not-set-up.json` (example.com) |
-| `unreachable` | `poppy.json` never answered, so nothing could be measured. In the fixture every Tier 0 and Tier 1 row is `not_tested` with reason `timeout`. | `summary-unreachable.json` |
+| `not_set_up` | No valid `poppy.json` was found. In the captures (example.com, example.org) every Tier 0 and Tier 1 row is `na`, and T0-01's note gives the reason, such as `No poppy.json: HTTP 404`. | `summary-not-set-up.json` (example.com) |
+| `unreachable` | Ora could not measure `poppy.json`: it never answered, or Ora's discovery check itself failed. In the timeout case every Tier 0 and Tier 1 row is `not_tested` with reason `timeout`. When Ora's check failed, the reason is `check_error`. | `summary-unreachable.json` |
 | `problems` | At least one P0 or P1 row failed. | `summary-failing-p0.json` (T0-11, P0) |
-| `working` | `poppy.json` is there and no P0 or P1 row failed. | `summary-demo-receiver.json` |
+| `working` | `poppy.json` is there and no measured P0 or P1 row failed. | `summary-demo-receiver.json` |
 
-`working` does not mean every row was measured. In `summary-timeout.json` four P0 rows are `not_tested` (timeout) and the verdict is still `working`; in `summary-owner-opt-out.json` two Tier 1 rows were not probed. Show the `not_tested` rows next to the verdict.
+`working` does not mean every P0 and P1 row was measured. Read `rows` for P0 and P1 rows that are `not_tested` or `blocked`. In `summary-timeout.json` four P0 rows are `not_tested` (timeout) and the verdict is still `working`. In `summary-owner-opt-out.json` two Tier 1 rows were not probed. Show those rows next to the verdict.
 
 ## Outcomes and reasons
 
@@ -177,25 +195,29 @@ Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`.
 | --- | --- |
 | `pass` | The check passed. |
 | `fail` | The check failed. `severity` says how much it matters. |
-| `na` | Does not apply to this site, such as browser rows on a site with no browser endpoint (T1-07 on the demo receiver), or every row on a site with no `poppy.json`. |
-| `blocked` | Counted in `counts`; no captured response had one. Treat it as not measured. |
+| `na` | Does not apply to this site. Examples: browser rows on a site with no browser endpoint (T1-07 on the demo receiver), or every row on a site with no `poppy.json`. |
+| `blocked` | The site answered with something the spec does not define, such as a firewall page, a bot challenge or a 5xx. It never counts as a failure. No captured response had one; show it as not measured. |
 | `not_tested` | Ora did not measure the row. `reason` and `note` say why. |
 
-Reasons seen with `not_tested`:
+Every `reason` value:
 
-| `reason` | Where it appears | Meaning |
-| --- | --- | --- |
-| `timeout` | Tier 0 and Tier 1 | The site did not answer in time (Ora tries twice). In the timeout fixture, T0-09 notes `timed out twice` and the rows that depend on it note `issuer metadata unavailable`. |
-| `owner_opt_out` | Tier 1 | The domain's verified owner turned active probes off. |
-| `not_available` | Every Tier 2a and Tier 3 row | Ora does not run these checks yet. Show as "coming soon". |
-| `opt_in_required` | Every Tier 2b row | These run only for a verified owner who opts in. |
-| `null` | Tier 1 | No probe round is stored for the domain. The note reads: "Active probes run only on a scan requested for this domain. No probe result from the last 30 days." |
+| `reason` | Meaning |
+| --- | --- |
+| `timeout` | The site did not answer in time, after a retry where Ora retries. In the timeout fixture, T0-09 notes `timed out twice` and the rows that depend on it note `issuer metadata unavailable`. |
+| `deadline` | Ora's time budget for the PAP checks ran out before this row. |
+| `probe_cooldown` | Ora probed this target recently and is waiting before it probes again. This is Ora's own limit, not the spec's `rate_limited` error. |
+| `owner_opt_out` | The domain's verified owner turned active probes off. |
+| `out_of_scope` | The target is off the domain, a refused private address, or past one of Ora's size or count limits. |
+| `not_available` | Ora does not run these checks yet: every Tier 2a and Tier 3 row. Show as "coming soon". |
+| `opt_in_required` | These run only for a verified owner who opts in: every Tier 2b row. |
+| `check_error` | Ora's own check failed to run, so nothing was measured. Never show it as N/A. |
+| `null` | Not measured, with no single cause. On Tier 1 the captured note reads: "Active probes run only on a scan requested for this domain. No probe result from the last 30 days." |
 
-In every capture, `pass`, `fail` and `na` rows have `reason: null`. Treat any reason not listed here as "not measured", with generic text.
+Only `not_tested` rows carry a reason. Treat any reason not listed here as "not measured", with generic text. The fixtures contain `timeout`, `owner_opt_out`, `not_available`, `opt_in_required` and `null`; the other values were not seen in a capture.
 
 ## `GET /api/pap/v1/sites`
 
-Domains where a scan found a parseable `poppy.json`. No verdicts and no pass or fail data.
+Hosts where a scan found a `poppy.json` that parses and whose `organization.domain` names the host itself (row T0-05 passes). No verdicts and no pass or fail data.
 
 `200`, `content-type: application/json`, `cache-control: private, max-age=300`:
 
@@ -205,7 +227,7 @@ Domains where a scan found a parseable `poppy.json`. No verdicts and no pass or 
     {
       "domain": "poppy-receiver.roundtrip.workers.dev",
       "first_seen": "2026-10-10T22:32:42.042Z",
-      "last_seen": "2026-10-10T22:50:02.971Z"
+      "last_seen": "2026-10-10T23:51:40.290Z"
     }
   ]
 }
@@ -213,23 +235,32 @@ Domains where a scan found a parseable `poppy.json`. No verdicts and no pass or 
 
 | Field | Meaning |
 | --- | --- |
-| `domain` | The stored apex domain. |
+| `domain` | The host, stored as the summary stores it. |
 | `first_seen` | ISO 8601 UTC time a scan first found its `poppy.json`. |
 | `last_seen` | ISO 8601 UTC time of the latest scan that found it. |
 
-The list is not every site that publishes `poppy.json`: Ora lists only domains it has scanned, and leaves out test domains. poppy.ax sends no parameters. Errors: `401 {"error":"unauthorized"}`, as for the summary.
+How the list is built:
+
+- Newest `last_seen` first, at most 1000 entries.
+- At most 5 hosts per registrable domain (the newest 5).
+- Left out: test domains (reserved names such as `.example` and `.test`), hosts an Ora operator hid, and domains whose verified owner asked to be left out.
+
+So the list is not every site that publishes `poppy.json`: Ora lists only hosts it has scanned. poppy.ax sends no parameters. Errors are as for the summary: `401 unauthorized` and `500 internal_error`.
 
 ## `GET /pap/catalog.json`
 
-The full check catalog, generated from the rules Ora runs. Public: no token needed. `200`, `content-type: application/json; charset=utf-8`, `cache-control: public, max-age=3600`. poppy.ax ships a copy in `fixtures/catalog.json`.
+The full check catalog, generated from the rules Ora runs. It is public, so no token is needed. `200`, `content-type: application/json; charset=utf-8`. When captured, the response had `cache-control: public, max-age=3600`; treat that as Ora's current choice, not a promise. poppy.ax ships a copy in `fixtures/catalog.json`.
 
 Top level:
 
 | Field | Meaning |
 | --- | --- |
 | `profile` | The check profile, such as `pap-0.1@2026-10-09`. |
+| `spec_version` | The spec version the checks follow, such as `"0.1"`. |
+| `draft` | `true` while that spec is a draft that may change. |
 | `spec_url` | The PAP spec, `https://personalagentprotocol.org/docs/spec`. |
 | `generated_from` | `"ora"`. |
+| `tier1_policy` | One sentence on when Ora sends Tier 1 requests. Ora sends them only on a scan that asks for active probes, and at most once per target domain every 6 hours. It never sends them to a domain whose verified owner turned them off. |
 | `rows` | Every check, in report order (100 today). |
 
 Each row:
@@ -242,17 +273,17 @@ Each row:
 | `spec_ref` | Where the requirement comes from, such as `§3`, `Ops §2` or `guides`. |
 | `spec_url` | A link to that place in the spec. |
 | `profile` | The profile this row belongs to. |
-| `implemented` | `true` when Ora runs the check today (Tiers 0 and 1, 37 rows). `false` for Tier 2 and Tier 3 (63 rows). |
+| `implemented` | `true` when Ora runs the check today: Tiers 0 and 1, 37 rows. `false` for Tier 2 and Tier 3 (63 rows). |
 | `provisional` | `true` for a planned check whose details may still change. Today it is `true` exactly when `implemented` is `false`. |
-| `request` | For a check that sends its own request: `{ "method", "target", "condition" }`, such as `GET`, `https://{domain}/.well-known/poppy.json`, "on every scanned domain". `null` otherwise. `target` is a description, not always a URL. |
-| `pass_when` | For planned checks, a one-line pass condition. `null` on rows Ora runs today. |
+| `request` | For a check that sends its own request: `{ "method", "target", "condition" }`. Example: `GET`, `https://{domain}/.well-known/poppy.json`, "on every scanned domain". `null` otherwise. `target` is a description, not always a URL. |
+| `pass_when` | One line saying what passes. Every row has one. On rows Ora runs, it states Ora's rule. Rows starting "Ora consistency check, not a spec requirement:" are Ora's own cross-checks. |
 | `replaces` | The id of an older row this one supersedes, such as `T1-04` for `T2-M1`, or `null`. |
 
 ## Limits
 
-- **Freshness: 6 hours.** A stream request for a domain checked in the last 6 hours returns the stored result (see [A cached result](#response)) and runs nothing.
-- **Active probes: one round per domain per 6 hours.** A scan inside that window keeps the last round's Tier 1 results; `probed_at` tells you when that round ran. No parameter changes this.
-- **Never send `force`.** It skips the freshness window and runs a full new scan every time.
+- **Stored results: 6 hours.** A stream request for a domain checked in the last 6 hours normally returns the stored result and runs nothing (see [A stored result](#response)).
+- **Active probes: one round per registrable domain per 6 hours.** The limit covers sibling hosts too: `a.example.com` and `b.example.com` share one round. It is also shared with the issuer the site's `poppy.json` names. A scan inside the window keeps the last stored round's Tier 1 results, from up to 30 days back, and `probed_at` says when that round ran. With no stored round, `probed_at` is `null`, and on a site with a `poppy.json` the Tier 1 rows are `not_tested`. No parameter changes this.
+- **Never send `force` or `fresh`.** Each skips the stored result and runs a full new scan every time.
 - **Rate-limit visitors yourself.** Every request reaches Ora from poppy.ax's server with the same token, so Ora cannot tell visitors apart. poppy.ax must limit checks per visitor IP at its own edge before it calls the stream.
 
 ## Caching
@@ -261,8 +292,8 @@ Each row:
 | --- | --- |
 | Summary `200` | `private, max-age=60` |
 | Sites `200` | `private, max-age=300` |
-| Catalog | `public, max-age=3600` |
-| Stream | `no-cache` (and `Age` on a cached result) |
+| Catalog | `public, max-age=3600` when captured |
+| Stream | `no-cache` (and `Age` on a stored result) |
 | Summary and sites errors | `no-store` |
 
-Right after a scan, fetch the summary without any cache. A summary cached for up to 60 seconds, from before the scan or from a poll, would show the old result. Outside that, caching the summary and sites list for their `max-age` is fine.
+Right after a scan, fetch the summary without any cache. A cached summary from before the scan, or from an earlier poll, would show the old result for up to 60 seconds. At other times, caching the summary and sites list for their `max-age` is fine.

@@ -1,7 +1,7 @@
 {
   "domain": "poppy-receiver.roundtrip.workers.dev",
   "profile": "pap-0.1@2026-10-09",
-  "last_run": "2026-10-10T22:50:02.971Z",
+  "last_run": "2026-10-10T23:51:40.290Z",
   "verdict": "working",
   "counts": {
     "tier0": {

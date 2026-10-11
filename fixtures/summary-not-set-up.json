@@ -48,7 +48,7 @@
       "severity": "P0",
       "outcome": "na",
       "reason": null,
-      "note": null
+      "note": "No poppy.json: HTTP 404"
     },
     {
       "id": "T0-02",
