@@ -1,3 +1,4 @@
+import "server-only";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import catalogJson from "@/fixtures/catalog.json";
@@ -9,14 +10,16 @@ export const ROW_CONTENT_DIR = join(process.cwd(), "content", "rows");
 
 /** The front matter every row file must have. */
 export const ROW_CONTENT_KEYS = ["what_failed", "why_it_matters", "setup_step", "spec_section"] as const;
-export type RowContentKey = (typeof ROW_CONTENT_KEYS)[number];
+/** Front matter a row file may add. `title` replaces the catalog title on the page. */
+export const ROW_CONTENT_OPTIONAL_KEYS = ["title"] as const;
+export type RowContentKey = (typeof ROW_CONTENT_KEYS)[number] | (typeof ROW_CONTENT_OPTIONAL_KEYS)[number];
 
 /** The catalog the site ships with, from fixtures/catalog.json. */
 export const fixtureCatalog = catalogJson as unknown as Catalog;
 
 export interface RowContent {
   id: string;
-  /** The catalog title, or the id when the catalog does not know the row. */
+  /** The file's title, else the catalog title, else the id. */
   title: string;
   /** One plain line: what failed, or for a planned check, what it will look for. */
   what_failed: string;
@@ -104,7 +107,7 @@ export function createRowContentLoader(dir: string, catalog: Catalog): (id: stri
     };
     return {
       id,
-      title,
+      title: field("title") ?? title,
       what_failed: field("what_failed") ?? fallback.what_failed,
       why_it_matters: field("why_it_matters") ?? fallback.why_it_matters,
       setup_step: field("setup_step") ?? fallback.setup_step,

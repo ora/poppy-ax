@@ -10,7 +10,8 @@ const nextConfig: NextConfig = {
   // lib/rows.ts reads content/rows/*.md from disk when the result page
   // renders, so the deployed function must ship those files.
   outputFileTracingIncludes: {
-    "/audit/[domain]": ["./content/rows/*.md"],
+    // The key is a glob over route paths, so the brackets are escaped.
+    "/audit/\\[domain\\]": ["./content/rows/*.md"],
   },
 };
 

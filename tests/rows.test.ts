@@ -9,8 +9,10 @@ import {
   parseRowFile,
   ROW_CONTENT_DIR,
   ROW_CONTENT_KEYS,
+  ROW_CONTENT_OPTIONAL_KEYS,
   rowContent,
 } from "@/lib/rows";
+import { stepId } from "@/lib/setup";
 
 const files = readdirSync(ROW_CONTENT_DIR).filter((name) => name.endsWith(".md"));
 const fileIds = files.map((name) => name.replace(/\.md$/, ""));
@@ -19,8 +21,17 @@ const read = (id: string) => readFileSync(join(ROW_CONTENT_DIR, `${id}.md`), "ut
 const parsed = new Map(fileIds.map((id) => [id, parseRowFile(read(id))]));
 const values = (id: string) => Object.values(parsed.get(id)?.data ?? {});
 
-// The ids the setup page renders as anchors (components/setup-level.tsx).
-const setupAnchors = new Set(setup.levels.flatMap((level) => [level.id, `${level.id}-title`, `${level.id}-checks`]));
+// The ids the setup page renders as anchors (components/setup-level.tsx): each
+// level, its title and checks list, and each step's h3 heading in its MDX file.
+const SETUP_DIR = join(__dirname, "..", "content", "setup");
+const stepHeadings = (levelId: string) =>
+  [...readFileSync(join(SETUP_DIR, `${levelId}.mdx`), "utf8").matchAll(/^### (.+)$/gm)].map((m) => (m[1] ?? "").trim());
+const stepAnchors = setup.levels.flatMap((level) => stepHeadings(level.id).map((heading) => stepId(level.id, heading)));
+const setupAnchors = new Set([
+  ...setup.levels.flatMap((level) => [level.id, `${level.id}-title`, `${level.id}-checks`]),
+  ...stepAnchors,
+]);
+const ALLOWED_KEYS = new Set<string>([...ROW_CONTENT_KEYS, ...ROW_CONTENT_OPTIONAL_KEYS]);
 
 describe("content/rows", () => {
   it("has a content file for every catalog row", () => {
@@ -56,16 +67,53 @@ describe("content/rows", () => {
     }
   });
 
-  it("links each row to a setup anchor the setup page renders, in the level that lists the row", () => {
+  it("gives every setup step heading a unique id", () => {
+    expect(stepAnchors.length).toBeGreaterThan(20);
+    expect(new Set(stepAnchors).size).toBe(stepAnchors.length);
+    expect(stepAnchors).toContain("level-1-name-your-sign-in-server");
+  });
+
+  it("links each row to an anchor the setup page renders", () => {
+    const broken: string[] = [];
     for (const id of fileIds) {
       const step = parsed.get(id)?.data.setup_step ?? "";
-      const match = /^\/setup#([\w-]+)$/.exec(step);
-      expect(match, `${id}: ${step}`).not.toBeNull();
-      const anchor = match?.[1] ?? "";
-      expect(setupAnchors.has(anchor), `${id}: #${anchor}`).toBe(true);
-      const level = setup.levels.find((entry) => entry.rows.includes(id));
-      expect(anchor.startsWith(level?.id ?? "no level"), `${id}: #${anchor} is not in ${level?.id}`).toBe(true);
+      const anchor = /^\/setup#([\w-]+)$/.exec(step)?.[1];
+      if (!anchor || !setupAnchors.has(anchor)) broken.push(`${id}: ${step}`);
     }
+    expect(broken, `setup_step links that do not resolve:\n${broken.join("\n")}`).toEqual([]);
+  });
+
+  it("links each row to the step that fixes it, not just its level", () => {
+    const levelOnly = fileIds.filter((id) => /^\/setup#level-\d$/.test(parsed.get(id)?.data.setup_step ?? ""));
+    expect(levelOnly, `rows linked only to a level: ${levelOnly.join(", ")}`).toEqual([]);
+  });
+
+  it("writes every front matter value as a double-quoted string on one line, with known keys only", () => {
+    const problems: string[] = [];
+    for (const id of fileIds) {
+      const front = /^---\n([\s\S]*?)\n---\n/.exec(read(id))?.[1] ?? "";
+      for (const line of front.split("\n")) {
+        const match = /^([a-z_]+): (".*")$/.exec(line);
+        if (!match) {
+          problems.push(`${id}: not key: "value": ${line}`);
+          continue;
+        }
+        const [, key = "", raw = ""] = match;
+        if (!ALLOWED_KEYS.has(key)) problems.push(`${id}: unknown key ${key}`);
+        try {
+          if (typeof JSON.parse(raw) !== "string") problems.push(`${id}: ${key} is not a string`);
+        } catch (error) {
+          if (!(error instanceof SyntaxError)) throw error;
+          problems.push(`${id}: ${key} is not a valid quoted string`);
+        }
+      }
+    }
+    expect(problems, problems.join("\n")).toEqual([]);
+  });
+
+  it("shows no row title that mentions Ora", () => {
+    const named = catalogIds.filter((id) => /\bOra\b/i.test(rowContent(id).title));
+    expect(named, `row titles naming Ora: ${named.join(", ")}`).toEqual([]);
   });
 
   it("describes a planned check as planned, and a check that runs today as a finding", () => {
@@ -109,7 +157,7 @@ describe("rowContent", () => {
     expect(content.title).toBe("Document exists");
     expect(content.what_failed.length).toBeGreaterThan(0);
     expect(content.why_it_matters?.length).toBeGreaterThan(0);
-    expect(content.setup_step).toBe("/setup#level-1");
+    expect(content.setup_step).toBe("/setup#level-1-publish-one-public-file");
     expect(content.spec_section).toBe("https://personalagentprotocol.org/docs/spec#discovery");
   });
 
@@ -139,6 +187,15 @@ describe("rowContent", () => {
   it("never reads a path outside the folder", () => {
     expect(rowContent("../README").source).toBe("fallback");
     expect(rowContent("T0-01/../../package").source).toBe("fallback");
+  });
+
+  it("prefers a title from the file over the catalog title", () => {
+    const dir = mkdtempSync(join(tmpdir(), "rows-"));
+    writeFileSync(join(dir, "T3-02.md"), '---\ntitle: "A neutral title"\nwhat_failed: "x"\n---\n');
+    expect(createRowContentLoader(dir, fixtureCatalog)("T3-02").title).toBe("A neutral title");
+    expect(createRowContentLoader(mkdtempSync(join(tmpdir(), "rows-")), fixtureCatalog)("T3-02").title).toBe(
+      fixtureCatalog.rows.find((row) => row.id === "T3-02")?.title,
+    );
   });
 
   it("fills a key missing from a file from the catalog", () => {
