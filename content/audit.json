@@ -105,7 +105,7 @@
   },
   "error": {
     "lede": "We couldn't get the result for {domain} right now. Try again in a minute.",
-    "busy": "The checker is busy. Try again in {seconds} seconds.",
+    "busy": "The checker is busy. Try again in {wait}.",
     "retry": "Try again"
   },
   "invalid": {
@@ -120,7 +120,7 @@
     "saving": "The check is done. Saving the result.",
     "loading": "Loading the result.",
     "updated": "The result is up to date.",
-    "busy": "Too many checks right now. Try again in {seconds} seconds.",
+    "busy": "Too many checks right now. Try again in {wait}.",
     "busyNoTime": "Too many checks right now. Try again in a minute.",
     "unreachable": "We couldn't reach {domain}. Check the spelling, or try again later.",
     "failed": "The check stopped before it finished. Try again in a few minutes.",

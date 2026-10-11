@@ -14,7 +14,7 @@ import {
   retryAfterOf,
   type Progress,
 } from "@/lib/check-progress";
-import { fill } from "@/lib/template";
+import { fill, waitText } from "@/lib/template";
 
 /** The words this component shows. The server picks them from content/audit.json. */
 export interface CheckProgressCopy {
@@ -322,7 +322,7 @@ function statusText(phase: Phase, domain: string, copy: CheckProgressCopy): stri
     case "updated":
       return copy.updated;
     case "busy":
-      return phase.retryAfter === null ? copy.busyNoTime : fill(copy.busy, { seconds: phase.retryAfter });
+      return phase.retryAfter === null ? copy.busyNoTime : fill(copy.busy, { wait: waitText(phase.retryAfter) });
     case "failed":
       return fill(copy[phase.reason], { domain });
     case "not_ready":
