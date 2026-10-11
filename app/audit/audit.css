@@ -1,0 +1,365 @@
+/*
+ * Result page. Uses only the tokens defined in globals.css. Loaded by
+ * app/audit/[domain]/page.tsx.
+ */
+
+.audit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-8);
+  max-width: 48rem;
+}
+
+/* 1. Does it work for agents? */
+
+.audit__head {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.audit__question {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.audit__title {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.audit__domain {
+  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.audit__verdict {
+  font-size: var(--text-title);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  max-width: 16ch;
+}
+
+/* The one warm accent marks a result with problems. */
+.audit__verdict[data-kind="problems"] {
+  color: var(--color-poppy);
+}
+
+.audit__verdict[data-kind="not_set_up"],
+.audit__verdict[data-kind="unreachable"],
+.audit__verdict[data-kind="unknown"] {
+  color: var(--color-ink-muted);
+}
+
+.audit__explain {
+  font-size: var(--text-lede);
+  line-height: 1.5;
+  max-width: var(--measure);
+}
+
+.audit__facts {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding-block: var(--space-4);
+  border-block: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.audit__facts dt {
+  font-weight: 700;
+}
+
+.audit__facts dd {
+  margin: 0;
+}
+
+.audit__facts code {
+  padding: 0.05em 0.3em;
+  border-radius: 3px;
+  background-color: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+
+.audit__help {
+  color: var(--color-ink-muted);
+}
+
+@media (min-width: 40rem) {
+  .audit__facts {
+    grid-template-columns: 10rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+  }
+
+  .audit__facts > div {
+    display: contents;
+  }
+}
+
+.audit__passing {
+  max-width: var(--measure);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 3px solid var(--color-ink);
+}
+
+/* Check again, and a check in progress */
+
+.check {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  max-width: var(--measure);
+}
+
+.check__again {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+.check__note {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.check .button:disabled {
+  border-color: var(--color-rule);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+.check .button--primary:disabled {
+  background-color: var(--color-surface);
+}
+
+.check__bar {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.check progress {
+  width: 100%;
+  height: 0.75rem;
+  border: 1px solid var(--color-ink);
+  border-radius: 999px;
+  background-color: var(--color-surface);
+  color: var(--color-poppy);
+  overflow: hidden;
+  appearance: none;
+}
+
+.check progress::-webkit-progress-bar {
+  background-color: var(--color-surface);
+}
+
+.check progress::-webkit-progress-value {
+  background-color: var(--color-poppy);
+  transition: width 0.2s ease-out;
+}
+
+.check progress::-moz-progress-bar {
+  background-color: var(--color-poppy);
+}
+
+.check__step {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.check__status {
+  font-weight: 700;
+}
+
+.check__status:empty {
+  display: none;
+}
+
+/* 2 and 3: the sections */
+
+.audit__section {
+  display: grid;
+  gap: var(--space-4);
+  padding-block-start: var(--space-8);
+  border-block-start: 1px solid var(--color-rule);
+}
+
+.audit__section-title {
+  font-size: clamp(1.75rem, 1.45rem + 1.4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.audit__intro,
+.audit__plain {
+  max-width: var(--measure);
+  color: var(--color-ink-muted);
+}
+
+.audit__plain {
+  color: var(--color-ink);
+}
+
+.audit__invitation {
+  max-width: var(--measure);
+  font-size: var(--text-lede);
+  line-height: 1.5;
+}
+
+.audit__invitation a {
+  font-weight: 700;
+}
+
+/* A severity tag: P0, P1, P2, Adv */
+
+.tag {
+  display: inline-block;
+  padding: 0 0.4em;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-family: var(--font-sans);
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1.5;
+  vertical-align: 0.15em;
+}
+
+.tag[data-severity="P0"] {
+  border-color: var(--color-poppy);
+  background-color: var(--color-poppy);
+  color: var(--color-on-poppy);
+}
+
+/* What to fix first */
+
+.fix-list {
+  display: grid;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fix {
+  display: grid;
+  gap: var(--space-2);
+  max-width: var(--measure);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 3px solid var(--color-poppy);
+}
+
+.fix__title {
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.fix__what {
+  font-weight: 700;
+}
+
+.fix__why {
+  color: var(--color-ink-muted);
+}
+
+.fix__note {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  overflow-wrap: anywhere;
+}
+
+.fix__note-label {
+  font-weight: 700;
+}
+
+.fix__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-6);
+  font-weight: 700;
+}
+
+.fix__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+/* What wasn't checked */
+
+.unmeasured {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.unmeasured__title {
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.unmeasured__list {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: var(--measure);
+}
+
+.unmeasured__name {
+  font-weight: 700;
+}
+
+.unmeasured__why {
+  color: var(--color-ink-muted);
+}
+
+.unchecked {
+  max-width: var(--measure);
+}
+
+.unchecked__group {
+  border-block-start: 1px solid var(--color-rule);
+}
+
+.unchecked__group:last-child {
+  border-block-end: 1px solid var(--color-rule);
+}
+
+.unchecked__group summary {
+  min-height: 2.75rem;
+  padding-block: var(--space-3);
+  cursor: pointer;
+}
+
+.unchecked__name {
+  font-weight: 700;
+}
+
+.unchecked__count {
+  color: var(--color-ink-muted);
+}
+
+.unchecked__intro {
+  margin-block-end: var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.unchecked__list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0 0 var(--space-4);
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.audit__report {
+  font-weight: 700;
+}
