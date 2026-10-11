@@ -484,6 +484,25 @@ describe("network mode", () => {
       expect(calledInit().next).toEqual({ revalidate: 3600 });
     });
 
+    it("keeps the spec version, draft flag and Tier 1 policy", async () => {
+      fetchMock.mockResolvedValue(json(200, fixture("catalog.json")));
+      const catalog = await getCatalog();
+      expect(catalog).toMatchObject({ profile: "pap-0.1@2026-10-09", spec_version: "0.1", draft: true });
+      expect(catalog?.tier1_policy).toMatch(/^Tier 1 requests are sent only on a scan that asks for active probes/);
+      expect(catalog?.rows.every((row) => typeof row.pass_when === "string" && row.pass_when.length > 0)).toBe(true);
+    });
+
+    it("answers null for a row with no pass_when, or a top-level field of the wrong type", async () => {
+      const noPassWhen = fixture("catalog.json");
+      (noPassWhen.rows as Array<Record<string, unknown>>)[0]!.pass_when = null;
+      fetchMock.mockResolvedValueOnce(json(200, noPassWhen));
+      expect(await getCatalog()).toBeNull();
+      for (const broken of [{ spec_version: 0.1 }, { draft: "yes" }, { tier1_policy: null }]) {
+        fetchMock.mockResolvedValueOnce(json(200, { ...fixture("catalog.json"), ...broken }));
+        expect(await getCatalog(), JSON.stringify(broken)).toBeNull();
+      }
+    });
+
     it("answers null for a catalog with a broken row", async () => {
       const body = fixture("catalog.json");
       (body.rows as Array<Record<string, unknown>>)[0] = { id: "T0-01" };

@@ -18,7 +18,7 @@ function catalogRow(id: string, severity: CatalogRow["severity"], implemented = 
     implemented,
     provisional: !implemented,
     request: null,
-    pass_when: null,
+    pass_when: `${id} passes.`,
     replaces: null,
   };
 }

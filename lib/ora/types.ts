@@ -93,7 +93,8 @@ export interface CatalogRow {
   /** True for a planned check whose details may still change. */
   provisional: boolean;
   request: CatalogRequest | null;
-  pass_when: string | null;
+  /** One line saying what passes. Every row has one. */
+  pass_when: string;
   /** The id of an older check this one replaces, if any. */
   replaces: string | null;
 }
@@ -101,7 +102,13 @@ export interface CatalogRow {
 /** The check catalog. */
 export interface Catalog {
   profile?: string;
+  /** The spec version the checks follow, such as "0.1". */
+  spec_version?: string;
+  /** True while that spec is a draft that may change. */
+  draft?: boolean;
   spec_url?: string;
+  /** One sentence on when Ora sends Tier 1 requests. */
+  tier1_policy?: string;
   rows: readonly CatalogRow[];
 }
 

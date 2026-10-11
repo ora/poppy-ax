@@ -163,7 +163,7 @@ function catalogRow(value: unknown): CatalogRow | null {
   if (!isText(id) || typeof tier !== "number" || !isText(level) || !isText(severity) || !isText(title)) return null;
   if (!isString(spec_ref) || !isHttpsUrl(spec_url)) return null;
   if (typeof implemented !== "boolean" || typeof provisional !== "boolean") return null;
-  if (!isStringOrNull(pass_when) || !isStringOrNull(replaces)) return null;
+  if (!isString(pass_when) || !isStringOrNull(replaces)) return null;
   if (profile !== undefined && !isString(profile)) return null;
   const request = catalogRequest(value.request);
   if (request === undefined) return null;
@@ -187,9 +187,12 @@ function catalogRow(value: unknown): CatalogRow | null {
 /** The check catalog as ORA_API.md documents it, or null. */
 export function parseCatalog(value: unknown): Catalog | null {
   if (!isObject(value) || !Array.isArray(value.rows)) return null;
-  const { profile, spec_url } = value;
+  const { profile, spec_version, draft, spec_url, tier1_policy } = value;
   if (profile !== undefined && !isString(profile)) return null;
+  if (spec_version !== undefined && !isString(spec_version)) return null;
+  if (draft !== undefined && typeof draft !== "boolean") return null;
   if (spec_url !== undefined && !isHttpsUrl(spec_url)) return null;
+  if (tier1_policy !== undefined && !isString(tier1_policy)) return null;
   const rows: CatalogRow[] = [];
   for (const raw of value.rows) {
     const row = catalogRow(raw);
@@ -198,7 +201,10 @@ export function parseCatalog(value: unknown): Catalog | null {
   }
   return {
     ...(profile === undefined ? {} : { profile }),
+    ...(spec_version === undefined ? {} : { spec_version }),
+    ...(draft === undefined ? {} : { draft }),
     ...(spec_url === undefined ? {} : { spec_url }),
+    ...(tier1_policy === undefined ? {} : { tier1_policy }),
     rows,
   };
 }
