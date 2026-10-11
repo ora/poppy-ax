@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { fixtureCatalog } from "@/lib/rows";
+import { REASONS } from "@/lib/ora/types";
 import type { Catalog, CatalogRow, Row, Summary, Verdict } from "@/lib/ora/types";
 import { fixFirst, headline, reasonText, unmeasured, verdictContent } from "@/lib/verdict";
 
@@ -161,22 +162,21 @@ describe("unmeasured", () => {
 
 describe("reasonText", () => {
   it("has plain words for every reason", () => {
-    const reasons = [
-      "timeout",
-      "deadline",
-      "rate_limited",
-      "owner_opt_out",
-      "out_of_scope",
-      "not_available",
-      "opt_in_required",
-    ] as const;
-    for (const reason of reasons) {
+    for (const reason of REASONS) {
       const text = reasonText({ outcome: "not_tested", reason });
       expect(text.length, reason).toBeGreaterThan(0);
       expect(text, reason).not.toMatch(/_/);
     }
     expect(reasonText({ outcome: "not_tested", reason: "timeout" })).toBe("the site took too long to answer");
     expect(reasonText({ outcome: "blocked", reason: "owner_opt_out" })).toBe("the owner turned off active checks");
+    expect(reasonText({ outcome: "not_tested", reason: "probe_cooldown" })).toBe(
+      "checked recently, showing the earlier result",
+    );
+    expect(reasonText({ outcome: "not_tested", reason: "check_error" })).toBe("the checker failed to run this check");
+  });
+
+  it("has words only for the reasons it knows", () => {
+    expect(Object.keys(verdictContent.reasons).sort()).toEqual([...REASONS].sort());
   });
 
   it("falls back to the outcome when there is no reason", () => {

@@ -10,7 +10,8 @@
   "reasons": {
     "timeout": "the site took too long to answer",
     "deadline": "the scan ran out of time before this check could finish",
-    "rate_limited": "the site limited how many requests it would answer",
+    "probe_cooldown": "checked recently, showing the earlier result",
+    "check_error": "the checker failed to run this check",
     "owner_opt_out": "the owner turned off active checks",
     "out_of_scope": "this check was outside what the scan covers for this site",
     "not_available": "the checker does not run this check yet",

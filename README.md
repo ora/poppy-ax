@@ -41,6 +41,8 @@ Other scripts:
 
 Set `ORA_FIXTURES=1` to serve recorded responses from `fixtures/` instead of calling Ora's API. Tests and previews use it, and it lets you work offline without a service token. With `ORA_FIXTURES=0` the site calls `ORA_BASE_URL` with `ORA_SERVICE_TOKEN`. The token lives only in environment variables; never commit it. [ORA_API.md](ORA_API.md) is the API contract, and [fixtures/README.md](fixtures/README.md) says how each fixture was captured.
 
+In fixture mode, `lib/ora/client.ts` (the only module that talks to Ora) finds a summary by the `domain` inside each `summary-*.json`, so `/audit/example.com` and `/audit/failing-p0.example.com` show recorded results. Any other valid domain reads as not checked yet, and a domain the site refuses gets the matching answer from `fixtures/errors/`. A check replays `scan-in-progress.sse` with the requested domain, then a completion frame, 30 ms apart; set `ORA_FIXTURES_DELAY_MS` to change the gap.
+
 ## Licenses
 
 - Code: [MIT](LICENSE).

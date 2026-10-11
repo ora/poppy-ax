@@ -15,15 +15,24 @@ export type Tier = 0 | 1 | 2 | 3;
 /** The catalog's finer split of tiers. Tier 2 is 2a (coming soon) and 2b (opt-in). */
 export type Level = "0" | "1" | "2a" | "2b" | "3";
 
-/** Why a check was not run, or not run to the end. */
-export type Reason =
-  | "timeout"
-  | "deadline"
-  | "rate_limited"
-  | "owner_opt_out"
-  | "out_of_scope"
-  | "not_available"
-  | "opt_in_required";
+/**
+ * Why a check was not run, or not run to the end. The API may send a reason
+ * that is not listed here; the page treats it as "not measured".
+ */
+export const REASONS = [
+  "timeout",
+  "deadline",
+  // Ora checked the site recently and kept the earlier round's result.
+  "probe_cooldown",
+  // Ora's own check failed to run.
+  "check_error",
+  "owner_opt_out",
+  "out_of_scope",
+  "not_available",
+  "opt_in_required",
+] as const;
+
+export type Reason = (typeof REASONS)[number];
 
 export type CountKey = "tier0" | "tier1" | "tier2a" | "tier2b" | "tier3";
 
@@ -91,3 +100,115 @@ export interface Catalog {
   spec_url?: string;
   rows: readonly CatalogRow[];
 }
+
+/** One domain on the sites list: a scan found its poppy.json. */
+export interface Site {
+  /** The domain as Ora stores it (the host, minus one leading "www."). */
+  domain: string;
+  /** ISO 8601 time a scan first found its poppy.json. */
+  first_seen: string;
+  /** ISO 8601 time of the latest scan that found it. */
+  last_seen: string;
+}
+
+/** The 400 codes the summary API answers for a domain it will not look up. */
+export const INVALID_DOMAIN_CODES = ["invalid_domain", "has_path", "has_port", "ip_address", "localhost"] as const;
+
+export type InvalidDomainCode = (typeof INVALID_DOMAIN_CODES)[number];
+
+/**
+ * Why a call to Ora gave no result.
+ * - `no_token`: poppy.ax refused to call Ora, because ORA_SERVICE_TOKEN is unset.
+ * - `bad_config`: ORA_BASE_URL is not an http(s) URL.
+ * - `unauthorized`: Ora refused the token.
+ * - `busy`: Ora answered 429; `retryAfterSeconds` says when to try again, if it said.
+ * - `upstream`: any other status Ora should not have answered.
+ * - `timeout`, `aborted`, `network`: no answer arrived.
+ * - `bad_response`: the answer did not match ORA_API.md.
+ * - `fixture_missing`: fixture mode could not read a file in fixtures/.
+ */
+export type OraErrorCode =
+  | "no_token"
+  | "bad_config"
+  | "unauthorized"
+  | "busy"
+  | "upstream"
+  | "timeout"
+  | "aborted"
+  | "network"
+  | "bad_response"
+  | "fixture_missing";
+
+export interface OraError {
+  kind: "error";
+  code: OraErrorCode;
+  /** The HTTP status Ora answered with, when it answered. */
+  status?: number;
+  /** For `busy`: seconds until Ora takes another request, when it said. */
+  retryAfterSeconds?: number;
+}
+
+/** The result of asking for one domain's summary. */
+export type SummaryResult =
+  | { kind: "ok"; summary: Summary }
+  | { kind: "not_scanned" }
+  | { kind: "invalid"; code: InvalidDomainCode }
+  | OraError;
+
+/**
+ * The result of waiting for a scan's summary. `stale` means the time ran out
+ * while Ora still answered with a result from before the scan.
+ */
+export type FreshSummaryResult = SummaryResult | { kind: "stale"; summary: Summary };
+
+/**
+ * A started scan: its progress as server-sent events, cleaned for the
+ * browser (see lib/ora/sse.ts). Read it until it closes: the result may be
+ * saved only after `scan_complete`. `ageSeconds` is Ora's `Age` header, set
+ * when it served a stored result instead of scanning again.
+ */
+export type ScanStreamResult =
+  | { kind: "ok"; body: ReadableStream<Uint8Array>; ageSeconds: number | null }
+  | { kind: "invalid"; code: InvalidDomainCode }
+  | OraError;
+
+/** Whether Ora accepts poppy.ax's service token. */
+export type TokenCheck = { kind: "ok"; status?: number } | { kind: "bad_token"; code: "no_token" | "unauthorized" };
+
+/** A progress event as poppy.ax relays it to the browser. */
+export type ScanEvent =
+  | { type: "kind_detecting"; timestamp?: number }
+  | { type: "kind_detected"; kind?: string; timestamp?: number }
+  | { type: "scan_init"; totalChecks?: number; staticOnly?: boolean; timestamp?: number }
+  | {
+      type: "discovery_phase";
+      step?: string;
+      label?: string;
+      stepIndex?: number;
+      totalSteps?: number;
+      timestamp?: number;
+    }
+  | { type: "check_start"; layerId?: string; layerName?: string; checkId?: string; checkName?: string; timestamp?: number }
+  | {
+      type: "check_complete";
+      layerId?: string;
+      layerName?: string;
+      checkId?: string;
+      checkName?: string;
+      /** `pass`, `fail`, `warning` or `na`; others may appear. */
+      status?: string;
+      score?: number;
+      maxScore?: number;
+      /** Text about the scanned site. Plain text only. */
+      details?: string;
+      timestamp?: number;
+    }
+  | { type: "layer_complete"; layerId?: string; layerName?: string; timestamp?: number }
+  | { type: "scan_complete"; servedFromCache?: boolean; resultAgeSeconds?: number; timestamp?: number }
+  | {
+      type: "error";
+      /** `unreachable` when the domain did not answer; `failed` for anything else. */
+      reason: "unreachable" | "failed";
+      /** True when the error came after `scan_complete`: fetch the summary anyway. */
+      after_complete: boolean;
+    };
