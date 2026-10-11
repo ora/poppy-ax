@@ -674,8 +674,10 @@ main {
   color: var(--color-paper);
 }
 
+/* Transparent, so a <button> drops the browser's own grey (ButtonFace) and matches a link styled as one. */
 .button--secondary {
   border-color: var(--color-ink);
+  background-color: transparent;
   color: var(--color-ink);
 }
 
