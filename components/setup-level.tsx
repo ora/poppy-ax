@@ -1,14 +1,30 @@
 import type { MDXComponents, MDXContent } from "mdx/types";
-import type { ReactNode } from "react";
-import { groupedRows, setupContent, type SetupLevel } from "@/lib/setup";
+import { Children, isValidElement, type ReactNode } from "react";
+import { groupedRows, setupContent, stepId, type SetupLevel } from "@/lib/setup";
 
-// Code blocks scroll sideways inside themselves on a phone, so they must be
-// reachable by keyboard to scroll.
-const mdxComponents: MDXComponents = {
-  pre: (props) => <pre tabIndex={0} {...props} />,
-  // Says what a code block shows, and whether it is a whole document or an excerpt.
-  CodeLabel: ({ children }: { children?: ReactNode }) => <p className="code-label">{children}</p>,
-};
+/** The plain text inside a heading, for its id. */
+function textOf(node: ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  return Children.toArray(node)
+    .map((child) => (isValidElement<{ children?: ReactNode }>(child) ? textOf(child.props.children) : textOf(child)))
+    .join("");
+}
+
+function mdxComponentsFor(levelId: string): MDXComponents {
+  return {
+    // Code blocks scroll sideways inside themselves on a phone, so they must be
+    // reachable by keyboard to scroll.
+    pre: (props) => <pre tabIndex={0} {...props} />,
+    // Each step gets a stable id, so row explanations can link to the step that fixes them.
+    h3: ({ children, ...props }) => (
+      <h3 id={stepId(levelId, textOf(children))} {...props}>
+        {children}
+      </h3>
+    ),
+    // Says what a code block shows, and whether it is a whole document or an excerpt.
+    CodeLabel: ({ children }: { children?: ReactNode }) => <p className="code-label">{children}</p>,
+  };
+}
 
 function checksSummary(level: SetupLevel): string {
   const { checksSummary: t } = setupContent.page;
@@ -67,7 +83,7 @@ export function LevelSection({ level, Body }: { level: SetupLevel; Body: MDXCont
         </dl>
       </header>
       <div className="prose">
-        <Body components={mdxComponents} />
+        <Body components={mdxComponentsFor(level.id)} />
       </div>
       <LevelChecks level={level} />
     </section>

@@ -39,3 +39,17 @@ export function groupedRows(level: SetupLevel): { group: RowGroup; rows: Catalog
     (entry) => entry.rows.length > 0,
   );
 }
+
+/**
+ * The id a setup step's h3 heading renders with: the level id, then the
+ * heading text as a slug. "Name your sign-in server" in level 1 becomes
+ * "level-1-name-your-sign-in-server". Row explanations link to these.
+ */
+export function stepId(levelId: string, heading: string): string {
+  const slug = heading
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `${levelId}-${slug}`;
+}
