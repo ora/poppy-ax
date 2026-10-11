@@ -45,7 +45,25 @@
     "sites": {
       "title": "Sites",
       "heading": "Sites that publish a PAP file",
-      "lede": "Every site Ora has seen publishing the protocol's public file, with the date it was first seen. The list arrives on this page soon."
+      "lede": "Every site Ora has seen publishing the protocol's public file, with the date it was first seen. Pick one to see its result.",
+      "description": "Every domain Ora has seen publishing a PAP file, with the date it was first seen and a link to its result.",
+      "order": "Sites are listed in the order Ora sends them.",
+      "listLabel": "Sites that publish a PAP file",
+      "firstSeen": "First seen",
+      "resultLinkText": "See result",
+      "empty": "No site has shown up yet. Be the first.",
+      "emptyLink": {
+        "text": "Here is how to set it up",
+        "href": "/setup"
+      },
+      "unavailable": "The list is not available right now. Please try again in a few minutes.",
+      "arc": {
+        "before": "For adoption over time, see ",
+        "linkText": "ARC",
+        "href": "https://www.arcreport.ai/protocols/pap",
+        "after": "."
+      },
+      "note": "This is not every site that publishes the file. Ora lists only the domains it has scanned."
     }
   }
 }
