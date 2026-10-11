@@ -18,6 +18,7 @@ export const DOMAIN_MESSAGES = {
   ip_address: "That looks like an IP address. Type the company's domain, like example.com.",
   localhost: "That points at your own computer. Type a public domain, like example.com.",
   has_port: "Leave out the colon and the number after it. Type just the domain, like example.com.",
+  colon: "Leave out the colon and anything after it. Type just the domain, like example.com.",
   has_path: "Leave out everything after the domain. The checker looks at the whole site, so example.com is enough.",
 } as const;
 
@@ -93,7 +94,8 @@ export function normalizeDomain(input: string): DomainResult {
   const colon = host.indexOf(":");
   const port = colon === -1 ? null : host.slice(colon + 1);
   if (port !== null) {
-    if (!/^[0-9]+$/.test(port)) return fail("invalid", DOMAIN_MESSAGES.typo);
+    // "example.com:" or "example.com:abc": a stray colon at the end, not a typo at the start.
+    if (!/^[0-9]+$/.test(port)) return fail("invalid", DOMAIN_MESSAGES.colon);
     host = host.slice(0, colon);
   }
 

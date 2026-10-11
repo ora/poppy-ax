@@ -90,6 +90,7 @@ const rejected: [input: string, error: DomainError][] = [
   ["https:/example.com", "invalid"],
   ["https:example.com/", "invalid"],
   ["example.com:abc", "invalid"],
+  ["example.com:", "invalid"],
 ];
 
 describe("normalizeDomain", () => {
@@ -130,6 +131,15 @@ describe("normalizeDomain", () => {
       expect(normalizeDomain(input)).toMatchObject({
         error: "invalid",
         message: "Check the address, it looks like a typo near the start. Type just the domain, like example.com.",
+      });
+    }
+  });
+
+  it("points at a stray colon at the end, not a typo at the start", () => {
+    for (const input of ["example.com:", "example.com:abc", "https://example.com:/"]) {
+      expect(normalizeDomain(input), input).toMatchObject({
+        error: "invalid",
+        message: "Leave out the colon and anything after it. Type just the domain, like example.com.",
       });
     }
   });
