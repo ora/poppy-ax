@@ -11,8 +11,9 @@ import {
   pollFreshSummary,
   resetOraClient,
   streamScan,
+  summaryTag,
 } from "@/lib/ora/client";
-import { parseSseFrames } from "@/lib/ora/sse";
+import { parseSseFrames, relayScanEvents } from "@/lib/ora/sse";
 import type { ScanStreamResult, Summary } from "@/lib/ora/types";
 
 const FIXTURES = join(process.cwd(), "fixtures");
@@ -168,7 +169,7 @@ describe("fixture mode", () => {
       (async () => {
         for (;;) if ((await reader.read()).done) return;
       })(),
-    ).rejects.toBeDefined();
+    ).rejects.toMatchObject({ name: "AbortError" });
   });
 
   it("refuses an invalid domain before replaying", async () => {
@@ -178,7 +179,7 @@ describe("fixture mode", () => {
   it("counts the fixture summary as fresh and accepts any token", async () => {
     const result = await pollFreshSummary("example.com", { streamStartedAt: Date.now(), wasCacheHit: false });
     expect(result.kind).toBe("ok");
-    expect(await checkToken()).toEqual({ kind: "ok" });
+    expect(await checkToken()).toEqual({ kind: "ok", status: null });
   });
 });
 
@@ -199,7 +200,8 @@ describe("network mode", () => {
       expect([...url.searchParams.entries()]).toEqual([["domain", "failing-p0.example.com"]]);
       const headers = new Headers(calledInit().headers);
       expect(headers.get("authorization")).toBe(`Bearer ${TOKEN}`);
-      expect(calledInit().next).toEqual({ revalidate: 60 });
+      expect(calledInit().next).toEqual({ revalidate: 60, tags: ["ora-summary:failing-p0.example.com"] });
+      expect(calledInit().redirect).toBe("error");
     });
 
     it("skips every cache when asked for a fresh summary", async () => {
@@ -676,5 +678,385 @@ describe("network mode", () => {
       const url = String(input);
       expect(url).not.toMatch(/force|fresh|maxAgeSeconds/i);
     }
+  });
+});
+
+/** A byte stream from string chunks, which notes when it is cancelled. */
+function chunked(parts: Array<string | Uint8Array>, options: { close?: boolean } = {}) {
+  const state = { cancelled: false };
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const part of parts) controller.enqueue(typeof part === "string" ? encoder.encode(part) : part);
+      if (options.close !== false) controller.close();
+    },
+    cancel() {
+      state.cancelled = true;
+    },
+  });
+  return { stream, state };
+}
+
+async function relayText(stream: ReadableStream<Uint8Array>): Promise<string> {
+  return new Response(relayScanEvents(stream, { domain: "example.com" })).text();
+}
+
+describe("relayScanEvents", () => {
+  const DATA = (frame: object) => `data: ${JSON.stringify(frame)}`;
+
+  it("reads a multibyte character split across chunks", async () => {
+    const bytes = new TextEncoder().encode(`${DATA({ type: "check_complete", details: "café ✓ 😀" })}\n\n`);
+    const at = bytes.indexOf(0xf0) + 2;
+    const { stream } = chunked([bytes.slice(0, at), bytes.slice(at)]);
+    expect(parseSseFrames(await relayText(stream))).toEqual([{ type: "check_complete", details: "café ✓ 😀" }]);
+  });
+
+  it("skips comment lines and joins multi-line data", async () => {
+    const text = `: keep-alive\n\n${": note\n"}data: {"type":\ndata: "kind_detecting", "timestamp": 1}\n\n`;
+    const { stream } = chunked([text]);
+    expect(parseSseFrames(await relayText(stream))).toEqual([{ type: "kind_detecting", timestamp: 1 }]);
+  });
+
+  it("reads LF, CRLF and bare CR line ends, even when a CRLF is split", async () => {
+    const one = DATA({ type: "kind_detecting", timestamp: 1 });
+    const two = DATA({ type: "kind_detected", kind: "domain", timestamp: 2 });
+    const three = DATA({ type: "layer_complete", layerId: "a", timestamp: 3 });
+    const { stream } = chunked([`${one}\r\r`, `${two}\r`, `\n\r\n${three}\n\n`]);
+    expect(parseSseFrames(await relayText(stream))).toEqual([
+      { type: "kind_detecting", timestamp: 1 },
+      { type: "kind_detected", kind: "domain", timestamp: 2 },
+      { type: "layer_complete", layerId: "a", timestamp: 3 },
+    ]);
+  });
+
+  it("keeps one frame whole when its CRLF is split between chunks", async () => {
+    const { stream } = chunked(['data: {"type":\r', '\ndata: "kind_detecting"}\r\n\r\n']);
+    expect(parseSseFrames(await relayText(stream))).toEqual([{ type: "kind_detecting" }]);
+  });
+
+  it("reads a frame that arrives one character at a time", async () => {
+    const text = `${DATA({ type: "kind_detecting", timestamp: 1 })}\n\n${DATA({ type: "scan_complete", timestamp: 2 })}\n\n`;
+    const { stream } = chunked([...text]);
+    expect(parseSseFrames(await relayText(stream))).toHaveLength(2);
+  });
+
+  it("cuts a frame that grows past the cap, cancels Ora and logs it", async () => {
+    const log = vi.fn();
+    // 14 characters but 22 bytes: only a byte count catches it under a 20 byte cap.
+    const { stream, state } = chunked(["data: ", "éééééééé"], { close: false });
+    const relay = relayScanEvents(stream, { domain: "example.com", log, maxFrameBytes: 20 });
+    await expect(new Response(relay).text()).rejects.toThrow(/grew past 20 bytes/);
+    expect(state.cancelled).toBe(true);
+    expect(log).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a frame at the cap", async () => {
+    const frame = `${DATA({ type: "kind_detecting" })}\n\n`;
+    const { stream } = chunked([frame]);
+    const relay = relayScanEvents(stream, { domain: "example.com", maxFrameBytes: frame.length });
+    expect(parseSseFrames(await new Response(relay).text())).toEqual([{ type: "kind_detecting" }]);
+  });
+
+  it("cuts a stream that sends nothing for the idle time", async () => {
+    const log = vi.fn();
+    const { stream, state } = chunked([`${DATA({ type: "kind_detecting" })}\n\n`], { close: false });
+    const relay = relayScanEvents(stream, { domain: "example.com", log, idleTimeoutMs: 20 });
+    await expect(new Response(relay).text()).rejects.toThrow(/sent nothing for 20 ms/);
+    expect(state.cancelled).toBe(true);
+  });
+
+  it("parses bare CR in parseSseFrames too", () => {
+    expect(parseSseFrames('data: {"type":"a"}\r\rdata: {"type":"b"}\r\r')).toEqual([{ type: "a" }, { type: "b" }]);
+  });
+});
+
+describe("fix round 1, network mode", () => {
+  beforeEach(() => {
+    vi.stubEnv("ORA_FIXTURES", "0");
+    vi.stubEnv("ORA_BASE_URL", BASE);
+    vi.stubEnv("ORA_SERVICE_TOKEN", TOKEN);
+    vi.stubEnv("VERCEL_ENV", "");
+  });
+
+  describe("checkToken", () => {
+    it.each([200, 400, 404])("says ok for a %i", async (status) => {
+      fetchMock.mockResolvedValue(json(status, status === 200 ? fixture("summary-not-set-up.json") : { error: "x" }));
+      expect(await checkToken()).toEqual({ kind: "ok", status });
+    });
+
+    it("says bad_token for a 401", async () => {
+      fetchMock.mockResolvedValue(json(401, { error: "unauthorized" }));
+      expect(await checkToken()).toEqual({ kind: "bad_token", code: "unauthorized" });
+    });
+
+    it("says unknown for a timeout, a network error, a 429 and a 5xx", async () => {
+      fetchMock.mockImplementationOnce(hangingFetch());
+      expect(await checkToken()).toEqual({ kind: "unknown", code: "timeout" });
+      fetchMock.mockRejectedValueOnce(new TypeError("fetch failed"));
+      expect(await checkToken()).toEqual({ kind: "unknown", code: "network" });
+      fetchMock.mockResolvedValueOnce(json(429, { error: "busy" }));
+      expect(await checkToken()).toEqual({ kind: "unknown", code: "busy", status: 429 });
+      fetchMock.mockResolvedValueOnce(json(500, { error: "internal_error" }));
+      expect(await checkToken()).toEqual({ kind: "unknown", code: "upstream", status: 500 });
+      fetchMock.mockResolvedValueOnce(json(403, {}));
+      expect(await checkToken()).toEqual({ kind: "unknown", code: "upstream", status: 403 });
+      // No retry inside a token check.
+      expect(fetchMock).toHaveBeenCalledTimes(5);
+    });
+
+    it("says bad_config for a base URL it will not call", async () => {
+      vi.stubEnv("ORA_BASE_URL", "ftp://ora.test");
+      expect(await checkToken()).toEqual({ kind: "bad_config" });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("base URL", () => {
+    it("refuses plain http to a public host in production", async () => {
+      vi.stubEnv("VERCEL_ENV", "production");
+      vi.stubEnv("ORA_BASE_URL", "http://ora.test");
+      expect(await getSummary("example.com")).toEqual({ kind: "error", code: "bad_config" });
+      expect(await streamScan("example.com")).toEqual({ kind: "error", code: "bad_config" });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["a loopback host in production", "production", "http://127.0.0.1:4214"],
+      ["localhost in production", "production", "http://localhost:4214"],
+      ["a public host outside production", "preview", "http://ora.test"],
+    ])("allows plain http to %s", async (_name, env, base) => {
+      vi.stubEnv("VERCEL_ENV", env);
+      vi.stubEnv("ORA_BASE_URL", base);
+      fetchMock.mockResolvedValue(json(404, { error: "not_scanned" }));
+      expect(await getSummary("example.com")).toEqual({ kind: "not_scanned" });
+      expect(calledUrl().origin).toBe(new URL(base).origin);
+    });
+  });
+
+  it("refuses fixture mode in production, says so once, and calls nothing", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("ORA_FIXTURES", "1");
+    const logError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      expect(await getSummary("example.com")).toEqual({ kind: "error", code: "bad_config" });
+      expect(await pollFreshSummary("example.com", { streamStartedAt: 0, wasCacheHit: false })).toEqual({
+        kind: "error",
+        code: "bad_config",
+      });
+      expect(await getSites()).toBeNull();
+      expect(await getCatalog()).toBeNull();
+      expect(await streamScan("example.com")).toEqual({ kind: "error", code: "bad_config" });
+      expect(await checkToken()).toEqual({ kind: "bad_config" });
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(logError).toHaveBeenCalledTimes(1);
+    } finally {
+      logError.mockRestore();
+    }
+  });
+
+  it("refuses redirects on every call that carries the token", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const path = new URL(String(input)).pathname;
+      if (path === "/api/scan/stream") return sse([JSON.stringify({ type: "kind_detecting" })]);
+      if (path === "/pap/catalog.json") return json(200, fixture("catalog.json"));
+      if (path === "/api/pap/v1/sites") return json(200, fixture("sites.json"));
+      return json(200, fixture("summary-not-set-up.json"));
+    });
+    await getSummary("example.com");
+    await getSites();
+    await checkToken();
+    await readAll(await streamScan("example.com"));
+    await getCatalog();
+    for (const [input, init] of fetchMock.mock.calls) {
+      const authed = new Headers(init?.headers).has("authorization");
+      expect(init?.redirect, String(input)).toBe(authed ? "error" : undefined);
+    }
+    expect(new Headers(fetchMock.mock.calls.at(-1)?.[1]?.headers).has("authorization")).toBe(false);
+  });
+
+  it("tags the cached summary so a route can revalidate it", async () => {
+    expect(summaryTag("https://www.Example.com/")).toBe("ora-summary:example.com");
+    fetchMock.mockResolvedValue(json(200, fixture("summary-not-set-up.json")));
+    await getSummary("www.example.com");
+    expect(calledInit().next).toEqual({ revalidate: 60, tags: [summaryTag("example.com")] });
+  });
+
+  it("warns once, naming it, about a 400 code it does not know", async () => {
+    fetchMock.mockResolvedValue(json(400, { error: "something_new" }));
+    await getSummary("example.com");
+    await getSummary("example.com");
+    const lines = warn.mock.calls.map((call) => String(call[0])).filter((line) => line.includes("something_new"));
+    expect(lines).toHaveLength(1);
+  });
+
+  it("warns once, without failing, when Ora answers for another domain", async () => {
+    fetchMock.mockResolvedValue(json(200, { ...fixture("summary-not-set-up.json"), domain: "other.example.com" }));
+    const result = await getSummary("example.com");
+    expect(result.kind === "ok" && result.summary.domain).toBe("other.example.com");
+    await getSummary("example.com");
+    const lines = warn.mock.calls.map((call) => String(call[0])).filter((line) => line.includes("other.example.com"));
+    expect(lines).toHaveLength(1);
+  });
+
+  it("reads Retry-After given as an HTTP date", async () => {
+    const at = new Date(Date.now() + 120_000).toUTCString();
+    fetchMock.mockResolvedValue(json(429, { error: "busy" }, { "retry-after": at }));
+    const result = await getSummary("example.com");
+    expect(result).toMatchObject({ kind: "error", code: "busy", status: 429 });
+    const seconds = result.kind === "error" ? (result.retryAfterSeconds ?? 0) : 0;
+    expect(seconds).toBeGreaterThanOrEqual(118);
+    expect(seconds).toBeLessThanOrEqual(120);
+  });
+
+  describe("streamScan freshness inputs", () => {
+    it("takes startedAt from Ora's Date header", async () => {
+      const date = "Sun, 11 Oct 2026 10:00:00 GMT";
+      fetchMock.mockResolvedValue(sse([JSON.stringify({ type: "scan_complete", timestamp: 1 })], { date }));
+      const result = await streamScan("example.com");
+      expect(result.kind === "ok" && result.startedAt).toBe(Date.parse(date));
+    });
+
+    it("falls back to the time just before the request", async () => {
+      fetchMock.mockResolvedValue(sse([JSON.stringify({ type: "scan_complete", timestamp: 1 })]));
+      const before = Date.now();
+      const result = await streamScan("example.com");
+      const after = Date.now();
+      if (result.kind !== "ok") throw new Error("expected a stream");
+      expect(result.startedAt).toBeGreaterThanOrEqual(before);
+      expect(result.startedAt).toBeLessThanOrEqual(after);
+    });
+
+    it.each([
+      ["a fresh scan", {}, { type: "scan_complete", result: {}, timestamp: 1 }, false],
+      ["an Age header", { age: "6" }, { type: "scan_complete", result: {}, timestamp: 1 }, true],
+      ["a servedFromCache frame", {}, { type: "scan_complete", result: {}, timestamp: 1, servedFromCache: true }, true],
+    ])("settles servedFromCache from %s", async (_name, headers, frame, expected) => {
+      fetchMock.mockResolvedValue(sse([JSON.stringify(frame)], headers as Record<string, string>));
+      const result = await streamScan("example.com");
+      if (result.kind !== "ok") throw new Error("expected a stream");
+      await readAll(result);
+      expect(await result.servedFromCache).toBe(expected);
+    });
+
+    it("settles servedFromCache when the stream ends without scan_complete, or is cancelled", async () => {
+      fetchMock.mockResolvedValueOnce(sse([JSON.stringify({ type: "error", message: "Domain is not reachable" })]));
+      const ended = await streamScan("example.com");
+      if (ended.kind !== "ok") throw new Error("expected a stream");
+      await readAll(ended);
+      expect(await ended.servedFromCache).toBe(false);
+
+      fetchMock.mockResolvedValueOnce(sse([JSON.stringify({ type: "kind_detecting" })]));
+      const cancelled = await streamScan("example.com");
+      if (cancelled.kind !== "ok") throw new Error("expected a stream");
+      await cancelled.body.cancel();
+      expect(await cancelled.servedFromCache).toBe(false);
+    });
+  });
+
+  it("says aborted when the caller aborts while connecting", async () => {
+    configureOraClient({ connectTimeoutMs: 5_000 });
+    fetchMock.mockImplementation(hangingFetch());
+    const controller = new AbortController();
+    const pending = streamScan("example.com", controller.signal);
+    controller.abort();
+    expect(await pending).toEqual({ kind: "error", code: "aborted" });
+  });
+
+  it("cuts the stream when Ora goes quiet", async () => {
+    configureOraClient({ streamIdleTimeoutMs: 20 });
+    const { stream, state } = chunked([`data: ${JSON.stringify({ type: "kind_detecting" })}\n\n`], { close: false });
+    fetchMock.mockResolvedValue(new Response(stream, { headers: { "content-type": "text/event-stream" } }));
+    const result = await streamScan("example.com");
+    await expect(readAll(result)).rejects.toThrow(/sent nothing/);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(state.cancelled).toBe(true);
+  });
+
+  it("gives up reading a 429 body that never ends", async () => {
+    const { stream } = chunked(['{"error":'], { close: false });
+    fetchMock.mockResolvedValue(new Response(stream, { status: 429, headers: { "retry-after": "5" } }));
+    const started = Date.now();
+    expect(await streamScan("example.com")).toEqual({ kind: "error", code: "busy", status: 429, retryAfterSeconds: 5 });
+    expect(Date.now() - started).toBeLessThan(1_000);
+  });
+
+  describe("pollFreshSummary", () => {
+    const old = () => json(200, { ...fixture("summary-not-set-up.json"), last_run: "2026-10-10T00:00:00.000Z" });
+
+    it("keeps the stale result when an error comes in between", async () => {
+      configureOraClient({ pollBudgetMs: 40, pollIntervalMs: 5 });
+      fetchMock.mockResolvedValueOnce(old());
+      fetchMock.mockImplementation(async () => json(500, { error: "internal_error" }));
+      const result = await pollFreshSummary("example.com", { streamStartedAt: Date.now(), wasCacheHit: false });
+      expect(result.kind).toBe("stale");
+      expect(fetchMock.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    it("stops at once with busy on a 429", async () => {
+      fetchMock.mockResolvedValue(json(429, { error: "busy", retry_after_ms: 4_000 }));
+      const result = await pollFreshSummary("example.com", { streamStartedAt: Date.now(), wasCacheHit: false });
+      expect(result).toEqual({ kind: "error", code: "busy", status: 429, retryAfterSeconds: 4 });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not retry a 5xx inside a try", async () => {
+      // A retry would wait 10 seconds and time the test out.
+      configureOraClient({ retryDelayMs: 10_000, pollBudgetMs: 30, pollIntervalMs: 5 });
+      fetchMock.mockImplementation(async () => json(500, { error: "internal_error" }));
+      const result = await pollFreshSummary("example.com", { streamStartedAt: Date.now(), wasCacheHit: false });
+      expect(result).toEqual({ kind: "error", code: "upstream", status: 500 });
+    });
+
+    it("cuts a slow try off at the end of the budget", async () => {
+      configureOraClient({ requestTimeoutMs: 5_000, pollBudgetMs: 40 });
+      fetchMock.mockImplementation(hangingFetch());
+      const started = Date.now();
+      const result = await pollFreshSummary("example.com", { streamStartedAt: Date.now(), wasCacheHit: false });
+      expect(result).toEqual({ kind: "error", code: "timeout" });
+      expect(Date.now() - started).toBeLessThan(1_000);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+
+describe("fix round 1, fixture mode", () => {
+  beforeEach(() => {
+    vi.stubEnv("ORA_FIXTURES", "1");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    fetchMock.mockImplementation(() => {
+      throw new Error("fixture mode must not call the network");
+    });
+  });
+
+  it("asks once when polling", async () => {
+    const result = await pollFreshSummary("failing-p0.example.com", { streamStartedAt: Date.now(), wasCacheHit: false });
+    expect(result.kind === "ok" && result.summary.verdict).toBe("problems");
+    expect(await pollFreshSummary("unknown.example.net", { streamStartedAt: 0, wasCacheHit: false })).toEqual({
+      kind: "not_scanned",
+    });
+  });
+
+  it("gives the replay a start time and settles servedFromCache to false", async () => {
+    const before = Date.now();
+    const result = await streamScan("example.com");
+    if (result.kind !== "ok") throw new Error("expected a stream");
+    expect(result.startedAt).toBeGreaterThanOrEqual(before);
+    const frames = parseSseFrames(await readAll(result));
+    expect(frames.at(-1)).toMatchObject({ type: "scan_complete" });
+    expect(await result.servedFromCache).toBe(false);
+  });
+
+  it("reads an empty ORA_FIXTURES_DELAY_MS as unset (30 ms between frames)", async () => {
+    configureOraClient({ fixtureFrameDelayMs: null });
+    vi.stubEnv("ORA_FIXTURES_DELAY_MS", "");
+    const result = await streamScan("example.com");
+    if (result.kind !== "ok") throw new Error("expected a stream");
+    const reader = result.body.getReader();
+    const started = Date.now();
+    await reader.read();
+    await reader.read();
+    await reader.read();
+    expect(Date.now() - started).toBeGreaterThanOrEqual(50);
+    await reader.cancel();
   });
 });

@@ -119,7 +119,9 @@ export type InvalidDomainCode = (typeof INVALID_DOMAIN_CODES)[number];
 /**
  * Why a call to Ora gave no result.
  * - `no_token`: poppy.ax refused to call Ora, because ORA_SERVICE_TOKEN is unset.
- * - `bad_config`: ORA_BASE_URL is not an http(s) URL.
+ * - `bad_config`: poppy.ax will not call Ora as configured: ORA_BASE_URL is
+ *   not https (plain http only for a loopback host or outside Vercel
+ *   production), or ORA_FIXTURES=1 in Vercel production.
  * - `unauthorized`: Ora refused the token.
  * - `busy`: Ora answered 429; `retryAfterSeconds` says when to try again, if it said.
  * - `upstream`: any other status Ora should not have answered.
@@ -164,16 +166,46 @@ export type FreshSummaryResult = SummaryResult | { kind: "stale"; summary: Summa
 /**
  * A started scan: its progress as server-sent events, cleaned for the
  * browser (see lib/ora/sse.ts). Read it until it closes: the result may be
- * saved only after `scan_complete`. `ageSeconds` is Ora's `Age` header, set
- * when it served a stored result instead of scanning again.
+ * saved only after `scan_complete`.
+ *
+ * `startedAt` and `servedFromCache` are the inputs isFreshSummary needs.
  */
 export type ScanStreamResult =
-  | { kind: "ok"; body: ReadableStream<Uint8Array>; ageSeconds: number | null }
+  | {
+      kind: "ok";
+      body: ReadableStream<Uint8Array>;
+      /** Ora's `Age` header, set when it served a stored result instead of scanning again. */
+      ageSeconds: number | null;
+      /**
+       * When the scan began, in Unix ms: Ora's `Date` response header when it
+       * sent one (whole seconds), else the time just before the request.
+       */
+      startedAt: number;
+      /**
+       * Whether Ora served a stored result: true when it sent an `Age` header
+       * or its `scan_complete` says `servedFromCache`. Settles at
+       * `scan_complete`, or when the body ends, fails or is cancelled, so
+       * await it only while or after reading the body, never before.
+       */
+      servedFromCache: Promise<boolean>;
+    }
   | { kind: "invalid"; code: InvalidDomainCode }
   | OraError;
 
-/** Whether Ora accepts poppy.ax's service token. */
-export type TokenCheck = { kind: "ok"; status?: number } | { kind: "bad_token"; code: "no_token" | "unauthorized" };
+/**
+ * Whether Ora accepts poppy.ax's service token.
+ * - `ok`: Ora answered 200, 404 or 400 to an authenticated request (`status`
+ *   is null in fixture mode, where no token is needed).
+ * - `bad_token`: the token is unset, or Ora answered 401.
+ * - `unknown`: no verdict (a timeout, a network error, a 429 or a 5xx).
+ * - `bad_config`: poppy.ax will not call Ora as configured (ORA_BASE_URL, or
+ *   fixture mode in production).
+ */
+export type TokenCheck =
+  | { kind: "ok"; status: number | null }
+  | { kind: "bad_token"; code: "no_token" | "unauthorized" }
+  | { kind: "unknown"; code: OraErrorCode; status?: number }
+  | { kind: "bad_config" };
 
 /** A progress event as poppy.ax relays it to the browser. */
 export type ScanEvent =

@@ -15,6 +15,8 @@ const accepted: [input: string, domain: string][] = [
   ["http://example.com", "example.com"],
   ["https://www.Example.com/", "example.com"],
   ["www.example.com", "example.com"],
+  ["www.www.example.com", "example.com"],
+  ["WWW.www.shop.example.com", "shop.example.com"],
   ["example.com/", "example.com"],
   ["bücher.de", "xn--bcher-kva.de"],
   ["BÜCHER.DE", "xn--bcher-kva.de"],

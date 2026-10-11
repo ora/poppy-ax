@@ -61,9 +61,10 @@ function toAsciiHost(host: string): string | null {
  * the checker runs against, or say in plain words why it can't be checked.
  *
  * Accepts a bare host or an http(s) URL with at most one trailing slash.
- * Lowercases, drops one trailing dot and a leading "www." (results are kept
- * for the apex), and converts international names to punycode. Its output,
- * fed back in, comes out unchanged.
+ * Lowercases, drops one trailing dot and every leading "www." label
+ * ("www.www.example.com" becomes "example.com"; results are kept without
+ * it), and converts international names to punycode. Subdomains other than
+ * "www" stay. Its output, fed back in, comes out unchanged.
  */
 export function normalizeDomain(input: string): DomainResult {
   let text = input.trim().toLowerCase();
@@ -103,7 +104,7 @@ export function normalizeDomain(input: string): DomainResult {
 
   let domain = ascii;
   if (domain.endsWith(".")) domain = domain.slice(0, -1);
-  if (domain.startsWith("www.")) domain = domain.slice(4);
+  while (domain.startsWith("www.")) domain = domain.slice(4);
   if (domain === "" || domain.split(".").some((label) => label === "")) return fail("invalid");
   if (looksLikeIpv4(domain)) return fail("ip_address");
   if (domain === "localhost" || domain.endsWith(".localhost")) return fail("localhost");

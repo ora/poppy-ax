@@ -2,7 +2,9 @@
 // frames are untrusted: only the frame types and fields ORA_API.md lists are
 // kept, nested values are dropped (the `scan_complete` result is Ora's general
 // scan and not part of the contract), and an `error` frame's free text, which
-// can carry internal detail, goes to the server log only.
+// can carry internal detail, goes to the server log only. The reader is
+// bounded: one unfinished frame may hold at most 1 MiB, and a stream that
+// sends nothing for 90 seconds is cut.
 
 import type { ScanEvent } from "@/lib/ora/types";
 
@@ -23,6 +25,12 @@ const RELAYED_FIELDS: Readonly<Record<string, readonly string[]>> = {
 /** The one error text ORA_API.md documents. */
 const UNREACHABLE_MESSAGE = "Domain is not reachable";
 
+/** The most one unfinished frame may hold before the relay gives up. */
+export const MAX_FRAME_BYTES = 1024 * 1024;
+
+/** How long the relay waits for Ora to send anything before it gives up. */
+export const IDLE_TIMEOUT_MS = 90_000;
+
 function isObject(value: unknown): value is Json {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -31,28 +39,36 @@ function isScalar(value: unknown): value is string | number | boolean {
   return typeof value === "string" || typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value));
 }
 
-/**
- * The data of each frame in a block of server-sent events text, parsed as
- * JSON. Frames whose data is not JSON are skipped.
- */
-export function parseSseFrames(text: string): unknown[] {
-  const frames: unknown[] = [];
-  for (const block of text.split(/\r?\n\r?\n/)) {
-    const data = frameData(block);
-    if (data === null) continue;
-    try {
-      frames.push(JSON.parse(data));
-    } catch {
-      // Not JSON: not a frame the contract knows.
-    }
-  }
-  return frames;
+/** Every line ending the event stream format allows (CRLF, LF, CR) as LF. */
+function toLf(text: string): string {
+  return text.replace(/\r\n?/g, "\n");
 }
 
-/** The `data:` lines of one frame joined, or null when it has none. */
+/** UTF-8 length of a string, without encoding it. */
+function utf8Length(text: string): number {
+  let bytes = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    if (code < 0x80) bytes += 1;
+    else if (code < 0x800) bytes += 2;
+    // A surrogate pair is 4 bytes, counted 2 per half.
+    else if (code >= 0xd800 && code <= 0xdfff) bytes += 2;
+    else bytes += 3;
+  }
+  return bytes;
+}
+
+/**
+ * The `data:` lines of one frame joined with LF, or null when it has none.
+ * Comment lines (starting with ":") and other fields are skipped.
+ */
 function frameData(block: string): string | null {
   const lines: string[] = [];
-  for (const line of block.split(/\r?\n/)) {
+  for (const line of block.split("\n")) {
+    if (line === "data") {
+      lines.push("");
+      continue;
+    }
     if (!line.startsWith("data:")) continue;
     const value = line.slice(5);
     lines.push(value.startsWith(" ") ? value.slice(1) : value);
@@ -60,11 +76,38 @@ function frameData(block: string): string | null {
   return lines.length > 0 ? lines.join("\n") : null;
 }
 
+/**
+ * The data of each frame in a block of server-sent events text, parsed as
+ * JSON. Frames whose data is not JSON are skipped.
+ */
+export function parseSseFrames(text: string): unknown[] {
+  const frames: unknown[] = [];
+  for (const block of toLf(text).split("\n\n")) {
+    const data = frameData(block);
+    if (data === null) continue;
+    try {
+      frames.push(JSON.parse(data));
+    } catch (error) {
+      // Not JSON: not a frame the contract knows.
+      if (!(error instanceof SyntaxError)) throw error;
+    }
+  }
+  return frames;
+}
+
 export interface RelayContext {
   /** The scanned domain, for the server log. */
   domain: string;
-  /** Where an `error` frame's own text goes. Defaults to console.warn. */
+  /** Where server-side notes go (an `error` frame's own text, a cut stream). Defaults to console.warn. */
   log?: (message: string) => void;
+  /** Called with each event as it is relayed. */
+  onEvent?: (event: ScanEvent) => void;
+  /** Called once when the relay ends for any reason: closed, failed or cancelled. */
+  onEnd?: () => void;
+  /** Overrides MAX_FRAME_BYTES, for tests. */
+  maxFrameBytes?: number;
+  /** Overrides IDLE_TIMEOUT_MS, for tests. */
+  idleTimeoutMs?: number;
 }
 
 /**
@@ -76,8 +119,7 @@ export function cleanScanEvent(frame: unknown, completed: boolean, context: Rela
   const { type } = frame;
   if (type === "error") {
     const message = typeof frame.message === "string" ? frame.message : "";
-    const log = context.log ?? ((line: string) => console.warn(line));
-    log(`[ora] scan error frame for ${context.domain}: ${JSON.stringify(message)}`);
+    logLine(context, `scan error frame for ${context.domain}: ${JSON.stringify(message)}`);
     return { type: "error", reason: message === UNREACHABLE_MESSAGE ? "unreachable" : "failed", after_complete: completed };
   }
   if (!Object.hasOwn(RELAYED_FIELDS, type)) return null;
@@ -89,52 +131,127 @@ export function cleanScanEvent(frame: unknown, completed: boolean, context: Rela
   return event as ScanEvent;
 }
 
+function logLine(context: RelayContext, message: string): void {
+  const log = context.log ?? ((line: string) => console.warn(line));
+  log(`[ora] ${message}`);
+}
+
+class RelayStop extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RelayStop";
+  }
+}
+
 /**
  * A clean copy of Ora's scan stream, as server-sent events. It ends when the
  * upstream stream ends, not at `scan_complete`. Cancelling it cancels the
- * upstream stream.
+ * upstream stream. It fails, and cancels upstream, when one frame grows past
+ * 1 MiB or nothing arrives for 90 seconds.
  */
 export function relayScanEvents(upstream: ReadableStream<Uint8Array>, context: RelayContext): ReadableStream<Uint8Array> {
+  const maxFrameBytes = context.maxFrameBytes ?? MAX_FRAME_BYTES;
+  const idleTimeoutMs = context.idleTimeoutMs ?? IDLE_TIMEOUT_MS;
+  const reader = upstream.getReader();
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
+  // Text after the last frame boundary, with LF line ends only.
   let buffer = "";
+  // Where the next search for a boundary starts: nothing before it can begin one.
+  let scanFrom = 0;
+  // A CR at the end of a chunk may be the first half of a CRLF.
+  let pendingCr = false;
   let completed = false;
+  let ended = false;
 
-  function emit(block: string, controller: TransformStreamDefaultController<Uint8Array>) {
+  function end(): void {
+    if (ended) return;
+    ended = true;
+    context.onEnd?.();
+  }
+
+  function emit(block: string, out: Uint8Array[]): void {
     const data = frameData(block);
     if (data === null) return;
     let frame: unknown;
     try {
       frame = JSON.parse(data);
-    } catch {
+    } catch (error) {
+      // Not JSON: not a frame the contract knows.
+      if (!(error instanceof SyntaxError)) throw error;
       return;
     }
     const event = cleanScanEvent(frame, completed, context);
     if (!event) return;
     if (event.type === "scan_complete") completed = true;
-    controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+    context.onEvent?.(event);
+    out.push(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
   }
 
-  function drain(controller: TransformStreamDefaultController<Uint8Array>) {
-    for (let match = /\r?\n\r?\n/.exec(buffer); match; match = /\r?\n\r?\n/.exec(buffer)) {
-      const block = buffer.slice(0, match.index);
-      buffer = buffer.slice(match.index + match[0].length);
-      emit(block, controller);
+  /** Add decoded text and pull out every finished frame. */
+  function take(text: string, final: boolean, out: Uint8Array[]): void {
+    let chunk = (pendingCr ? "\r" : "") + text;
+    pendingCr = !final && chunk.endsWith("\r");
+    if (pendingCr) chunk = chunk.slice(0, -1);
+    buffer += toLf(chunk);
+    let start = 0;
+    for (let at = buffer.indexOf("\n\n", scanFrom); at !== -1; at = buffer.indexOf("\n\n", start)) {
+      emit(buffer.slice(start, at), out);
+      start = at + 2;
+    }
+    if (start > 0) buffer = buffer.slice(start);
+    // A boundary can start on the last character only.
+    scanFrom = Math.max(0, buffer.length - 1);
+    if (final) {
+      if (buffer.trim() !== "") emit(buffer, out);
+      buffer = "";
+      scanFrom = 0;
+    }
+    // Cheap first: a string never has more characters than UTF-8 bytes.
+    if (buffer.length > maxFrameBytes || (buffer.length * 3 > maxFrameBytes && utf8Length(buffer) > maxFrameBytes)) {
+      throw new RelayStop(`a frame from Ora grew past ${maxFrameBytes} bytes`);
     }
   }
 
-  return upstream.pipeThrough(
-    new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        buffer += decoder.decode(chunk, { stream: true });
-        drain(controller);
-      },
-      flush(controller) {
-        buffer += decoder.decode();
-        drain(controller);
-        if (buffer.trim() !== "") emit(buffer, controller);
-        buffer = "";
-      },
-    }),
-  );
+  async function read(): Promise<ReadableStreamReadResult<Uint8Array>> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const idle = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => reject(new RelayStop(`Ora sent nothing for ${idleTimeoutMs} ms`)), idleTimeoutMs);
+    });
+    try {
+      return await Promise.race([reader.read(), idle]);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        for (;;) {
+          const { done, value } = await read();
+          const out: Uint8Array[] = [];
+          take(done ? decoder.decode() : decoder.decode(value, { stream: true }), done, out);
+          for (const bytes of out) controller.enqueue(bytes);
+          if (done) {
+            controller.close();
+            end();
+            return;
+          }
+          if (out.length > 0) return;
+        }
+      } catch (error) {
+        if (error instanceof RelayStop) {
+          logLine(context, `scan stream for ${context.domain} cut: ${error.message}`);
+          reader.cancel(error).catch(() => undefined);
+        }
+        controller.error(error);
+        end();
+      }
+    },
+    async cancel(reason) {
+      end();
+      await reader.cancel(reason);
+    },
+  });
 }

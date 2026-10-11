@@ -57,7 +57,8 @@ const HOST_CHARS = /^[a-z0-9.-]+$/;
 /**
  * A domain the pages may put in a URL: a lowercase ASCII host that
  * lib/domain.ts accepts. Ora answers with the requested host minus one
- * leading "www.", so subdomains stay and "www.www.x" comes back as "www.x".
+ * leading "www.", so subdomains stay; a leftover "www." label is allowed
+ * here (the client warns when the answer differs from what it asked for).
  * Anything with a path, scheme, port or IP is refused.
  */
 function isDomain(value: unknown): value is string {
