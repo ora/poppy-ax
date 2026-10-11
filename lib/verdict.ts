@@ -107,8 +107,9 @@ export function unmeasured(summary: Summary, catalog: Catalog): UnmeasuredRow[] 
 /**
  * The verdict headline (Rulings R31 and R42). "Working" needs every P0 and P1
  * check the checker runs today to have been measured; otherwise the page says
- * "No problems found" and lists what could not be measured. A verdict this
- * site does not know gets a neutral line instead of a guess.
+ * "No problems found" and lists what could not be measured. `not_checked`
+ * (Ruling R70) says Ora's own check failed, never that the site did. A
+ * verdict this site does not know gets a neutral line instead of a guess.
  */
 export function headline(summary: Summary, catalog: Catalog, content: VerdictContent = verdictContent): Headline {
   const { headlines } = content;
@@ -116,6 +117,7 @@ export function headline(summary: Summary, catalog: Catalog, content: VerdictCon
   switch (summary.verdict) {
     case "not_set_up":
     case "unreachable":
+    case "not_checked":
     case "problems":
       return plain(summary.verdict);
     case "working": {

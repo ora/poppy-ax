@@ -17,8 +17,21 @@ function Question() {
   return <p className="audit__question">{t.verdict.question}</p>;
 }
 
-/** The page heading: the domain, then the one line answer. */
-export function AuditHeading({ domain, verdict, kind }: { domain: string; verdict?: string; kind?: string }) {
+/**
+ * The page heading: the domain, then the one line answer. `plain` drops the
+ * verdict styling, for a line that is not a verdict on the site.
+ */
+export function AuditHeading({
+  domain,
+  verdict,
+  kind,
+  plain = false,
+}: {
+  domain: string;
+  verdict?: string;
+  kind?: string;
+  plain?: boolean;
+}) {
   return (
     <header className="audit__head">
       <Question />
@@ -28,9 +41,13 @@ export function AuditHeading({ domain, verdict, kind }: { domain: string; verdic
         {verdict && (
           <>
             <span className="visually-hidden">: </span>
-            <span className="audit__verdict" data-kind={kind}>
-              {verdict}
-            </span>
+            {plain ? (
+              <span className="audit__status">{verdict}</span>
+            ) : (
+              <span className="audit__verdict" data-kind={kind}>
+                {verdict}
+              </span>
+            )}
           </>
         )}
       </h1>
@@ -197,7 +214,12 @@ export function AuditResult({ view }: { view: ResultView }) {
   return (
     <article className="audit">
       <ResultViewed domain={view.domain} verdict={view.headline.kind} />
-      <AuditHeading domain={view.domain} verdict={view.headline.text} kind={view.headline.kind} />
+      <AuditHeading
+        domain={view.domain}
+        verdict={view.headline.text}
+        kind={view.headline.kind}
+        plain={!view.isVerdict}
+      />
       {view.explain && <p className="audit__explain">{view.explain}</p>}
       <Facts view={view} />
       <CheckProgress

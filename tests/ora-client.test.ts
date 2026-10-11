@@ -204,6 +204,17 @@ describe("network mode", () => {
       expect(calledInit().redirect).toBe("error");
     });
 
+    it("passes the not_checked verdict and check_error rows through (Ruling R70)", async () => {
+      const raw = fixture("summary-unreachable.json");
+      const rows = (raw.rows as Array<Record<string, unknown>>).map((row) =>
+        row.reason === "timeout" ? { ...row, reason: "check_error" } : row,
+      );
+      fetchMock.mockResolvedValue(json(200, { ...raw, verdict: "not_checked", rows }));
+      const result = await getSummary("unreachable.example.com");
+      expect(result.kind === "ok" && result.summary.verdict).toBe("not_checked");
+      expect(result.kind === "ok" && result.summary.rows.find((row) => row.id === "T0-01")?.reason).toBe("check_error");
+    });
+
     it("skips every cache when asked for a fresh summary", async () => {
       fetchMock.mockResolvedValue(json(200, fixture("summary-not-set-up.json")));
       await getSummary("example.com", { fresh: true });

@@ -55,6 +55,13 @@
   color: var(--color-ink-muted);
 }
 
+/* Not a verdict: Ora's own check failed (not_checked). No verdict size or colour. */
+.audit__status {
+  font-size: var(--text-lede);
+  font-weight: 700;
+  max-width: 24ch;
+}
+
 .audit__explain {
   font-size: var(--text-lede);
   line-height: 1.5;

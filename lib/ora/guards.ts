@@ -2,8 +2,9 @@
 // pages render passes through here first. Each guard checks the fields
 // ORA_API.md documents, keeps only those, and returns null when a required one
 // is missing or has the wrong type. Fields the contract does not list are
-// dropped. Verdicts, outcomes, reasons and severities pass through as strings,
-// so a value Ora adds later reaches lib/verdict.ts, which falls back for it.
+// dropped. Verdicts (including `not_checked`), outcomes, reasons and
+// severities pass through as strings, so a value Ora adds later reaches
+// lib/verdict.ts, which falls back for it.
 
 import { normalizeDomain } from "@/lib/domain";
 import type {

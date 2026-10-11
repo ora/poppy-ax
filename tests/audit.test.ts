@@ -14,6 +14,7 @@ import {
   imageCard,
   resolveAuditParam,
 } from "@/lib/audit";
+import { verdictContent } from "@/lib/verdict";
 import { parseSummary } from "@/lib/ora/guards";
 import { fill } from "@/lib/template";
 import type { Summary } from "@/lib/ora/types";
@@ -31,6 +32,27 @@ const unreachable = summary("summary-unreachable.json");
 const optOut = summary("summary-owner-opt-out.json");
 const receiver = summary("summary-demo-receiver.json");
 const notSetUp = summary("summary-not-set-up.json");
+
+/**
+ * Verdict `not_checked` (Ruling R70): Ora's own discovery check errored. No
+ * capture exists yet, so it is built here from the unreachable fixture: the
+ * Tier 0 and Tier 1 rows carry reason `check_error` instead of `timeout`.
+ */
+const notChecked: Summary = (() => {
+  const raw = JSON.parse(readFileSync(join(process.cwd(), "fixtures", "summary-unreachable.json"), "utf8"));
+  const rows = (raw.rows as Array<Record<string, unknown>>).map((row) =>
+    row.reason === "timeout" ? { ...row, reason: "check_error", note: null } : row,
+  );
+  const parsed = parseSummary({
+    ...raw,
+    domain: "not-checked.example.com",
+    report_url: "https://ora.ai/pap/not-checked.example.com",
+    verdict: "not_checked",
+    rows,
+  });
+  if (!parsed) throw new Error("the not_checked summary does not parse");
+  return parsed;
+})();
 
 /** A time well past every fixture's 6 hour window. */
 const LATER = Date.parse("2026-10-12T12:00:00Z");
@@ -110,6 +132,42 @@ describe("buildResultView with the six fixtures", () => {
     expect(view.unmeasured).toEqual([]);
   });
 
+  it("not checked: Ora couldn't check it, with no verdict, nothing blamed on the site, and a way to check again", () => {
+    const view = buildResultView(notChecked, fixtureCatalog, LATER);
+    expect(view.headline.kind).toBe("not_checked");
+    expect(view.headline.text).toBe("Ora couldn't check it");
+    expect(view.isVerdict).toBe(false);
+    expect(view.explain).toBe(auditContent.verdict.explain.not_checked);
+    expect(view.explain).toContain("Ora's own check failed");
+    expect(view.explain).toContain("not the site's");
+    expect(view.fixFirst).toEqual([]);
+    expect(view.fixFirstEmpty).toBe(auditContent.fixFirst.notChecked);
+    expect(view.invitation).toBe(false);
+    // No Ora audit line, and the full report link stays.
+    expect(view.passingLine).toBe(false);
+    expect(view.reportUrl).toBe("https://ora.ai/pap/not-checked.example.com");
+    expect(view.checkAgain).toEqual({ available: true, availableAt: null });
+    expect(view.tiers.map((tier) => tier.text)).toEqual(["30 not measured", "7 not measured"]);
+  });
+
+  it("not checked: none of its words blame the site", () => {
+    const words = [
+      verdictContent.headlines.not_checked,
+      auditContent.verdict.explain.not_checked,
+      auditContent.metadata.descriptions.not_checked,
+      auditContent.fixFirst.notChecked,
+      auditContent.image.notChecked,
+    ].join(" ");
+    expect(words).not.toMatch(/reach|down|slow|answer|timed out|fail(ed)? on the site|the site's problem/i);
+    expect(words).toMatch(/Ora/);
+  });
+
+  it("only the not_checked headline drops the verdict styling", () => {
+    for (const fixture of [failing, timeout, unreachable, optOut, receiver, notSetUp]) {
+      expect(buildResultView(fixture, fixtureCatalog, LATER).isVerdict, fixture.domain).toBe(true);
+    }
+  });
+
   it("demo receiver: 'Working' gets the one passing line and nothing else", () => {
     const view = buildResultView(receiver, fixtureCatalog, LATER);
     expect(view.headline.text).toBe("Working (Tier 0 and 1 pass)");
@@ -144,7 +202,7 @@ describe("buildResultView with the six fixtures", () => {
   );
 
   it("only 'Working' ever gets the passing line", () => {
-    const passing = [failing, timeout, unreachable, optOut, receiver, notSetUp].filter(
+    const passing = [failing, timeout, unreachable, optOut, receiver, notSetUp, notChecked].filter(
       (fixture) => buildResultView(fixture, fixtureCatalog, LATER).passingLine,
     );
     expect(passing.map((fixture) => fixture.domain)).toEqual(["poppy-receiver.roundtrip.workers.dev"]);
@@ -228,6 +286,15 @@ describe("auditMeta", () => {
     );
   });
 
+  it("keeps a not_checked result out of search, and never blames the site in its description", () => {
+    const meta = auditMeta(notChecked.domain, { kind: "ok", summary: notChecked }, fixtureCatalog);
+    expect(meta).toEqual({
+      title: "not-checked.example.com: Ora couldn't check it",
+      description: "Ora's own check failed when it looked at not-checked.example.com, so there is no result yet.",
+      noindex: true,
+    });
+  });
+
   it("keeps no-result pages out of search", () => {
     expect(auditMeta("new.example", { kind: "not_scanned" }, fixtureCatalog)).toMatchObject({
       title: "Check new.example",
@@ -256,6 +323,12 @@ describe("imageCard", () => {
     expect(working.kind === "result" && working.accent).toBe("ink");
     const notSet = imageCard({ kind: "ok", domain: notSetUp.domain }, { kind: "ok", summary: notSetUp }, fixtureCatalog);
     expect(notSet.kind === "result" && notSet.accent).toBe("muted");
+  });
+
+  it("draws a neutral card for not_checked: no verdict accent, no counts", () => {
+    expect(
+      imageCard({ kind: "ok", domain: notChecked.domain }, { kind: "ok", summary: notChecked }, fixtureCatalog),
+    ).toEqual({ kind: "neutral", title: "Ora couldn't check not-checked.example.com" });
   });
 
   it("asks to check a domain with no result, and stays neutral otherwise", () => {

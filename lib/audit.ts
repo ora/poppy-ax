@@ -187,6 +187,11 @@ export function fixRows(summary: Summary, catalog: Catalog): FixRow[] {
 export interface ResultView {
   domain: string;
   headline: Headline;
+  /**
+   * False for `not_checked` (Ruling R70): that headline is about Ora's own
+   * check, not a verdict on the site, so it gets no verdict styling.
+   */
+  isVerdict: boolean;
   /** One sentence under the headline. Empty for "Not set up", which gets the invitation instead. */
   explain: string;
   tiers: TierCount[];
@@ -209,6 +214,7 @@ export interface ResultView {
 function fixFirstEmpty(kind: HeadlineKind, domain: string, content: AuditContent): string {
   const t = content.fixFirst;
   if (kind === "unreachable") return fill(t.unreachable, { domain });
+  if (kind === "not_checked") return t.notChecked;
   return t.none;
 }
 
@@ -224,6 +230,7 @@ export function buildResultView(
   return {
     domain: summary.domain,
     headline: top,
+    isVerdict: top.kind !== "not_checked",
     explain: content.verdict.explain[kind],
     tiers: tierCounts(summary, content),
     profile: summary.profile,
@@ -271,7 +278,8 @@ export function auditMeta(
       return {
         title: fill(m.title, { domain: result.summary.domain, headline: top.text }),
         description: fill(m.descriptions[top.kind], { domain: result.summary.domain }),
-        noindex: false,
+        // Ora's own check failed: nothing about the site is worth indexing.
+        noindex: top.kind === "not_checked",
       };
     }
     case "not_scanned":
@@ -298,6 +306,7 @@ const ACCENTS: Readonly<Record<HeadlineKind, ImageAccent>> = {
   no_problems_found: "ink",
   not_set_up: "muted",
   unreachable: "muted",
+  not_checked: "muted",
   unknown: "muted",
 };
 
@@ -324,6 +333,10 @@ export function imageCard(
   if (param.kind === "invalid" || !result) return { kind: "neutral", title: t.fallback };
   if (result.kind === "ok") {
     const top = headline(result.summary, catalog);
+    // Ora's own check failed: a neutral card, with no verdict and no counts.
+    if (top.kind === "not_checked") {
+      return { kind: "neutral", title: fill(t.notChecked, { domain: result.summary.domain }) };
+    }
     return {
       kind: "result",
       domain: result.summary.domain,

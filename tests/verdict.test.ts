@@ -211,6 +211,16 @@ describe("headline", () => {
     });
   });
 
+  it("says Ora couldn't check it when Ora's own check failed (R70), blaming nothing on the site", () => {
+    const s = summary("not_checked", [row("B-P0", "not_tested", { reason: "check_error" })]);
+    expect(headline(s, catalog)).toEqual({
+      verdict: "not_checked",
+      kind: "not_checked",
+      text: "Ora couldn't check it",
+      unmeasured: [],
+    });
+  });
+
   it("says Set up, with problems, and leaves the unmeasured list to the working case", () => {
     const s = summary("problems", [row("B-P0", "fail"), row("A-P1", "not_tested", { reason: "timeout" })]);
     expect(headline(s, catalog)).toEqual({

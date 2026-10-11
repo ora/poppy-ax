@@ -1,8 +1,12 @@
 // The shapes of the public summary API and the check catalog, as poppy.ax
 // reads them. ORA_API.md documents the API; these types follow it.
 
-/** The one verdict a summary gives for a domain. */
-export type Verdict = "not_set_up" | "unreachable" | "problems" | "working";
+/**
+ * The one verdict a summary gives for a domain. `not_checked` is not a
+ * verdict on the site: Ora's own discovery check failed, so nothing was
+ * measured (ORA_API.md, Verdicts).
+ */
+export type Verdict = "not_set_up" | "unreachable" | "not_checked" | "problems" | "working";
 
 /** What happened to one check in a run. */
 export type Outcome = "pass" | "fail" | "na" | "blocked" | "not_tested";

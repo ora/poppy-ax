@@ -4,6 +4,7 @@
     "descriptions": {
       "not_set_up": "{domain} doesn't publish a PAP file yet. See what it takes to let people's AI assistants in.",
       "unreachable": "The checker couldn't reach the PAP file on {domain}, so nothing could be measured.",
+      "not_checked": "Ora's own check failed when it looked at {domain}, so there is no result yet.",
       "problems": "{domain} publishes a PAP file, but at least one of the most serious checks failed. See what to fix first.",
       "working": "{domain} passes every Tier 0 and Tier 1 check the checker runs today.",
       "no_problems_found": "No serious check failed on {domain}, but some could not be measured on the last run.",
@@ -19,6 +20,7 @@
     "explain": {
       "not_set_up": "",
       "unreachable": "Its PAP file never answered, so the checker could not measure anything. The site may have been down or slow when it was checked.",
+      "not_checked": "Ora's own check failed, so nothing was measured. The problem was on Ora's side, not the site's. Check again to get a result.",
       "problems": "It publishes a PAP file, but at least one of the most serious checks (P0 or P1) failed.",
       "working": "Every P0 and P1 check the checker runs today passed. Tier 2 and Tier 3 checks don't run yet.",
       "no_problems_found": "No P0 or P1 check failed. But some could not be measured on this run, so it can't count as working yet. They are listed below.",
@@ -51,6 +53,7 @@
     "intro": "The failed checks that matter most, P0 first. Each one links the setup step that fixes it.",
     "none": "Nothing. No P0 or P1 check failed.",
     "unreachable": "First make sure {domain}/.well-known/poppy.json answers over HTTPS. Then check again.",
+    "notChecked": "Nothing yet. Nothing was measured, so there is nothing to fix.",
     "saw": "What the checker saw:",
     "fixLink": "How to fix it",
     "specLink": "What the spec says"
@@ -131,6 +134,7 @@
     "alt": "A poppy.ax result card with the domain, its verdict, pass counts and profile.",
     "check": "Check {domain}",
     "checkSub": "Does it let people's AI assistants in?",
+    "notChecked": "Ora couldn't check {domain}",
     "fallback": "The Personal Agent Protocol in plain words"
   }
 }
