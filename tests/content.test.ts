@@ -5,7 +5,7 @@ import { reportErrorHref } from "@/lib/report-error";
 describe("content/site.json", () => {
   it("carries the independent label, word for word", () => {
     expect(independentLabelText()).toBe(
-      "An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) at personalagentprotocol.org.",
+      "An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) and 35 design partners, at personalagentprotocol.org.",
     );
     expect(content.independentLabel.href).toBe("https://personalagentprotocol.org");
   });

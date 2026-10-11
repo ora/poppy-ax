@@ -38,8 +38,11 @@ export default function Image() {
           borderTop: `16px solid ${c.poppy}`,
         }}
       >
-        <div style={{ display: "flex", fontSize: 36, fontWeight: 700, letterSpacing: "-0.02em" }}>
-          poppy<span style={{ color: c.poppy }}>.</span>ax
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <div style={{ display: "flex", fontSize: 36, fontWeight: 700, letterSpacing: "-0.02em" }}>
+            poppy<span style={{ color: c.poppy }}>.</span>ax
+          </div>
+          <div style={{ display: "flex", fontSize: 26, color: c.muted }}>{content.metadata.image.byline}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", fontSize: 80, fontWeight: 700, lineHeight: 1.05, letterSpacing: "-0.02em", maxWidth: 1000 }}>

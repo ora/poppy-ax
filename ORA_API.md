@@ -13,12 +13,12 @@ We wrote it from responses captured from a local Ora instance on 10 and 11 Octob
 
 | Endpoint | Auth | What it is for |
 | --- | --- | --- |
-| `GET /api/scan/stream?domain=<host>&activeProbes=1` | token (not enforced: see [Errors](#errors)) | Start a check (or get the stored one) and follow its progress |
+| `GET /api/scan/stream?domain=<host>&activeProbes=1` | token (sent, but optional: see [Errors](#errors)) | Start a check (or get the stored one) and follow its progress |
 | `GET /api/pap/v1/summary?domain=<host>` | token | The PAP result for one domain |
 | `GET /api/pap/v1/sites` | token | Domains that publish a `poppy.json` naming themselves |
 | `GET /pap/catalog.json` | none | Every check, with its tier, severity, spec section and pass rule |
 
-**Check the token with the summary, not the stream.** The stream never answers `401`: a missing or unknown token just makes the caller anonymous. Any summary call with a bad token answers `401`, so a `401` there means poppy.ax is misconfigured.
+**Check the token with the summary, not the stream.** The stream is Ora's public scanner, the same one behind ora.ai's own scan page, so it never answers `401`: a missing or unknown token just makes the caller an anonymous visitor under Ora's per-IP limits. The token only swaps those per-IP limits for the key's own daily budget (see [Limits](#limits)); a call without it never spends that budget. Any summary call with a bad token answers `401`, so a `401` there means poppy.ax is misconfigured.
 
 Pages poppy.ax links to (it never calls them):
 
@@ -288,7 +288,7 @@ Each row:
 - **Stored results: 6 hours.** A stream request for a domain checked in the last 6 hours normally returns the stored result and runs nothing (see [A stored result](#response)).
 - **Active probes: one round per registrable domain per 6 hours.** The limit covers sibling hosts too: `a.example.com` and `b.example.com` share one round. It is also shared with the issuer the site's `poppy.json` names. A scan inside the window keeps the last stored round's Tier 1 results, from up to 30 days back, and `probed_at` says when that round ran. With no stored round, `probed_at` is `null`, and on a site with a `poppy.json` the Tier 1 rows are `not_tested`. No parameter changes this.
 - **Never send `force` or `fresh`.** Each skips the stored result and runs a full new scan every time. Ora refuses either from a PAP read key with `403` `{"error": "force_not_allowed"}` (from Ora's change set dated 2026-10-11, not yet captured live).
-- **Daily cap per PAP read key: 1000 new scans per UTC day.** Only scans Ora actually runs count; a stored result served from the 6-hour window is free. Past the cap the stream answers `429` `{"error": "key_daily_cap", "retry_after_ms": <number>}` with `Retry-After`, until the next UTC day. poppy.ax shows it as busy, with the wait (from Ora's change set dated 2026-10-11, not yet captured live).
+- **Daily cap per PAP read key: 10,000 new scans per UTC day.** Only scans Ora actually runs count; a stored result served from the 6-hour window is free. Past the cap the stream answers `429` `{"error": "key_daily_cap", "retry_after_ms": <number>}` with `Retry-After`, until the next UTC day. poppy.ax shows it as busy, with the wait (from Ora's change set dated 2026-10-11, not yet captured live).
 - **Rate-limit visitors yourself.** Every request reaches Ora from poppy.ax's server with the same token, so Ora cannot tell visitors apart. poppy.ax must limit checks per visitor IP at its own edge before it calls the stream.
 
 ## Caching

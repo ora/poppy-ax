@@ -6,7 +6,7 @@ PAP is an open standard for how an AI assistant finds a company's front door, pr
 
 ## Independent
 
-An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) at [personalagentprotocol.org](https://personalagentprotocol.org).
+An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) and 35 design partners, at [personalagentprotocol.org](https://personalagentprotocol.org).
 
 poppy.ax is not the official PAP site and does not speak for its authors. Every page is based on [PAP Draft 0.1 (2026-10-09)](https://personalagentprotocol.org/docs/spec) and links the section of the spec each claim comes from. If a sentence is wrong, use the "Report an error" link at the foot of the page.
 

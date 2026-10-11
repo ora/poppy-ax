@@ -6,7 +6,8 @@
     "image": {
       "alt": "poppy.ax: the Personal Agent Protocol in plain words, with a checker for any site",
       "heading": "The Personal Agent Protocol in plain words",
-      "line": "Check whether a site lets people's AI assistants in safely."
+      "line": "Check whether a site lets people's AI assistants in safely.",
+      "byline": "An independent guide by Ora"
     }
   },
   "skipLink": "Skip to main content",
@@ -20,7 +21,7 @@
     ]
   },
   "independentLabel": {
-    "before": "An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) at ",
+    "before": "An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) and 35 design partners, at ",
     "linkText": "personalagentprotocol.org",
     "href": "https://personalagentprotocol.org",
     "after": "."
