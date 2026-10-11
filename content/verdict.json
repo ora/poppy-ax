@@ -1,10 +1,11 @@
 {
   "headlines": {
     "not_set_up": "Not set up",
-    "unreachable": "Unreachable",
-    "problems": "Problems found",
+    "unreachable": "Couldn't reach it",
+    "problems": "Set up, with problems",
     "working": "Working (Tier 0 and 1 pass)",
-    "no_problems_found": "No problems found"
+    "no_problems_found": "No problems found",
+    "unknown": "Result not available"
   },
   "reasons": {
     "timeout": "the site took too long to answer",
@@ -12,7 +13,7 @@
     "rate_limited": "the site limited how many requests it would answer",
     "owner_opt_out": "the owner turned off active checks",
     "out_of_scope": "this check was outside what the scan covers for this site",
-    "not_available": "something this check needs was not available",
+    "not_available": "the checker does not run this check yet",
     "opt_in_required": "this check runs only when the site owner opts in"
   },
   "outcomes": {

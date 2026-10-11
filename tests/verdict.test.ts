@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { fixtureCatalog } from "@/lib/rows";
 import type { Catalog, CatalogRow, Row, Summary, Verdict } from "@/lib/ora/types";
 import { fixFirst, headline, reasonText, unmeasured, verdictContent } from "@/lib/verdict";
 
@@ -122,9 +125,22 @@ describe("unmeasured", () => {
       row("E-ADV", "blocked"),
       row("F-P0", "not_tested", { reason: "timeout" }),
       row("G-P0-PLANNED", "not_tested", { reason: "opt_in_required" }),
-      row("Q-UNKNOWN", "not_tested", { severity: "P0" }),
     ]);
     expect(ids(unmeasured(s, catalog))).toEqual(["F-P0", "A-P1"]);
+  });
+
+  it("counts a P0 or P1 row the catalog does not know when it is Tier 0 or 1", () => {
+    const s = summary("working", [
+      row("Q-UNKNOWN-T0", "not_tested", { severity: "P0", tier: 0, reason: "timeout" }),
+      row("R-UNKNOWN-T1", "blocked", { severity: "P1", tier: 1, level: "1" }),
+      row("S-UNKNOWN-T2", "not_tested", { severity: "P0", tier: 2, level: "2a", reason: "not_available" }),
+      row("T-UNKNOWN-T1-P2", "not_tested", { severity: "P2", tier: 1, level: "1" }),
+      row("A-P1", "not_tested", { reason: "timeout" }),
+    ]);
+    expect(ids(unmeasured(s, catalog))).toEqual(["Q-UNKNOWN-T0", "A-P1", "R-UNKNOWN-T1"]);
+    const [unknown] = unmeasured(s, catalog);
+    expect(unknown?.title).toBe("Q-UNKNOWN-T0");
+    expect(unknown?.catalog).toBeUndefined();
   });
 
   it("does not count failures as unmeasured", () => {
@@ -168,9 +184,11 @@ describe("reasonText", () => {
     expect(reasonText({ outcome: "not_tested", reason: null })).toBe(verdictContent.outcomes.not_tested);
   });
 
-  it("falls back to the outcome for a reason it does not know", () => {
-    const unknown = { outcome: "not_tested", reason: "something_new" } as unknown as Row;
-    expect(reasonText(unknown)).toBe(verdictContent.outcomes.not_tested);
+  it("falls back to the outcome for a reason it does not know, including inherited names", () => {
+    for (const reason of ["something_new", "toString", "constructor", "__proto__"]) {
+      const unknown = { outcome: "not_tested", reason } as unknown as Row;
+      expect(reasonText(unknown), reason).toBe(verdictContent.outcomes.not_tested);
+    }
   });
 });
 
@@ -184,21 +202,21 @@ describe("headline", () => {
     });
   });
 
-  it("says Unreachable", () => {
+  it("says Couldn't reach it", () => {
     expect(headline(summary("unreachable", []), catalog)).toEqual({
       verdict: "unreachable",
       kind: "unreachable",
-      text: "Unreachable",
+      text: "Couldn't reach it",
       unmeasured: [],
     });
   });
 
-  it("says Problems found, and leaves the unmeasured list to the working case", () => {
+  it("says Set up, with problems, and leaves the unmeasured list to the working case", () => {
     const s = summary("problems", [row("B-P0", "fail"), row("A-P1", "not_tested", { reason: "timeout" })]);
     expect(headline(s, catalog)).toEqual({
       verdict: "problems",
       kind: "problems",
-      text: "Problems found",
+      text: "Set up, with problems",
       unmeasured: [],
     });
   });
@@ -238,9 +256,58 @@ describe("headline", () => {
     ]);
   });
 
-  it("throws on a verdict it does not know, rather than guessing", () => {
-    const s = { ...summary("working", []), verdict: "maybe" } as unknown as Summary;
-    expect(() => headline(s, catalog)).toThrow(/Unknown verdict/);
+  it("gives a neutral line for a verdict it does not know, rather than guessing or throwing", () => {
+    const s = { ...summary("working", [row("B-P0", "not_tested", { reason: "timeout" })]), verdict: "maybe" } as unknown as Summary;
+    expect(headline(s, catalog)).toEqual({
+      verdict: null,
+      kind: "unknown",
+      text: "Result not available",
+      unmeasured: [],
+    });
+  });
+
+  it("says No problems found for a working site with an unmeasured row the catalog does not know", () => {
+    const s = summary("working", [row("B-P0", "pass"), row("Q-NEW", "not_tested", { severity: "P1", tier: 1, level: "1" })]);
+    const result = headline(s, catalog);
+    expect(result.kind).toBe("no_problems_found");
+    expect(result.unmeasured.map((r) => [r.id, r.reasonText])).toEqual([["Q-NEW", "this check did not run"]]);
+  });
+});
+
+describe("the captured summaries in fixtures/", () => {
+  const load = (name: string) =>
+    JSON.parse(readFileSync(join(__dirname, "..", "fixtures", `summary-${name}.json`), "utf8")) as Summary;
+  const view = (name: string) => {
+    const s = load(name);
+    const h = headline(s, fixtureCatalog);
+    return { kind: h.kind, text: h.text, unmeasured: ids(h.unmeasured), fixFirst: ids(fixFirst(s, fixtureCatalog)) };
+  };
+
+  it("reads each verdict the way the page should show it", () => {
+    expect(view("demo-receiver")).toEqual({ kind: "working", text: "Working (Tier 0 and 1 pass)", unmeasured: [], fixFirst: [] });
+    expect(view("failing-p0")).toEqual({ kind: "problems", text: "Set up, with problems", unmeasured: [], fixFirst: ["T0-11"] });
+    expect(view("not-set-up")).toEqual({ kind: "not_set_up", text: "Not set up", unmeasured: [], fixFirst: [] });
+    expect(view("unreachable")).toEqual({ kind: "unreachable", text: "Couldn't reach it", unmeasured: [], fixFirst: [] });
+    expect(view("owner-opt-out")).toEqual({
+      kind: "no_problems_found",
+      text: "No problems found",
+      unmeasured: ["T1-03", "T1-01"],
+      fixFirst: [],
+    });
+    expect(view("timeout")).toEqual({
+      kind: "no_problems_found",
+      text: "No problems found",
+      unmeasured: ["T0-09", "T0-10", "T0-11", "T0-12", "T1-03", "T1-07", "T1-01", "T1-05"],
+      fixFirst: [],
+    });
+  });
+
+  it("explains why each unmeasured row was not measured", () => {
+    const h = headline(load("owner-opt-out"), fixtureCatalog);
+    expect(h.unmeasured.map((r) => r.reasonText)).toEqual([
+      "the owner turned off active checks",
+      "the owner turned off active checks",
+    ]);
   });
 });
 

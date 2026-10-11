@@ -23,14 +23,15 @@ export interface UnmeasuredRow extends RowRef {
   reasonText: string;
 }
 
-export type HeadlineKind = Verdict | "no_problems_found";
+export type HeadlineKind = Verdict | "no_problems_found" | "unknown";
 
 /**
  * The one line answer to "does it work for agents?". `unmeasured` is filled
  * only for "No problems found": the rows that kept it from being "Working".
+ * `verdict` is null when the summary carried a verdict this site does not know.
  */
 export interface Headline {
-  verdict: Verdict;
+  verdict: Verdict | null;
   kind: HeadlineKind;
   text: string;
   unmeasured: UnmeasuredRow[];
@@ -77,8 +78,16 @@ export function fixFirst(summary: Summary, catalog: Catalog): RowRef[] {
 
 /** Why a row was not measured, in plain words. */
 export function reasonText(row: Pick<Row, "outcome" | "reason">, content: VerdictContent = verdictContent): string {
-  if (row.reason && row.reason in content.reasons) return content.reasons[row.reason];
+  if (row.reason && Object.hasOwn(content.reasons, row.reason)) return content.reasons[row.reason];
   return row.outcome === "blocked" ? content.outcomes.blocked : content.outcomes.not_tested;
+}
+
+/**
+ * Whether the checker runs a row today. The catalog says so; a row the
+ * catalog does not know counts when it is Tier 0 or 1, the tiers that run.
+ */
+function runsToday(row: Row, entry: CatalogRow | undefined): boolean {
+  return entry ? entry.implemented : row.tier <= 1;
 }
 
 /**
@@ -90,14 +99,15 @@ export function unmeasured(summary: Summary, catalog: Catalog): UnmeasuredRow[] 
     summary,
     catalog,
     (row, entry) =>
-      entry?.implemented === true && FIX_FIRST_SEVERITIES.has(row.severity) && UNMEASURED_OUTCOMES.has(row.outcome),
+      runsToday(row, entry) && FIX_FIRST_SEVERITIES.has(row.severity) && UNMEASURED_OUTCOMES.has(row.outcome),
   ).map((ref) => ({ ...ref, reason: ref.row.reason, reasonText: reasonText(ref.row) }));
 }
 
 /**
- * The verdict headline (Ruling R31). "Working" needs every P0 and P1 check
- * the checker runs today to have been measured; otherwise the page says
- * "No problems found" and lists what could not be measured.
+ * The verdict headline (Rulings R31 and R42). "Working" needs every P0 and P1
+ * check the checker runs today to have been measured; otherwise the page says
+ * "No problems found" and lists what could not be measured. A verdict this
+ * site does not know gets a neutral line instead of a guess.
  */
 export function headline(summary: Summary, catalog: Catalog, content: VerdictContent = verdictContent): Headline {
   const { headlines } = content;
@@ -113,8 +123,10 @@ export function headline(summary: Summary, catalog: Catalog, content: VerdictCon
       return { verdict: "working", kind: "no_problems_found", text: headlines.no_problems_found, unmeasured: missing };
     }
     default: {
-      const never: never = summary.verdict;
-      throw new Error(`Unknown verdict: ${String(never)}`);
+      // The API may add a verdict before this site learns it.
+      const unknown: never = summary.verdict;
+      void unknown;
+      return { verdict: null, kind: "unknown", text: headlines.unknown, unmeasured: [] };
     }
   }
 }
