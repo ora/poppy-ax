@@ -5,7 +5,7 @@ import { AUDIT_TITLE_ID } from "@/lib/check-progress";
 import { DomainForm } from "@/components/home/domain-form";
 import { homeContent } from "@/lib/home";
 import { auditContent, type ResultView } from "@/lib/audit";
-import { fill } from "@/lib/template";
+import { fill, waitText } from "@/lib/template";
 
 const t = auditContent;
 
@@ -276,7 +276,7 @@ export function AuditNotScanned({ domain }: { domain: string }) {
 export function AuditUnavailable({ domain, retryAfterSeconds }: { domain: string; retryAfterSeconds?: number }) {
   const message =
     retryAfterSeconds !== undefined
-      ? fill(t.error.busy, { seconds: retryAfterSeconds })
+      ? fill(t.error.busy, { wait: waitText(retryAfterSeconds) })
       : fill(t.error.lede, { domain });
   return (
     <article className="audit">

@@ -364,7 +364,7 @@ describe("visitor limit", () => {
       firewall,
       local: new WindowLimiter(),
     });
-    expect(result.ok).toBe(false);
+    expect(result).toEqual({ ok: false, retryAfterSeconds: 3600 });
     expect(firewall).toHaveBeenCalledWith("poppy-checks", expect.objectContaining({ rateLimitKey: "check:1.2.3.4" }));
   });
 

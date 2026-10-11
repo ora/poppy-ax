@@ -97,8 +97,12 @@ export interface LimitDeps {
   now?: number;
 }
 
-/** The firewall answers only whether a visitor is over; this is the wait the page shows. */
-const FIREWALL_RETRY_SECONDS = 60;
+/**
+ * The firewall answers only whether a visitor is over, not when the count
+ * resets, so the page shows the rule's whole window: 3600 seconds, the window
+ * of the poppy-check rule in the Vercel Firewall. Change both together.
+ */
+const FIREWALL_RETRY_SECONDS = 3600;
 
 const sharedLocal = new WindowLimiter();
 
