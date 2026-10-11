@@ -43,6 +43,22 @@ Set `ORA_FIXTURES=1` to serve recorded responses from `fixtures/` instead of cal
 
 In fixture mode, `lib/ora/client.ts` (the only module that talks to Ora) finds a summary by the `domain` inside each `summary-*.json`, so `/audit/example.com` and `/audit/failing-p0.example.com` show recorded results. Any other valid domain reads as not checked yet, and a domain the site refuses gets the matching answer from `fixtures/errors/`. A check replays `scan-in-progress.sse` with the requested domain, then a completion frame, 30 ms apart; set `ORA_FIXTURES_DELAY_MS` to change the gap. Fixture mode is refused in Vercel production (`VERCEL_ENV=production`): every call to Ora then fails and the server logs why.
 
+## What we measure
+
+We use Vercel Web Analytics with seven custom events, to learn whether the guide helps. There is no personal data: no IP address, user agent, email or full URL is ever put in an event. `lib/analytics.ts` is the one place events are sent, and it drops any value that is not in the list below.
+
+| Event | When | Values |
+| --- | --- | --- |
+| `domain_checked` | A domain is submitted in the box (JavaScript path only; the no-JavaScript redirect is not counted) | `domain` |
+| `result_viewed` | A result page is viewed, once per view | `domain`, `verdict`, `referrer_host` |
+| `setup_level_viewed` | A level on /setup first scrolls into view, once per level per view | `level` |
+| `full_report_clicked` | The link to the full report | `domain` |
+| `owner_verification_clicked` | The owner verification link | `domain` |
+| `ora_audit_clicked` | The one line after a passing result | `domain` |
+| `waitlist_clicked` | The managed PAP box on /setup | none |
+
+`domain` is the normalised company domain. `referrer_host` is the host the visitor came from, never a path or query, and empty for a direct visit. The package sends nothing unless the page is served by Vercel with Web Analytics on.
+
 ## Licenses
 
 - Code: [MIT](LICENSE).

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { MDXContent } from "mdx/types";
+import { LevelViewed } from "@/components/analytics/level-viewed";
 import { PageIntro } from "@/components/page-intro";
 import { HostedNote, LevelNav, LevelSection } from "@/components/setup-level";
 import Level1 from "@/content/setup/level-1.mdx";
@@ -26,6 +27,7 @@ export default function SetupPage() {
   const { levels } = setupContent;
   return (
     <div className="setup">
+      <LevelViewed />
       <PageIntro heading={page.heading} lede={page.lede} />
       <div className="setup__layout">
         <LevelNav levels={levels} />

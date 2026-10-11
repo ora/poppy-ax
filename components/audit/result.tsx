@@ -1,3 +1,5 @@
+import { ResultViewed } from "@/components/analytics/result-viewed";
+import { TrackedLink } from "@/components/analytics/tracked-link";
 import { CheckProgress, type CheckProgressCopy } from "@/components/audit/check-progress";
 import { AUDIT_TITLE_ID } from "@/lib/check-progress";
 import { DomainForm } from "@/components/home/domain-form";
@@ -161,7 +163,10 @@ function NotChecked({ view }: { view: ResultView }) {
                 {"href" in words && (
                   <>
                     {" "}
-                    <a href={words.href}>{words.linkText}</a>.
+                    <TrackedLink href={words.href} event="owner_verification_clicked" eventProps={{ domain: view.domain }}>
+                      {words.linkText}
+                    </TrackedLink>
+                    .
                   </>
                 )}
               </p>
@@ -191,6 +196,7 @@ export function AuditResult({ view }: { view: ResultView }) {
   };
   return (
     <article className="audit">
+      <ResultViewed domain={view.domain} verdict={view.headline.kind} />
       <AuditHeading domain={view.domain} verdict={view.headline.text} kind={view.headline.kind} />
       {view.explain && <p className="audit__explain">{view.explain}</p>}
       <Facts view={view} />
@@ -206,13 +212,21 @@ export function AuditResult({ view }: { view: ResultView }) {
       {view.passingLine && (
         <p className="audit__passing">
           {t.passing.before}
-          <a href={fill(t.passing.href, { domain: view.domain })}>{t.passing.linkText}</a>
+          <TrackedLink
+            href={fill(t.passing.href, { domain: view.domain })}
+            event="ora_audit_clicked"
+            eventProps={{ domain: view.domain }}
+          >
+            {t.passing.linkText}
+          </TrackedLink>
         </p>
       )}
       <FixFirst view={view} />
       <NotChecked view={view} />
       <p className="audit__report">
-        <a href={view.reportUrl}>{t.report.linkText}</a> {t.report.host}.
+        <TrackedLink href={view.reportUrl} event="full_report_clicked" eventProps={{ domain: view.domain }}>
+          {t.report.linkText}
+        </TrackedLink> {t.report.host}.
       </p>
     </article>
   );

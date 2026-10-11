@@ -1,4 +1,5 @@
 import type { MDXComponents, MDXContent } from "mdx/types";
+import { TrackedLink } from "@/components/analytics/tracked-link";
 import { Children, isValidElement, type ReactNode } from "react";
 import { groupedRows, setupContent, stepId, type SetupLevel } from "@/lib/setup";
 import { displayTitle } from "@/lib/rows";
@@ -122,7 +123,9 @@ export function HostedNote() {
     <aside className="hosted-note" aria-label={hosted.label}>
       <p>
         {hosted.before}
-        <a href={hosted.href}>{hosted.linkText}</a>
+        <TrackedLink href={hosted.href} event="waitlist_clicked">
+          {hosted.linkText}
+        </TrackedLink>
       </p>
     </aside>
   );

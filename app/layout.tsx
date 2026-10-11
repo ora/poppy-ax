@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Atkinson_Hyperlegible, Besley } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </main>
           <SiteFooter />
         </div>
+        <Analytics />
       </body>
     </html>
   );

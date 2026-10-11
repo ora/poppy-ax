@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { domainErrorAnchor, submitStep } from "@/lib/domain-submit";
 import type { HomeContent } from "@/lib/home";
 
@@ -54,6 +55,8 @@ export function DomainForm({ copy, initialMessage = "", fallbackMessages }: Doma
     const step = submitStep(input.current?.value ?? "", normalizer?.normalizeDomain ?? null);
     if (step.kind === "navigate") {
       setMessage("");
+      // Only a normalised domain is recorded; the fallback path has the raw text.
+      if (normalizer) trackEvent("domain_checked", { domain: decodeURIComponent(step.path.slice("/audit/".length)) });
       router.push(step.path);
       return;
     }
