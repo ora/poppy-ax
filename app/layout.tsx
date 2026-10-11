@@ -4,6 +4,7 @@ import { Atkinson_Hyperlegible, Besley } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { content } from "@/lib/content";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 // Display: Besley, a Clarendon revival with sturdy slabbed serifs.
@@ -25,10 +26,14 @@ const body = Atkinson_Hyperlegible({
 });
 
 export const metadata: Metadata = {
-  // Absolute URLs for canonical links and preview images. Previews set
-  // NEXT_PUBLIC_SITE_URL to their own address. `||`, not `??`, so an empty
-  // value copied from .env.example falls back too.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://poppy.ax"),
+  // Absolute URLs for canonical links and preview images: a Vercel preview's
+  // own branch address, else NEXT_PUBLIC_SITE_URL, else https://poppy.ax.
+  // Each variable is named in full so Next can inline it at build time.
+  metadataBase: siteUrl({
+    vercelEnv: process.env.NEXT_PUBLIC_VERCEL_ENV,
+    branchUrl: process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL,
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+  }),
   title: { default: content.metadata.title, template: `%s | ${content.siteName}` },
   description: content.metadata.description,
 };
