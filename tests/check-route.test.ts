@@ -6,7 +6,7 @@ import nextConfig from "@/next.config";
 import { readFrames, type CheckFrame } from "@/lib/check-progress";
 import { isCrossSite, startCheck } from "@/lib/check-route";
 import { configureOraClient, resetOraClient } from "@/lib/ora/client";
-import { limitVisitor, visitorIp, WindowLimiter } from "@/lib/visitor-limit";
+import { limitVisitor, visitorIp, visitorKey, WindowLimiter } from "@/lib/visitor-limit";
 
 // The route hands its cache expiry to Next's `after` and `revalidateTag`,
 // which need a live request. Here they are recorded instead.
@@ -301,16 +301,20 @@ describe("cross-site protection", () => {
   });
 });
 
-describe("frame-ancestors on result pages", () => {
-  it("sends frame-ancestors 'none' on /audit and every page under it", async () => {
+describe("security headers", () => {
+  it("sends frame-ancestors 'none', nosniff and a referrer policy on every page, /audit included", async () => {
     const rules = (await nextConfig.headers?.()) ?? [];
-    const policy = { key: "Content-Security-Policy", value: "frame-ancestors 'none'" };
-    expect(rules).toEqual(
-      expect.arrayContaining([
-        { source: "/audit", headers: [policy] },
-        { source: "/audit/:path*", headers: [policy] },
-      ]),
-    );
+    // "/:path*" matches "/", "/audit" and every page under it.
+    expect(rules).toEqual([
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ]);
   });
 });
 
@@ -333,6 +337,22 @@ describe("visitor limit", () => {
     expect(visitorIp(new Headers({ "x-real-ip": "1.2.3.4", "x-forwarded-for": "5.6.7.8" }))).toBe("1.2.3.4");
     expect(visitorIp(new Headers({ "x-forwarded-for": "5.6.7.8, 9.9.9.9" }))).toBe("5.6.7.8");
     expect(visitorIp(new Headers())).toBe("unknown");
+  });
+
+  it("counts an IPv6 visitor per /64, so rotating addresses inside one network shares a budget", () => {
+    expect(visitorKey("2001:db8:1:2:aaaa:bbbb:cccc:dddd")).toBe("2001:db8:1:2::/64");
+    expect(visitorKey("2001:db8:1:2::1")).toBe("2001:db8:1:2::/64");
+    expect(visitorKey("2001:0db8:0001:0002:0:0:0:ffff")).toBe("2001:db8:1:2::/64");
+    expect(visitorKey("2001:db8::5")).toBe("2001:db8:0:0::/64");
+    expect(visitorKey("[2001:db8:1:2::9]")).toBe("2001:db8:1:2::/64");
+    expect(visitorKey("fe80::1%eth0")).toBe("fe80:0:0:0::/64");
+    expect(visitorIp(new Headers({ "x-real-ip": "2001:db8:1:2::7" }))).toBe("2001:db8:1:2::/64");
+  });
+
+  it("keeps IPv4, IPv4-mapped IPv6 and unparseable values as one address each", () => {
+    expect(visitorKey("1.2.3.4")).toBe("1.2.3.4");
+    expect(visitorKey("::ffff:1.2.3.4")).toBe("1.2.3.4");
+    expect(visitorKey("not:an:ip")).toBe("not:an:ip");
   });
 
   const request = new Request("http://poppy.test/api/check/x", { headers: { "x-real-ip": "1.2.3.4" } });

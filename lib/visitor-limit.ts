@@ -64,9 +64,27 @@ export class WindowLimiter {
  */
 export function visitorIp(headers: Headers): string {
   const real = headers.get("x-real-ip")?.trim();
-  if (real) return real;
+  if (real) return visitorKey(real);
   const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || "unknown";
+  return forwarded ? visitorKey(forwarded) : "unknown";
+}
+
+/**
+ * The address a visitor is counted under. An IPv6 visitor usually holds a
+ * whole /64 and can pick a new address for every request, so IPv6 is counted
+ * per /64 prefix; an IPv4-mapped IPv6 address counts as its IPv4 address.
+ */
+export function visitorKey(ip: string): string {
+  if (!ip.includes(":")) return ip;
+  const bare = ip.replace(/^\[|\]$/g, "").replace(/%.*$/, "").toLowerCase();
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(bare);
+  if (mapped?.[1]) return mapped[1];
+  const [head, tail] = bare.split("::");
+  const left = head ? head.split(":") : [];
+  const right = tail ? tail.split(":") : [];
+  const groups = bare.includes("::") ? [...left, ...Array(Math.max(0, 8 - left.length - right.length)).fill("0"), ...right] : left;
+  if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return bare;
+  return `${groups.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, "")).join(":")}::/64`;
 }
 
 /** Which budget a request spends. Only starting a check is limited. */

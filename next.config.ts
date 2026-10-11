@@ -4,8 +4,14 @@ import type { NextConfig } from "next";
 /** The recorded Ora responses that fixture mode reads at runtime. */
 const ORA_FIXTURE_FILES = ["./fixtures/*.json", "./fixtures/*.sse", "./fixtures/errors/*.json"];
 
-/** Sent on /audit and every page under it. */
-const AUDIT_FRAME_POLICY = { key: "Content-Security-Policy", value: "frame-ancestors 'none'" };
+/** Sent on every response. */
+const SECURITY_HEADERS = [
+  // No page is meant to be framed by another site, so a click cannot be
+  // tricked into starting a check (clickjacking).
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+];
 
 const nextConfig: NextConfig = {
   // Routes stay TypeScript. MDX and Markdown files are imported from content/.
@@ -24,13 +30,8 @@ const nextConfig: NextConfig = {
     "/sites": ORA_FIXTURE_FILES,
     "/api/check/\\[domain\\]": ORA_FIXTURE_FILES,
   },
-  // Result pages are never framed by another site, so a click cannot be
-  // tricked into starting a check (clickjacking).
   async headers() {
-    return [
-      { source: "/audit", headers: [AUDIT_FRAME_POLICY] },
-      { source: "/audit/:path*", headers: [AUDIT_FRAME_POLICY] },
-    ];
+    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
 };
 
