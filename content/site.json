@@ -2,7 +2,12 @@
   "siteName": "poppy.ax",
   "metadata": {
     "title": "poppy.ax: the Personal Agent Protocol in plain words",
-    "description": "A plain guide to the Personal Agent Protocol (PAP), with a checker that shows whether a site lets people's AI assistants in safely. An independent guide by Ora."
+    "description": "A plain guide to the Personal Agent Protocol (PAP), with a checker that shows whether a site lets people's AI assistants in safely. An independent guide by Ora.",
+    "image": {
+      "alt": "poppy.ax: the Personal Agent Protocol in plain words, with a checker for any site",
+      "heading": "The Personal Agent Protocol in plain words",
+      "line": "Check whether a site lets people's AI assistants in safely."
+    }
   },
   "skipLink": "Skip to main content",
   "homeLinkLabel": "poppy.ax home",

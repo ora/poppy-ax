@@ -211,10 +211,15 @@ export interface ResultView {
   checkAgain: CheckAgain;
 }
 
-function fixFirstEmpty(kind: HeadlineKind, domain: string, content: AuditContent): string {
+function fixFirstEmpty(kind: HeadlineKind, summary: Summary, content: AuditContent): string {
   const t = content.fixFirst;
-  if (kind === "unreachable") return fill(t.unreachable, { domain });
+  if (kind === "unreachable") return fill(t.unreachable, { domain: summary.domain });
   if (kind === "not_checked") return t.notChecked;
+  // No P0 or P1 row failed, so any failure counted here is P2 or advice. Say
+  // so, or "Nothing" reads as a contradiction of the "2 failed" above it.
+  const failed = MEASURED_TIERS.reduce((sum, key) => sum + summary.counts[key].fail, 0);
+  if (failed === 1) return t.noneMinorOne;
+  if (failed > 1) return fill(t.noneMinorMany, { n: failed });
   return t.none;
 }
 
@@ -236,7 +241,7 @@ export function buildResultView(
     profile: summary.profile,
     lastRun: timeView(summary.last_run, now),
     fixFirst: fixRows(summary, catalog),
-    fixFirstEmpty: fixFirstEmpty(top.kind, summary.domain, content),
+    fixFirstEmpty: fixFirstEmpty(top.kind, summary, content),
     invitation: top.kind === "not_set_up",
     unmeasured:
       top.kind === "no_problems_found"

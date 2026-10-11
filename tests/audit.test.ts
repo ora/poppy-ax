@@ -102,6 +102,23 @@ describe("buildResultView with the six fixtures", () => {
     expect(view.reportUrl).toBe("https://ora.ai/pap/failing-p0.example.com");
   });
 
+  it("working with only lower priority failures says so, never a bare 'Nothing'", () => {
+    // The demo receiver with two of its passing P2 and advisory rows failed, counts kept in step.
+    const minor = structuredClone(receiver);
+    for (const row of minor.rows) if (row.id === "T0-SIB" || row.id === "ADV-PKCE") row.outcome = "fail";
+    minor.counts.tier0.pass -= 2;
+    minor.counts.tier0.fail += 2;
+    const view = buildResultView(minor, fixtureCatalog, LATER);
+    expect(view.headline.kind).toBe("working");
+    expect(view.fixFirst).toEqual([]);
+    expect(view.fixFirstEmpty).toBe(fill(auditContent.fixFirst.noneMinorMany, { n: 2 }));
+
+    minor.counts.tier0.pass += 1;
+    minor.counts.tier0.fail -= 1;
+    expect(buildResultView(minor, fixtureCatalog, LATER).fixFirstEmpty).toBe(auditContent.fixFirst.noneMinorOne);
+    expect(buildResultView(receiver, fixtureCatalog, LATER).fixFirstEmpty).toBe(auditContent.fixFirst.none);
+  });
+
   it("timeout: 'No problems found' lists the unmeasured P0 and P1 rows with their reason (R31)", () => {
     const view = buildResultView(timeout, fixtureCatalog, LATER);
     expect(view.headline.kind).toBe("no_problems_found");
