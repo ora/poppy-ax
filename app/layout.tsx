@@ -24,6 +24,10 @@ const body = Atkinson_Hyperlegible({
 });
 
 export const metadata: Metadata = {
+  // Absolute URLs for canonical links and preview images. Previews set
+  // NEXT_PUBLIC_SITE_URL to their own address. `||`, not `??`, so an empty
+  // value copied from .env.example falls back too.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://poppy.ax"),
   title: { default: content.metadata.title, template: `%s | ${content.siteName}` },
   description: content.metadata.description,
 };
