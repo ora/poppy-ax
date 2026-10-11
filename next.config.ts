@@ -17,8 +17,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     // The keys are globs over route paths, so the brackets are escaped.
     "/audit/\\[domain\\]": ["./content/rows/*.md", ...ORA_FIXTURE_FILES],
+    "/audit/\\[domain\\]/opengraph-image": ["./content/rows/*.md", ...ORA_FIXTURE_FILES],
     "/sites": ORA_FIXTURE_FILES,
     "/api/check/\\[domain\\]": ORA_FIXTURE_FILES,
+    "/api/check/\\[domain\\]/result": ORA_FIXTURE_FILES,
   },
 };
 
