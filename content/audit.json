@@ -52,6 +52,8 @@
     "question": "What do I fix first?",
     "intro": "The failed checks that matter most, P0 first. Each one links the setup step that fixes it.",
     "none": "Nothing. No P0 or P1 check failed.",
+    "noneMinorOne": "Nothing urgent. No P0 or P1 check failed. The 1 check that failed is a lower priority one (P2 or advice), listed in the full report.",
+    "noneMinorMany": "Nothing urgent. No P0 or P1 check failed. The {n} checks that failed are lower priority ones (P2 or advice), listed in the full report.",
     "unreachable": "First make sure {domain}/.well-known/poppy.json answers over HTTPS. Then check again.",
     "notChecked": "Nothing yet. Nothing was measured, so there is nothing to fix.",
     "saw": "What the checker saw:",
