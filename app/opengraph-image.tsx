@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 import { content } from "@/lib/content";
 
-// The preview image for every page without its own (the home page, /setup,
-// /sites). Result pages draw theirs in app/audit/[domain]/opengraph-image.tsx.
+// The preview image for every page without its own (the home page, /learn,
+// /setup, /sites). Result pages draw theirs in app/audit/[domain]/opengraph-image.tsx.
 // Nothing in it changes between builds, so Next makes it once at build time.
 export const alt = content.metadata.image.alt;
 export const size = { width: 1200, height: 630 };

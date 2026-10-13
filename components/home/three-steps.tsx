@@ -32,6 +32,15 @@ function Key({ transform }: { transform: string }) {
   );
 }
 
+/** The same key on its own, beside the valet key paragraph. Decorative. */
+export function KeyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="-30 -30 124 60" aria-hidden="true" focusable="false">
+      <Key transform="" />
+    </svg>
+  );
+}
+
 /**
  * The three steps as one picture: an assistant at a door, a labelled key, and
  * an action inside the key's limits. It draws itself once on load, and stays

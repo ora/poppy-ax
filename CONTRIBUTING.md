@@ -8,7 +8,7 @@ All page text lives in [`content/`](content/): JSON for the page shell and short
 
 1. Find the sentence. Search the repository for a few words of it; it will be in a file under `content/`.
 2. Edit the file on GitHub (the pencil icon) or in your own fork.
-3. Open a pull request. Say what was wrong and, for anything about the protocol, link the section of the [PAP spec](https://personalagentprotocol.org/docs/spec) that supports your change.
+3. Open a pull request. Say what was wrong and, for anything about the protocol, link the section of the [spec](https://personalagentprotocol.org/docs/spec) that supports your change.
 
 Not sure what the fix should be? Use the "Report an error" link at the foot of any page. It opens an issue with the page path filled in.
 
@@ -17,6 +17,8 @@ Not sure what the fix should be? Use the "Report an error" link at the foot of a
 - Plain words and short sentences. Explain a term the first time it appears.
 - Take every field name and requirement from the spec, and link the section it comes from. Do not write field names from memory.
 - No em dashes. Use a spaced hyphen or rewrite the sentence.
+- Call the protocol Poppy, or the Personal Agent Protocol. "PAP" appears only as a search alias: in the site's metadata and keywords, and in one line on /learn. `tests/naming.test.ts` checks this.
+- Keep the home page for site owners and free of technical words; the fuller explanation goes on /learn, and the how-to on /setup.
 
 ## License of contributions
 

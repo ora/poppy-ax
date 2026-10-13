@@ -6,10 +6,10 @@ import { asNewVisitor, checkProgressSeen, recordCheckProgress, verdictOf } from 
 test.describe("home", () => {
   test("renders the promise and the domain box goes to the result page", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Let your customers' AI assistants in. Safely.");
-    await expect(page.getByText("Based on PAP Draft 0.1 (2026-10-09)").first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Give your customers' AI assistants a valet key.");
+    await expect(page.getByText("Based on Poppy Draft 0.1 (2026-10-09)").first()).toBeVisible();
 
-    await page.getByLabel("Check a company's site").fill("https://www.Example.com/");
+    await page.getByLabel("Is a site ready for Poppy?").fill("https://www.Example.com/");
     await page.getByRole("button", { name: "Check", exact: true }).click();
     await expect(page).toHaveURL(/\/audit\/example\.com$/);
     await expect(verdictOf(page)).toHaveText("Not set up");
@@ -17,7 +17,7 @@ test.describe("home", () => {
 
   test("the domain box says why it can't check an address", async ({ page }) => {
     await page.goto("/");
-    const box = page.getByLabel("Check a company's site");
+    const box = page.getByLabel("Is a site ready for Poppy?");
     await box.fill("localhost");
     await page.getByRole("button", { name: "Check", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
@@ -29,7 +29,14 @@ test.describe("home", () => {
   test("Check a site focuses the domain box", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("link", { name: "Check a site" }).click();
-    await expect(page.getByLabel("Check a company's site")).toBeFocused();
+    await expect(page.getByLabel("Is a site ready for Poppy?")).toBeFocused();
+  });
+
+  test("Check a site from another page lands in the domain box", async ({ page }) => {
+    await page.goto("/setup");
+    await page.getByRole("link", { name: "Check a site" }).click();
+    await expect(page).toHaveURL(/\/#check$/);
+    await expect(page.getByLabel("Is a site ready for Poppy?")).toBeFocused();
   });
 });
 
@@ -38,16 +45,16 @@ test.describe("without JavaScript", () => {
 
   test("the home form still reaches the result page", async ({ page }) => {
     await page.goto("/");
-    await page.getByLabel("Check a company's site").fill("Example.com");
-    await page.getByLabel("Check a company's site").press("Enter");
+    await page.getByLabel("Is a site ready for Poppy?").fill("Example.com");
+    await page.getByLabel("Is a site ready for Poppy?").press("Enter");
     await expect(page).toHaveURL(/\/audit\/example\.com$/);
     await expect(verdictOf(page)).toHaveText("Not set up");
   });
 
   test("a refused address comes back home with its message", async ({ page }) => {
     await page.goto("/");
-    await page.getByLabel("Check a company's site").fill("127.0.0.1");
-    await page.getByLabel("Check a company's site").press("Enter");
+    await page.getByLabel("Is a site ready for Poppy?").fill("127.0.0.1");
+    await page.getByLabel("Is a site ready for Poppy?").press("Enter");
     await expect(page).toHaveURL(/\/\?error=[a-z_]+#domain-error-/);
     await expect(page.locator(".domain-form__fallback:target")).toBeVisible();
   });
@@ -101,7 +108,7 @@ test.describe("result pages", () => {
     await page.goto("/audit/example.com");
     await expect(verdictOf(page)).toHaveText("Not set up");
     const invitation = page.locator(".audit__invitation");
-    await expect(invitation).toHaveText("example.com doesn't publish a PAP file yet. Here's what it takes.");
+    await expect(invitation).toHaveText("example.com doesn't publish a Poppy file yet. Here's what it takes.");
     await expect(page.locator(".audit__passing")).toHaveCount(0);
     await invitation.getByRole("link", { name: "Here's what it takes" }).click();
     await expect(page).toHaveURL(/\/setup$/);
@@ -189,7 +196,7 @@ test.describe("result pages", () => {
     const response = await page.goto("/audit/localhost");
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("We can't check that");
-    await expect(page.getByLabel("Check a company's site")).toBeVisible();
+    await expect(page.getByLabel("Is a site ready for Poppy?")).toBeVisible();
     await expect(page.locator(".domain-form__message")).not.toBeEmpty();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   });
@@ -213,7 +220,7 @@ test.describe("keyboard", () => {
 
   test("the domain box takes a domain from the keyboard alone", async ({ page }) => {
     await page.goto("/");
-    const box = page.getByLabel("Check a company's site");
+    const box = page.getByLabel("Is a site ready for Poppy?");
     while (!(await box.evaluate((element) => element === document.activeElement))) {
       await page.keyboard.press("Tab");
     }
@@ -272,11 +279,27 @@ test.describe("setup and sites", () => {
     await expect(page.getByRole("link", { name: "ARC" })).toHaveAttribute("href", "https://www.arcreport.ai/protocols/pap");
   });
 
+  test("/learn explains Poppy, with the alias line and a way to set it up", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: "What is Poppy?" }).click();
+    await expect(page).toHaveURL(/\/learn$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("What is Poppy?");
+    await expect(page.locator("h2#where-it-stands")).toBeVisible();
+    await expect(page.getByText("Some news coverage calls it PAP.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Set it up on your site" })).toHaveAttribute("href", "/setup");
+  });
+
+  test("Sites is in the footer", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("contentinfo").getByRole("link", { name: "Sites", exact: true }).click();
+    await expect(page).toHaveURL(/\/sites$/);
+  });
+
   test("every page carries the independent label, the draft line and Report an error", async ({ page }) => {
-    for (const path of ["/", "/setup", "/sites", "/audit/example.com"]) {
+    for (const path of ["/", "/learn", "/setup", "/sites", "/audit/example.com"]) {
       await page.goto(path);
       await expect(page.getByText("An independent guide by Ora.").first(), path).toBeVisible();
-      await expect(page.getByText("Based on PAP Draft 0.1 (2026-10-09)").first(), path).toBeVisible();
+      await expect(page.getByText("Based on Poppy Draft 0.1 (2026-10-09)").first(), path).toBeVisible();
       await expect(page.getByRole("link", { name: /Report an error/ }).first(), path).toBeVisible();
     }
   });

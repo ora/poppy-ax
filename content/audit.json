@@ -2,32 +2,32 @@
   "metadata": {
     "title": "{domain}: {headline}",
     "descriptions": {
-      "not_set_up": "{domain} doesn't publish a PAP file yet. See what it takes to let people's AI assistants in.",
-      "unreachable": "The checker couldn't reach the PAP file on {domain}, so nothing could be measured.",
+      "not_set_up": "{domain} doesn't publish a Poppy file yet. See what it takes to let people's AI assistants in.",
+      "unreachable": "The checker couldn't reach the Poppy file on {domain}, so nothing could be measured.",
       "not_checked": "Ora's own check failed when it looked at {domain}, so there is no result yet.",
-      "problems": "{domain} publishes a PAP file, but at least one of the most serious checks failed. See what to fix first.",
+      "problems": "{domain} publishes a Poppy file, but at least one of the most serious checks failed. See what to fix first.",
       "working": "{domain} passes every Tier 0 and Tier 1 check the checker runs today.",
       "no_problems_found": "No serious check failed on {domain}, but some could not be measured on the last run.",
-      "unknown": "The latest PAP result for {domain}, from an independent checker."
+      "unknown": "The latest Poppy result for {domain}, from an independent checker."
     },
     "checkTitle": "Check {domain}",
-    "checkDescription": "See whether {domain} lets people's AI assistants in, using the Personal Agent Protocol (PAP).",
-    "errorDescription": "The PAP result for {domain} could not be loaded right now.",
+    "checkDescription": "See whether {domain} lets people's AI assistants in, using Poppy, the Personal Agent Protocol (PAP).",
+    "errorDescription": "The Poppy result for {domain} could not be loaded right now.",
     "invalidTitle": "Not a domain we can check"
   },
   "verdict": {
     "question": "Does it work for agents?",
     "explain": {
       "not_set_up": "",
-      "unreachable": "Its PAP file never answered, so the checker could not measure anything. The site may have been down or slow when it was checked.",
+      "unreachable": "Its Poppy file never answered, so the checker could not measure anything. The site may have been down or slow when it was checked.",
       "not_checked": "Ora's own check failed, so nothing was measured. The problem was on Ora's side, not the site's. Check again to get a result.",
-      "problems": "It publishes a PAP file, but at least one of the most serious checks (P0 or P1) failed.",
+      "problems": "It publishes a Poppy file, but at least one of the most serious checks (P0 or P1) failed.",
       "working": "Every P0 and P1 check the checker runs today passed. Tier 2 and Tier 3 checks don't run yet.",
       "no_problems_found": "No P0 or P1 check failed. But some could not be measured on this run, so it can't count as working yet. They are listed below.",
       "unknown": "The checker gave a result this site can't show yet. The full report has every detail."
     },
     "invitation": {
-      "before": "{domain} doesn't publish a PAP file yet. ",
+      "before": "{domain} doesn't publish a Poppy file yet. ",
       "linkText": "Here's what it takes",
       "href": "/setup",
       "after": "."
@@ -46,7 +46,7 @@
     },
     "profile": "Profile",
     "lastRun": "Last checked",
-    "profileHelp": "the PAP version and check list used"
+    "profileHelp": "the Poppy version and check list used"
   },
   "fixFirst": {
     "question": "What do I fix first?",

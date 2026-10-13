@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CheckASiteLink } from "@/components/home/check-a-site";
 import { content } from "@/lib/content";
 
 export function MainNav() {
@@ -16,6 +17,9 @@ export function MainNav() {
             </Link>
           </li>
         ))}
+        <li>
+          <CheckASiteLink text={content.nav.check} className="button button--primary main-nav__check" />
+        </li>
       </ul>
     </nav>
   );

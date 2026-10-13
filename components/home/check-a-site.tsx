@@ -1,23 +1,24 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { DOMAIN_INPUT_ID } from "./domain-form";
+import { CHECK_HREF, CHECK_SECTION_ID, DOMAIN_INPUT_ID } from "@/lib/check-anchor";
 
 /**
- * A link to the domain box. Without JavaScript it scrolls to the box; with it,
- * it also puts the cursor in the box so the reader can type straight away.
+ * A link to the domain box on the home page. On the home page with
+ * JavaScript, it scrolls to the box and puts the cursor in it. Anywhere else
+ * it is a plain link to /#check, and the box takes the cursor when it loads.
  */
-export function CheckASiteLink({ sectionId, text }: { sectionId: string; text: string }) {
+export function CheckASiteLink({ text, className }: { text: string; className?: string }) {
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
     const input = document.getElementById(DOMAIN_INPUT_ID);
     if (!(input instanceof HTMLInputElement)) return;
     event.preventDefault();
-    document.getElementById(sectionId)?.scrollIntoView({ block: "start" });
+    document.getElementById(CHECK_SECTION_ID)?.scrollIntoView({ block: "start" });
     input.focus({ preventScroll: true });
   }
 
   return (
-    <a href={`#${sectionId}`} onClick={onClick} className="button button--primary">
+    <a href={CHECK_HREF} onClick={onClick} className={className}>
       {text}
     </a>
   );

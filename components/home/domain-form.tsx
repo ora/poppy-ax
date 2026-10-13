@@ -1,12 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { CHECK_SECTION_ID, DOMAIN_INPUT_ID } from "@/lib/check-anchor";
 import { domainErrorAnchor, submitStep } from "@/lib/domain-submit";
 import type { HomeContent } from "@/lib/home";
-
-export const DOMAIN_INPUT_ID = "domain-input";
 
 // The normalizer pulls in the public suffix list, so it loads when someone
 // focuses the box rather than with the page. A failed load (offline, a chunk
@@ -47,6 +46,11 @@ export function DomainForm({ copy, initialMessage = "", fallbackMessages }: Doma
   const [message, setMessage] = useState(initialMessage);
   const hintId = useId();
   const messageId = useId();
+
+  // "Check a site" on another page links to /#check: arrive with the cursor in the box.
+  useEffect(() => {
+    if (window.location.hash === `#${CHECK_SECTION_ID}`) input.current?.focus();
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

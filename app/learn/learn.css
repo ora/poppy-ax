@@ -1,0 +1,26 @@
+/*
+ * /learn. Long-form text from content/learn.mdx, inside the shared .prose
+ * rules of globals.css; only the h2 sections are styled here.
+ */
+
+.learn__body h2 {
+  margin-block-start: var(--space-16);
+  padding-block-start: var(--space-8);
+  border-block-start: 1px solid var(--color-rule);
+  font-size: clamp(1.75rem, 1.45rem + 1.2vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.learn__body > h2:first-child {
+  margin-block-start: var(--space-8);
+}
+
+.learn__body h2 + * {
+  margin-block-start: var(--space-4);
+}
+
+.learn__body h2,
+.learn__body h3 {
+  scroll-margin-block-start: var(--space-8);
+}

@@ -1,12 +1,13 @@
 {
   "siteName": "poppy.ax",
   "metadata": {
-    "title": "poppy.ax: the Personal Agent Protocol in plain words",
-    "description": "A plain guide to the Personal Agent Protocol (PAP), with a checker that shows whether a site lets people's AI assistants in safely. An independent guide by Ora.",
+    "title": "poppy.ax: Poppy, the Personal Agent Protocol, in plain words",
+    "description": "Poppy, the Personal Agent Protocol (also called PAP), gives your customers' AI assistants a valet key: they can help, but only within what each customer allows. Check whether a site is ready. An independent guide by Ora.",
+    "keywords": ["Poppy", "Personal Agent Protocol", "PAP", "poppy.json", "AI assistants", "personal agents", "agent readiness"],
     "image": {
-      "alt": "poppy.ax: the Personal Agent Protocol in plain words, with a checker for any site",
-      "heading": "The Personal Agent Protocol in plain words",
-      "line": "Check whether a site lets people's AI assistants in safely.",
+      "alt": "poppy.ax: give your customers' AI assistants a valet key. Poppy, the Personal Agent Protocol, in plain words, with a checker for any site",
+      "heading": "Give your customers' AI assistants a valet key.",
+      "line": "Poppy, the Personal Agent Protocol, in plain words.",
       "byline": "An independent guide by Ora"
     }
   },
@@ -15,19 +16,19 @@
   "nav": {
     "label": "Main",
     "items": [
-      { "label": "Check", "href": "/" },
-      { "label": "Set it up", "href": "/setup" },
-      { "label": "Sites", "href": "/sites" }
-    ]
+      { "label": "What is Poppy?", "href": "/learn" },
+      { "label": "Set it up", "href": "/setup" }
+    ],
+    "check": "Check a site"
   },
   "independentLabel": {
-    "before": "An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) and 35 design partners, at ",
+    "before": "An independent guide by Ora. Poppy is developed by Meta and Sierra with industry partners, at ",
     "linkText": "personalagentprotocol.org",
     "href": "https://personalagentprotocol.org",
     "after": "."
   },
   "draft": {
-    "text": "Based on PAP Draft 0.1 (2026-10-09)",
+    "text": "Based on Poppy Draft 0.1 (2026-10-09)",
     "href": "https://personalagentprotocol.org/docs/spec"
   },
   "reportError": {
@@ -42,7 +43,14 @@
     "after": ", so anyone can reuse them with credit."
   },
   "footerNavLabel": "Footer",
+  "footerLinks": [{ "label": "Sites", "href": "/sites" }],
   "pages": {
+    "learn": {
+      "title": "What is Poppy?",
+      "heading": "What is Poppy?",
+      "lede": "Poppy, the Personal Agent Protocol, is a new open standard for how a person's AI assistant works with a company. Here is the longer version, in plain words.",
+      "description": "Poppy, the Personal Agent Protocol, explained in plain words: the problem it solves, how it works, where the draft stands, and how it differs from MCP, shopping and payment protocols."
+    },
     "setup": {
       "title": "Set it up",
       "heading": "Set it up, one level at a time",
@@ -50,11 +58,11 @@
     },
     "sites": {
       "title": "Sites",
-      "heading": "Sites that publish a PAP file",
+      "heading": "Sites that publish a Poppy file",
       "lede": "Every site Ora has seen publishing the protocol's public file, with the date it was first seen. Pick one to see its result.",
-      "description": "Every domain Ora has seen publishing a PAP file, with the date it was first seen and a link to its result.",
+      "description": "Every domain Ora has seen publishing a Poppy file, with the date it was first seen and a link to its result.",
       "order": "Most recently seen first.",
-      "listLabel": "Sites that publish a PAP file",
+      "listLabel": "Sites that publish a Poppy file",
       "firstSeen": "First seen",
       "resultLinkText": "See result",
       "empty": "No site has shown up yet. Be the first.",

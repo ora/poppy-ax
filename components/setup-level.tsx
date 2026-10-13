@@ -5,7 +5,7 @@ import { groupedRows, setupContent, stepId, type SetupLevel } from "@/lib/setup"
 import { displayTitle } from "@/lib/rows";
 
 /** The plain text inside a heading, for its id. */
-function textOf(node: ReactNode): string {
+export function textOf(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
   return Children.toArray(node)
     .map((child) => (isValidElement<{ children?: ReactNode }>(child) ? textOf(child.props.children) : textOf(child)))

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import catalog from "@/fixtures/catalog.json";
 import { catalogRow, groupedRows, setupContent } from "@/lib/setup";
+import { SPEC_ANCHORS } from "./spec-anchors";
 
 const SETUP_DIR = join(__dirname, "..", "content", "setup");
 const files = readdirSync(SETUP_DIR).filter((name) => /\.(mdx?|json)$/.test(name));
@@ -18,33 +19,6 @@ function links(source: string): [string, string][] {
 function withoutCode(source: string): string {
   return source.replace(/^```[\s\S]*?^```/gm, "");
 }
-
-// Heading anchors on the live pages of PAP Draft 0.1 (2026-10-09). A link to
-// any other anchor lands at the top of the page instead of the section.
-const SPEC_ANCHORS: Record<string, string[]> = {
-  "/docs/spec": [
-    "intro", "terms", "discovery", "fields", "oauth-server", "extensions", "sessions", "agent-identity",
-    "starting-sessions", "sending-tokens", "sign-in", "direct-sign-in", "device-sign-in", "mediated-sign-in",
-    "account-tokens", "sign-out", "web-browsing", "apis", "conversations", "conversation-protocols",
-    "conversation-requests", "sending-messages", "message-fields", "reading-events", "streaming", "status",
-    "human-or-ai", "handoff", "direct-conversations", "conversation-sign-in", "closing", "conversation-errors",
-    "references",
-  ],
-  "/docs/extensions/operations": [
-    "intro", "support", "operations", "revisions", "ownership", "proposing", "binding-openapi", "binding-mcp",
-    "binding-conversations", "binding-web", "confirming", "approval", "confirm", "tracking", "cancelling",
-    "proof", "errors",
-  ],
-  "/docs/guides": [
-    "about", "both", "both-secrets", "both-signing", "both-key-rotation", "both-fetching", "both-retries",
-    "both-rate-limits", "both-transport", "agents", "agent-user-ids", "agent-dpop", "agent-tokens",
-    "agent-choosing-sign-in", "agent-direct-device", "agent-mediated", "agent-native-apps", "agent-browsing",
-    "agent-conversations", "agent-interfaces", "companies", "company-agents", "company-dpop",
-    "company-lifetimes", "company-consent", "company-device", "company-mediated", "company-account-settings",
-    "company-browsing", "company-scopes", "company-internal", "company-guest", "company-conversations",
-    "company-errors", "operations", "operations-agents", "operations-companies",
-  ],
-};
 
 describe("content/setup/index.json", () => {
   it("has the four levels in order, each with an MDX file", () => {
@@ -110,7 +84,7 @@ describe("content/setup/index.json", () => {
   it("ends with the one hosted note", () => {
     expect(setupContent.page.hosted.href).toBe("https://ora.ai/pap/managed");
     expect(setupContent.page.hosted.before + setupContent.page.hosted.linkText).toBe(
-      "Rather not run an issuer yourself? Ora can host PAP on your domain, with your login, in front of your existing APIs.",
+      "Rather not run an issuer yourself? Ora can host Poppy on your domain, with your login, in front of your existing APIs.",
     );
   });
 });

@@ -36,6 +36,7 @@ export const metadata: Metadata = {
   }),
   title: { default: content.metadata.title, template: `%s | ${content.siteName}` },
   description: content.metadata.description,
+  keywords: content.metadata.keywords,
   // No title or description here: link previews fall back to each page's own
   // <title> and description. The preview image is app/opengraph-image.tsx.
   openGraph: { siteName: content.siteName, type: "website" },
