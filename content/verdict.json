@@ -1,12 +1,12 @@
 {
   "headlines": {
-    "not_set_up": "Not set up",
-    "unreachable": "Couldn't reach it",
-    "not_checked": "Ora couldn't check it",
-    "problems": "Set up, with problems",
-    "working": "Working (Tier 0 and 1 pass)",
-    "no_problems_found": "No problems found",
-    "unknown": "Result not available"
+    "not_set_up": "Not yet",
+    "unreachable": "Couldn't check",
+    "not_checked": "Couldn't check",
+    "problems": "Partly ready",
+    "working": "Ready",
+    "no_problems_found": "Ready",
+    "unknown": "Couldn't check"
   },
   "reasons": {
     "timeout": "the site took too long to answer",

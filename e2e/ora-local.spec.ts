@@ -18,18 +18,18 @@ const RECEIVER = "poppy-receiver.roundtrip.workers.dev";
 
 test("home renders and the domain box reaches a live result", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Let your customers' AI assistants in. Safely.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Give your customers' AI assistants a valet key.");
   await page.getByLabel("Is a site ready for Poppy?").fill("https://www.Example.com/");
   await page.getByRole("button", { name: "Check", exact: true }).click();
   await expect(page).toHaveURL(/\/audit\/example\.com$/);
-  await expect(verdictOf(page)).toHaveText("Not set up");
+  await expect(verdictOf(page)).toHaveText("Not yet");
 });
 
 test("example.com: no poppy.json, so an invitation into the setup guide", async ({ page }) => {
   await page.goto("/audit/example.com");
-  await expect(verdictOf(page)).toHaveText("Not set up");
+  await expect(verdictOf(page)).toHaveText("Not yet");
   await expect(page.locator(".audit__invitation")).toHaveText(
-    "example.com doesn't publish a Poppy file yet. Here's what it takes.",
+    "Is this your site? example.com doesn't publish a Poppy file yet. Here's what it takes.",
   );
   await expect(page.getByRole("link", { name: "See every check in the full report" })).toHaveAttribute(
     "href",
@@ -39,9 +39,9 @@ test("example.com: no poppy.json, so an invitation into the setup guide", async 
 
 test("the demo receiver: a passing verdict, browser rows not counted as failures", async ({ page }) => {
   await page.goto(`/audit/${RECEIVER}`);
-  // "Working" when every P0 and P1 row was measured, else "No problems found" (Ruling R31).
-  await expect(verdictOf(page)).toHaveText(/^(Working \(Tier 0 and 1 pass\)|No problems found)$/);
-  await expect(page.getByText("pap-0.1@2026-10-09")).toBeVisible();
+  // "Working" and "No problems found" (Ruling R31) both read "Ready".
+  await expect(verdictOf(page)).toHaveText("Ready");
+  await expect(page.getByText(/pap-0\.1@/)).toBeAttached();
   // The receiver has no browser endpoint, so T1-07 is N/A: not a failure.
   await expect(page.locator(".fix-list")).toHaveCount(0);
   await expect(page.locator(".fix-list, .unmeasured").getByText("Browser endpoint rejects a junk assertion")).toHaveCount(0);

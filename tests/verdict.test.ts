@@ -197,7 +197,8 @@ describe("headline", () => {
     expect(headline(summary("not_set_up", []), catalog)).toEqual({
       verdict: "not_set_up",
       kind: "not_set_up",
-      text: "Not set up",
+      state: "not_yet",
+      text: "Not yet",
       unmeasured: [],
     });
   });
@@ -206,7 +207,8 @@ describe("headline", () => {
     expect(headline(summary("unreachable", []), catalog)).toEqual({
       verdict: "unreachable",
       kind: "unreachable",
-      text: "Couldn't reach it",
+      state: "couldnt_check",
+      text: "Couldn't check",
       unmeasured: [],
     });
   });
@@ -216,7 +218,8 @@ describe("headline", () => {
     expect(headline(s, catalog)).toEqual({
       verdict: "not_checked",
       kind: "not_checked",
-      text: "Ora couldn't check it",
+      state: "couldnt_check",
+      text: "Couldn't check",
       unmeasured: [],
     });
   });
@@ -226,7 +229,8 @@ describe("headline", () => {
     expect(headline(s, catalog)).toEqual({
       verdict: "problems",
       kind: "problems",
-      text: "Set up, with problems",
+      state: "partly",
+      text: "Partly ready",
       unmeasured: [],
     });
   });
@@ -245,7 +249,8 @@ describe("headline", () => {
     expect(headline(s, catalog)).toEqual({
       verdict: "working",
       kind: "working",
-      text: "Working (Tier 0 and 1 pass)",
+      state: "ready",
+      text: "Ready",
       unmeasured: [],
     });
   });
@@ -259,7 +264,8 @@ describe("headline", () => {
     const result = headline(s, catalog);
     expect(result.verdict).toBe("working");
     expect(result.kind).toBe("no_problems_found");
-    expect(result.text).toBe("No problems found");
+    expect(result.state).toBe("ready");
+    expect(result.text).toBe("Ready");
     expect(result.unmeasured.map((r) => [r.id, r.title, r.reasonText])).toEqual([
       ["F-P0", "Title of F-P0", "the site took too long to answer"],
       ["A-P1", "Title of A-P1", "the owner turned off active checks"],
@@ -271,7 +277,8 @@ describe("headline", () => {
     expect(headline(s, catalog)).toEqual({
       verdict: null,
       kind: "unknown",
-      text: "Result not available",
+      state: "couldnt_check",
+      text: "Couldn't check",
       unmeasured: [],
     });
   });
@@ -303,19 +310,19 @@ describe("the captured summaries in fixtures/", () => {
   };
 
   it("reads each verdict the way the page should show it", () => {
-    expect(view("demo-receiver")).toEqual({ kind: "working", text: "Working (Tier 0 and 1 pass)", unmeasured: [], fixFirst: [] });
-    expect(view("failing-p0")).toEqual({ kind: "problems", text: "Set up, with problems", unmeasured: [], fixFirst: ["T0-11"] });
-    expect(view("not-set-up")).toEqual({ kind: "not_set_up", text: "Not set up", unmeasured: [], fixFirst: [] });
-    expect(view("unreachable")).toEqual({ kind: "unreachable", text: "Couldn't reach it", unmeasured: [], fixFirst: [] });
+    expect(view("demo-receiver")).toEqual({ kind: "working", text: "Ready", unmeasured: [], fixFirst: [] });
+    expect(view("failing-p0")).toEqual({ kind: "problems", text: "Partly ready", unmeasured: [], fixFirst: ["T0-11"] });
+    expect(view("not-set-up")).toEqual({ kind: "not_set_up", text: "Not yet", unmeasured: [], fixFirst: [] });
+    expect(view("unreachable")).toEqual({ kind: "unreachable", text: "Couldn't check", unmeasured: [], fixFirst: [] });
     expect(view("owner-opt-out")).toEqual({
       kind: "no_problems_found",
-      text: "No problems found",
+      text: "Ready",
       unmeasured: ["T1-03", "T1-01"],
       fixFirst: [],
     });
     expect(view("timeout")).toEqual({
       kind: "no_problems_found",
-      text: "No problems found",
+      text: "Ready",
       unmeasured: ["T0-09", "T0-10", "T0-11", "T0-12", "T1-03", "T1-07", "T1-01", "T1-05"],
       fixFirst: [],
     });

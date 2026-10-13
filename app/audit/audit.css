@@ -55,6 +55,34 @@
   color: var(--color-ink-muted);
 }
 
+/*
+ * Each plain state gets an icon as well as a colour, so it never rests on
+ * colour alone. The icon is CSS content with empty alt text: the word
+ * ("Ready", "Not yet") is what screen readers and copied text get.
+ */
+.audit__verdict[data-state]::before {
+  display: inline-block;
+  margin-inline-end: 0.3em;
+  font-size: 0.8em;
+  vertical-align: 0.05em;
+}
+
+.audit__verdict[data-state="ready"]::before {
+  content: "\2713";
+  content: "\2713" / "";
+}
+
+.audit__verdict[data-state="partly"]::before {
+  content: "!";
+  content: "!" / "";
+}
+
+.audit__verdict[data-state="not_yet"]::before,
+.audit__verdict[data-state="couldnt_check"]::before {
+  content: "\25CB";
+  content: "\25CB" / "";
+}
+
 /* Not a verdict: Ora's own check failed (not_checked). No verdict size or colour. */
 .audit__status {
   font-size: var(--text-lede);
@@ -379,4 +407,41 @@
   .check progress::-moz-progress-bar {
     transition: none;
   }
+}
+
+/* Technical details: what the checker saw, and the check list version.
+   Closed by default; they are for whoever fixes the site. */
+.technical {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
+/* A list item, so it keeps the browser's open and closed triangle. */
+.technical summary {
+  display: list-item;
+  padding-block: var(--space-3);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.technical > p {
+  margin-block-start: var(--space-2);
+}
+
+.technical code {
+  padding: 0.05em 0.3em;
+  border-radius: 3px;
+  background-color: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+
+/* Owner checks: not turned on is a neutral state, never a failure. */
+.unchecked__status {
+  margin-inline-start: var(--space-2);
+  padding: 0 0.5em;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  color: var(--color-ink-muted);
+  font-size: 0.85em;
+  font-weight: 700;
 }

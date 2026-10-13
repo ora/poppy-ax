@@ -5,12 +5,34 @@ import { AUDIT_TITLE_ID } from "@/lib/check-progress";
 import { DomainForm } from "@/components/home/domain-form";
 import { homeContent } from "@/lib/home";
 import { auditContent, type ResultView } from "@/lib/audit";
+import type { Severity } from "@/lib/ora/types";
 import { fill, waitText } from "@/lib/template";
 
 const t = auditContent;
 
 /** Only the words the client component needs, so the rest of content/audit.json stays on the server. */
 const progressCopy: CheckProgressCopy = { ...t.progress, button: t.checkAgain.button };
+
+/** A severity in plain words: "Must fix" for P0. The code stays on the tag for styling. */
+function SeverityTag({ severity }: { severity: Severity }) {
+  return (
+    <span className="tag" data-severity={severity}>
+      {t.verdict.severity[severity]}
+    </span>
+  );
+}
+
+/** What the scanned site answered, folded away: it is for whoever fixes the site. */
+function CheckerNote({ note }: { note: string }) {
+  return (
+    <details className="technical">
+      <summary>{t.verdict.technical}</summary>
+      <p className="fix__note">
+        <span className="fix__note-label">{t.fixFirst.saw}</span> {note}
+      </p>
+    </details>
+  );
+}
 
 /** The question the page answers first, above the domain. */
 function Question() {
@@ -25,11 +47,13 @@ export function AuditHeading({
   domain,
   verdict,
   kind,
+  state,
   plain = false,
 }: {
   domain: string;
   verdict?: string;
   kind?: string;
+  state?: string;
   plain?: boolean;
 }) {
   return (
@@ -44,7 +68,8 @@ export function AuditHeading({
             {plain ? (
               <span className="audit__status">{verdict}</span>
             ) : (
-              <span className="audit__verdict" data-kind={kind}>
+              // The state's icon is drawn in CSS, so the text stays the one word.
+              <span className="audit__verdict" data-kind={kind} data-state={state}>
                 {verdict}
               </span>
             )}
@@ -65,13 +90,6 @@ function Facts({ view }: { view: ResultView }) {
         </div>
       ))}
       <div>
-        <dt>{t.verdict.profile}</dt>
-        <dd>
-          <code>{view.profile}</code>
-          <span className="audit__help"> ({t.verdict.profileHelp})</span>
-        </dd>
-      </div>
-      <div>
         <dt>{t.verdict.lastRun}</dt>
         <dd>
           <time dateTime={view.lastRun.iso} title={view.lastRun.absolute}>
@@ -81,6 +99,19 @@ function Facts({ view }: { view: ResultView }) {
         </dd>
       </div>
     </dl>
+  );
+}
+
+/** The check list version, for whoever compares runs. Folded away. */
+function ProfileDetails({ view }: { view: ResultView }) {
+  return (
+    <details className="technical">
+      <summary>{t.verdict.technical}</summary>
+      <p>
+        {t.verdict.profile}: <code>{view.profile}</code>
+        <span className="audit__help"> ({t.verdict.profileHelp})</span>
+      </p>
+    </details>
   );
 }
 
@@ -107,18 +138,11 @@ function FixFirst({ view }: { view: ResultView }) {
             {view.fixFirst.map((row) => (
               <li key={row.id} className="fix">
                 <h3 className="fix__title">
-                  <span className="tag" data-severity={row.severity}>
-                    {row.severity}
-                  </span>{" "}
-                  {row.title}
+                  <SeverityTag severity={row.severity} /> {row.title}
                 </h3>
                 <p className="fix__what">{row.whatFailed}</p>
                 {row.why && <p className="fix__why">{row.why}</p>}
-                {row.note && (
-                  <p className="fix__note">
-                    <span className="fix__note-label">{s.saw}</span> {row.note}
-                  </p>
-                )}
+                {row.note && <CheckerNote note={row.note} />}
                 <p className="fix__links">
                   <a href={row.setupStep}>{s.fixLink}</a>
                   {row.specUrl && <a href={row.specUrl}>{s.specLink}</a>}
@@ -147,19 +171,12 @@ function NotChecked({ view }: { view: ResultView }) {
             {view.unmeasured.map((row) => (
               <li key={row.id}>
                 <p className="unmeasured__name">
-                  <span className="tag" data-severity={row.severity}>
-                    {row.severity}
-                  </span>{" "}
-                  {row.title}
+                  <SeverityTag severity={row.severity} /> {row.title}
                 </p>
                 <p className="unmeasured__why">
                   {s.unmeasured.why} {row.reasonText}.
                 </p>
-                {row.note && (
-                  <p className="fix__note">
-                    <span className="fix__note-label">{t.fixFirst.saw}</span> {row.note}
-                  </p>
-                )}
+                {row.note && <CheckerNote note={row.note} />}
               </li>
             ))}
           </ul>
@@ -174,6 +191,7 @@ function NotChecked({ view }: { view: ResultView }) {
               <summary>
                 <span className="unchecked__name">{words.title}</span>{" "}
                 <span className="unchecked__count">{fill(s.count, { n: group.rows.length })}</span>
+                {"status" in words && <span className="unchecked__status">{words.status}</span>}
               </summary>
               <p className="unchecked__intro">
                 {words.intro}
@@ -222,10 +240,12 @@ export function AuditResult({ view }: { view: ResultView }) {
         domain={view.domain}
         verdict={view.headline.text}
         kind={view.headline.kind}
+        state={view.headline.state}
         plain={!view.isVerdict}
       />
       {view.explain && <p className="audit__explain">{view.explain}</p>}
       <Facts view={view} />
+      <ProfileDetails view={view} />
       <CheckProgress
         domain={view.domain}
         autoStart={false}
