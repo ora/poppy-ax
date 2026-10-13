@@ -5,18 +5,31 @@ import { reportErrorHref } from "@/lib/report-error";
 describe("content/site.json", () => {
   it("carries the independent label, word for word", () => {
     expect(independentLabelText()).toBe(
-      "An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) and 35 design partners, at personalagentprotocol.org.",
+      "An independent guide by Ora. Poppy is developed by Meta and Sierra with industry partners, at personalagentprotocol.org.",
     );
     expect(content.independentLabel.href).toBe("https://personalagentprotocol.org");
   });
 
   it("carries the draft line and links the spec", () => {
-    expect(content.draft.text).toBe("Based on PAP Draft 0.1 (2026-10-09)");
+    expect(content.draft.text).toBe("Based on Poppy Draft 0.1 (2026-10-09)");
     expect(content.draft.href).toBe("https://personalagentprotocol.org/docs/spec");
   });
 
-  it("names the three nav items", () => {
-    expect(content.nav.items.map((item) => item.label)).toEqual(["Check", "Set it up", "Sites"]);
+  it("names the nav items, then the Check a site button", () => {
+    expect(content.nav.items).toEqual([
+      { label: "What is Poppy?", href: "/learn" },
+      { label: "Set it up", href: "/setup" },
+    ]);
+    expect(content.nav.check).toBe("Check a site");
+  });
+
+  it("links Sites from the footer", () => {
+    expect(content.footerLinks).toEqual([{ label: "Sites", href: "/sites" }]);
+  });
+
+  it("keeps PAP as a search alias in the metadata", () => {
+    expect(content.metadata.description).toContain("(also called PAP)");
+    expect(content.metadata.keywords).toEqual(expect.arrayContaining(["Poppy", "Personal Agent Protocol", "PAP"]));
   });
 
   it("has a heading for every placeholder page", () => {

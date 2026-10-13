@@ -19,7 +19,7 @@ const RECEIVER = "poppy-receiver.roundtrip.workers.dev";
 test("home renders and the domain box reaches a live result", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Let your customers' AI assistants in. Safely.");
-  await page.getByLabel("Check a company's site").fill("https://www.Example.com/");
+  await page.getByLabel("Is a site ready for Poppy?").fill("https://www.Example.com/");
   await page.getByRole("button", { name: "Check", exact: true }).click();
   await expect(page).toHaveURL(/\/audit\/example\.com$/);
   await expect(verdictOf(page)).toHaveText("Not set up");
@@ -29,7 +29,7 @@ test("example.com: no poppy.json, so an invitation into the setup guide", async 
   await page.goto("/audit/example.com");
   await expect(verdictOf(page)).toHaveText("Not set up");
   await expect(page.locator(".audit__invitation")).toHaveText(
-    "example.com doesn't publish a PAP file yet. Here's what it takes.",
+    "example.com doesn't publish a Poppy file yet. Here's what it takes.",
   );
   await expect(page.getByRole("link", { name: "See every check in the full report" })).toHaveAttribute(
     "href",

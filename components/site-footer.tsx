@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { content } from "@/lib/content";
 import { IndependentLabel } from "./independent-label";
 import { ReportErrorLink } from "./report-error-link";
@@ -11,6 +12,11 @@ export function SiteFooter() {
         <li>
           <a href={content.draft.href}>{content.draft.text}</a>
         </li>
+        {content.footerLinks.map((link) => (
+          <li key={link.href}>
+            <Link href={link.href}>{link.label}</Link>
+          </li>
+        ))}
         <li>
           <ReportErrorLink />
         </li>

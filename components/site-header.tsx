@@ -1,4 +1,3 @@
-import { IndependentLabel } from "./independent-label";
 import { MainNav } from "./main-nav";
 import { Wordmark } from "./wordmark";
 
@@ -9,7 +8,6 @@ export function SiteHeader() {
         <Wordmark />
         <MainNav />
       </div>
-      <IndependentLabel className="label-line" />
     </header>
   );
 }

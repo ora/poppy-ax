@@ -1,7 +1,6 @@
 import home from "@/content/home.json";
 
 export type HomeContent = typeof home;
-export type StoryBeat = HomeContent["story"]["beats"][number];
 export type Step = HomeContent["steps"]["items"][number];
 
 /** The home page's text, from content/home.json. */

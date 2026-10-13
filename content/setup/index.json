@@ -19,7 +19,7 @@
     },
     "hosted": {
       "before": "Rather not run an issuer yourself? ",
-      "linkText": "Ora can host PAP on your domain, with your login, in front of your existing APIs.",
+      "linkText": "Ora can host Poppy on your domain, with your login, in front of your existing APIs.",
       "href": "https://ora.ai/pap/managed",
       "label": "Hosted option"
     }
