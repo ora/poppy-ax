@@ -1,13 +1,19 @@
 {
   "metadata": {
-    "title": "{domain}: {headline}",
+    "title": "{domain}: {state}",
+    "states": {
+      "ready": "ready for Poppy",
+      "partly": "partly ready for Poppy",
+      "not_yet": "not ready for Poppy yet",
+      "couldnt_check": "couldn't check"
+    },
     "descriptions": {
       "not_set_up": "{domain} doesn't publish a Poppy file yet. See what it takes to let people's AI assistants in.",
       "unreachable": "The checker couldn't reach the Poppy file on {domain}, so nothing could be measured.",
       "not_checked": "Ora's own check failed when it looked at {domain}, so there is no result yet.",
-      "problems": "{domain} publishes a Poppy file, but at least one of the most serious checks failed. See what to fix first.",
-      "working": "{domain} passes every Tier 0 and Tier 1 check the checker runs today.",
-      "no_problems_found": "No serious check failed on {domain}, but some could not be measured on the last run.",
+      "problems": "{domain} publishes a Poppy file, but at least one must-fix check failed. See what to fix first.",
+      "working": "{domain} has a Poppy front door, and every check the checker runs today passed.",
+      "no_problems_found": "Nothing serious failed on {domain}, but some checks could not be measured on the last run.",
       "unknown": "The latest Poppy result for {domain}, from an independent checker."
     },
     "checkTitle": "Check {domain}",
@@ -16,26 +22,26 @@
     "invalidTitle": "Not a domain we can check"
   },
   "verdict": {
-    "question": "Does it work for agents?",
+    "question": "Is it ready for Poppy?",
     "explain": {
-      "not_set_up": "",
+      "not_set_up": "That's normal: Poppy is brand new, and almost no site supports it yet.",
       "unreachable": "Its Poppy file never answered, so the checker could not measure anything. The site may have been down or slow when it was checked.",
       "not_checked": "Ora's own check failed, so nothing was measured. The problem was on Ora's side, not the site's. Check again to get a result.",
-      "problems": "It publishes a Poppy file, but at least one of the most serious checks (P0 or P1) failed.",
-      "working": "Every P0 and P1 check the checker runs today passed. Tier 2 and Tier 3 checks don't run yet.",
-      "no_problems_found": "No P0 or P1 check failed. But some could not be measured on this run, so it can't count as working yet. They are listed below.",
+      "problems": "This site has started setting up Poppy, but at least one must-fix or should-fix check failed.",
+      "working": "This site has a Poppy front door, and every must-fix and should-fix check the checker runs today passed.",
+      "no_problems_found": "Nothing serious failed. But this run couldn't measure some checks, so they are listed below.",
       "unknown": "The checker gave a result this site can't show yet. The full report has every detail."
     },
     "invitation": {
-      "before": "{domain} doesn't publish a Poppy file yet. ",
+      "before": "Is this your site? {domain} doesn't publish a Poppy file yet. ",
       "linkText": "Here's what it takes",
       "href": "/setup",
       "after": "."
     },
     "factsLabel": "About this result",
     "tiers": {
-      "tier0": "Tier 0 checks",
-      "tier1": "Tier 1 checks"
+      "tier0": "Public file",
+      "tier1": "Safety checks"
     },
     "counts": {
       "pass": "{n} passed",
@@ -46,14 +52,21 @@
     },
     "profile": "Profile",
     "lastRun": "Last checked",
-    "profileHelp": "the Poppy version and check list used"
+    "profileHelp": "the Poppy version and check list used",
+    "severity": {
+      "P0": "Must fix",
+      "P1": "Should fix",
+      "P2": "Nice to fix",
+      "Adv": "Advice"
+    },
+    "technical": "Technical details"
   },
   "fixFirst": {
     "question": "What do I fix first?",
-    "intro": "The failed checks that matter most, P0 first. Each one links the setup step that fixes it.",
-    "none": "Nothing. No P0 or P1 check failed.",
-    "noneMinorOne": "Nothing urgent. No P0 or P1 check failed. The 1 check that failed is a lower priority one (P2 or advice), listed in the full report.",
-    "noneMinorMany": "Nothing urgent. No P0 or P1 check failed. The {n} checks that failed are lower priority ones (P2 or advice), listed in the full report.",
+    "intro": "The failed checks that matter most, must-fix first. Each one links the setup step that fixes it.",
+    "none": "Nothing. No must-fix or should-fix check failed.",
+    "noneMinorOne": "Nothing urgent. No must-fix or should-fix check failed. The 1 check that failed is a minor one, listed in the full report.",
+    "noneMinorMany": "Nothing urgent. No must-fix or should-fix check failed. The {n} checks that failed are minor ones, listed in the full report.",
     "unreachable": "First make sure {domain}/.well-known/poppy.json answers over HTTPS. Then check again.",
     "notChecked": "Nothing yet. Nothing was measured, so there is nothing to fix.",
     "saw": "What the checker saw:",
@@ -62,10 +75,10 @@
   },
   "notChecked": {
     "question": "What wasn't checked?",
-    "intro": "Phase 1 of the checker runs Tier 0 and Tier 1. These checks did not run.",
+    "intro": "Today the checker runs the public file and safety checks. These other checks did not run.",
     "unmeasured": {
       "title": "Not measured on this run",
-      "intro": "These P0 and P1 checks run today, but this run could not measure them.",
+      "intro": "These must-fix and should-fix checks run today, but this run could not measure them.",
       "why": "Why:"
     },
     "groups": {
@@ -74,8 +87,9 @@
         "intro": "The checker doesn't run these yet."
       },
       "2b": {
-        "title": "Requires opt-in",
-        "intro": "These run only for a site owner who verifies the domain and opts in.",
+        "title": "Owner checks (optional)",
+        "status": "Not turned on",
+        "intro": "These run only when the site owner verifies the domain and turns them on.",
         "linkText": "Verify you own the domain on Ora",
         "href": "https://app.ora.ai/verify?domain={domain}"
       },

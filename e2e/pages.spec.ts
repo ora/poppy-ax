@@ -12,7 +12,7 @@ test.describe("home", () => {
     await page.getByLabel("Is a site ready for Poppy?").fill("https://www.Example.com/");
     await page.getByRole("button", { name: "Check", exact: true }).click();
     await expect(page).toHaveURL(/\/audit\/example\.com$/);
-    await expect(verdictOf(page)).toHaveText("Not set up");
+    await expect(verdictOf(page)).toHaveText("Not yet");
   });
 
   test("the domain box says why it can't check an address", async ({ page }) => {
@@ -48,7 +48,7 @@ test.describe("without JavaScript", () => {
     await page.getByLabel("Is a site ready for Poppy?").fill("Example.com");
     await page.getByLabel("Is a site ready for Poppy?").press("Enter");
     await expect(page).toHaveURL(/\/audit\/example\.com$/);
-    await expect(verdictOf(page)).toHaveText("Not set up");
+    await expect(verdictOf(page)).toHaveText("Not yet");
   });
 
   test("a refused address comes back home with its message", async ({ page }) => {
@@ -106,9 +106,10 @@ test.describe("a check", () => {
 test.describe("result pages", () => {
   test("example.com: not set up, with an invitation into the setup guide", async ({ page }) => {
     await page.goto("/audit/example.com");
-    await expect(verdictOf(page)).toHaveText("Not set up");
+    await expect(verdictOf(page)).toHaveText("Not yet");
+    await expect(verdictOf(page)).toHaveAttribute("data-state", "not_yet");
     const invitation = page.locator(".audit__invitation");
-    await expect(invitation).toHaveText("example.com doesn't publish a Poppy file yet. Here's what it takes.");
+    await expect(invitation).toHaveText("Is this your site? example.com doesn't publish a Poppy file yet. Here's what it takes.");
     await expect(page.locator(".audit__passing")).toHaveCount(0);
     await invitation.getByRole("link", { name: "Here's what it takes" }).click();
     await expect(page).toHaveURL(/\/setup$/);
@@ -116,14 +117,21 @@ test.describe("result pages", () => {
 
   test("the demo receiver: working, browser rows didn't apply", async ({ page }) => {
     await page.goto("/audit/poppy-receiver.roundtrip.workers.dev");
-    await expect(verdictOf(page)).toHaveText("Working (Tier 0 and 1 pass)");
+    await expect(verdictOf(page)).toHaveText("Ready");
+    await expect(verdictOf(page)).toHaveAttribute("data-state", "ready");
     const facts = page.getByRole("definition");
+    await expect(page.getByRole("term").nth(0)).toHaveText("Public file");
     await expect(facts.nth(0)).toHaveText("20 passed, 10 didn't apply");
+    await expect(page.getByRole("term").nth(1)).toHaveText("Safety checks");
     await expect(facts.nth(1)).toHaveText("4 passed, 3 didn't apply");
-    await expect(page.getByText("pap-0.1@2026-10-09")).toBeVisible();
+    // The check list version is folded away until asked for.
+    const profile = page.getByText("pap-0.1@2026-10-09");
+    await expect(profile).toBeHidden();
+    await page.locator(".technical summary").first().click();
+    await expect(profile).toBeVisible();
     // T1-07 (the browser endpoint) is N/A: neither a failure nor unmeasured.
     await expect(page.getByText("Browser endpoint rejects a junk assertion")).toHaveCount(0);
-    await expect(page.getByText("Nothing. No P0 or P1 check failed.")).toBeVisible();
+    await expect(page.getByText("Nothing. No must-fix or should-fix check failed.")).toBeVisible();
     // After a passing result, one line only to Ora's audit.
     const passing = page.locator(".audit__passing");
     await expect(passing).toHaveText(
@@ -140,11 +148,18 @@ test.describe("result pages", () => {
     await expect(page.getByRole("button", { name: "Check again" })).toBeVisible();
   });
 
-  test("failing P0: set up, with problems, T0-11 first with its setup step", async ({ page }) => {
+  test("failing P0: partly ready, T0-11 first with its setup step", async ({ page }) => {
     await page.goto("/audit/failing-p0.example.com");
-    await expect(verdictOf(page)).toHaveText("Set up, with problems");
+    await expect(verdictOf(page)).toHaveText("Partly ready");
+    await expect(verdictOf(page)).toHaveAttribute("data-state", "partly");
     const first = page.locator(".fix-list > li").first();
-    await expect(first.locator(".tag")).toHaveText("P0");
+    await expect(first.locator(".tag")).toHaveText("Must fix");
+    await expect(first.locator(".tag")).toHaveAttribute("data-severity", "P0");
+    // What the checker saw is technical: closed until asked for.
+    const note = first.getByText("the metadata has no poppy_domains");
+    await expect(note).toBeHidden();
+    await first.getByText("Technical details").click();
+    await expect(note).toBeVisible();
     await expect(first.getByRole("heading")).toContainText("Domain binding");
     await expect(first).toContainText("poppy_domains in the issuer's OAuth metadata does not include organization.domain.");
     const fix = first.getByRole("link", { name: "How to fix it" });
@@ -156,7 +171,7 @@ test.describe("result pages", () => {
 
   test("timeout: no problems found, and the unmeasured rows are named", async ({ page }) => {
     await page.goto("/audit/timeout.example.com");
-    await expect(verdictOf(page)).toHaveText("No problems found");
+    await expect(verdictOf(page)).toHaveText("Ready");
     const unmeasured = page.locator(".unmeasured");
     await expect(unmeasured.getByRole("heading", { name: "Not measured on this run" })).toBeVisible();
     await expect(unmeasured.locator(".unmeasured__list > li")).not.toHaveCount(0);
@@ -165,9 +180,10 @@ test.describe("result pages", () => {
     await expect(page.locator(".audit__passing")).toHaveCount(0);
   });
 
-  test("unreachable: couldn't reach it", async ({ page }) => {
+  test("unreachable: couldn't check", async ({ page }) => {
     await page.goto("/audit/unreachable.example.com");
-    await expect(verdictOf(page)).toHaveText("Couldn't reach it");
+    await expect(verdictOf(page)).toHaveText("Couldn't check");
+    await expect(verdictOf(page)).toHaveAttribute("data-state", "couldnt_check");
     await expect(
       page.getByText("First make sure unreachable.example.com/.well-known/poppy.json answers over HTTPS. Then check again."),
     ).toBeVisible();
@@ -175,21 +191,39 @@ test.describe("result pages", () => {
 
   test("owner opt-out: the probes the owner turned off are named", async ({ page }) => {
     await page.goto("/audit/opt-out.example.com");
-    await expect(verdictOf(page)).toHaveText("No problems found");
+    await expect(verdictOf(page)).toHaveText("Ready");
     await expect(page.locator(".unmeasured")).toContainText("Why: the owner turned off active checks.");
   });
 
-  test("what wasn't checked lists Tier 2 and Tier 3 by name", async ({ page }) => {
+  test("what wasn't checked lists the later checks by name, owner checks as not turned on", async ({ page }) => {
     await page.goto("/audit/poppy-receiver.roundtrip.workers.dev");
     const groups = page.locator(".unchecked__group summary");
     await expect(groups).toHaveCount(3);
     await expect(groups.nth(0)).toContainText("Coming soon");
-    await expect(groups.nth(1)).toContainText("Requires opt-in");
+    await expect(groups.nth(1)).toContainText("Owner checks (optional)");
+    await expect(groups.nth(1).locator(".unchecked__status")).toHaveText("Not turned on");
     await expect(groups.nth(2)).toContainText("Signed-in flows");
     await expect(page.getByRole("link", { name: "Verify you own the domain on Ora", includeHidden: true })).toHaveAttribute(
       "href",
       "https://app.ora.ai/verify?domain=poppy-receiver.roundtrip.workers.dev",
     );
+  });
+
+  test("no result page shows a tier or severity code", async ({ page }) => {
+    for (const domain of [
+      "example.com",
+      "poppy-receiver.roundtrip.workers.dev",
+      "failing-p0.example.com",
+      "timeout.example.com",
+      "unreachable.example.com",
+      "opt-out.example.com",
+    ]) {
+      await page.goto(`/audit/${domain}`);
+      // Open every folded section, so the check covers what a reader can reach.
+      for (const summary of await page.locator("main details > summary").all()) await summary.click();
+      const text = await page.locator("main").innerText();
+      expect(text, domain).not.toMatch(/\b(Tier|P[0-3])\b/);
+    }
   });
 
   test("an address that isn't a domain gets its reason and the box", async ({ page }) => {

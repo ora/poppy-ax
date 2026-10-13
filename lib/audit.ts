@@ -192,7 +192,7 @@ export interface ResultView {
    * check, not a verdict on the site, so it gets no verdict styling.
    */
   isVerdict: boolean;
-  /** One sentence under the headline. Empty for "Not set up", which gets the invitation instead. */
+  /** One sentence under the headline. "Not set up" also gets the invitation into /setup. */
   explain: string;
   tiers: TierCount[];
   profile: string;
@@ -283,7 +283,7 @@ export function auditMeta(
     case "ok": {
       const top = headline(result.summary, catalog);
       return {
-        title: fill(m.title, { domain: result.summary.domain, headline: top.text }),
+        title: fill(m.title, { domain: result.summary.domain, state: m.states[top.state] }),
         description: fill(m.descriptions[top.kind], { domain: result.summary.domain }),
         // Ora's own check failed: nothing about the site is worth indexing.
         noindex: top.kind === "not_checked",
