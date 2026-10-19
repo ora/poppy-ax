@@ -7,7 +7,7 @@ test.describe("home", () => {
   test("renders the promise and the domain box goes to the result page", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Give your customers' AI assistants a valet key.");
-    await expect(page.getByText("Based on Poppy Draft 0.1 (2026-10-09)").first()).toBeVisible();
+    await expect(page.getByText("Based on Poppy Draft 0.2 (in progress, read 2026-10-19)").first()).toBeVisible();
 
     await page.getByLabel("Is a site ready for Poppy?").fill("https://www.Example.com/");
     await page.getByRole("button", { name: "Check", exact: true }).click();
@@ -342,7 +342,7 @@ test.describe("setup and sites", () => {
     for (const path of ["/", "/learn", "/setup", "/sites", "/audit/example.com"]) {
       await page.goto(path);
       await expect(page.getByText("An independent guide by Ora.").first(), path).toBeVisible();
-      await expect(page.getByText("Based on Poppy Draft 0.1 (2026-10-09)").first(), path).toBeVisible();
+      await expect(page.getByText("Based on Poppy Draft 0.2 (in progress, read 2026-10-19)").first(), path).toBeVisible();
       await expect(page.getByRole("link", { name: /Report an error/ }).first(), path).toBeVisible();
     }
   });
