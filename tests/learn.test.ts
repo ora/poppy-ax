@@ -9,7 +9,7 @@ const learn = readFileSync(join(__dirname, "..", "content", "learn.mdx"), "utf8"
 const links = [...learn.matchAll(/\[([^\]]+)\]\(([^)\s]+)\)/g)].map((m) => [m[1] ?? "", m[2] ?? ""] as const);
 
 // Pages on personalagentprotocol.org that /learn links whole, without a section.
-const WHOLE_PAGES = new Set(["/docs/spec", "/docs/open-topics"]);
+const WHOLE_PAGES = new Set(["/docs/spec", "/docs/changelog"]);
 
 describe("content/learn.mdx", () => {
   it("has the sections the home page sends readers to", () => {

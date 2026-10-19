@@ -139,8 +139,8 @@ describe("fixture mode", () => {
   it("serves the sites list and the catalog", async () => {
     expect(await getSites()).toEqual(fixture("sites.json").sites);
     const catalog = await getCatalog();
-    expect(catalog?.rows).toHaveLength(100);
-    expect(catalog?.profile).toBe("pap-0.1@2026-10-09");
+    expect(catalog?.rows).toHaveLength(104);
+    expect(catalog?.profile).toBe("pap-0.2@2026-10-19");
   });
 
   it("replays the recorded scan for the requested domain and ends with scan_complete", async () => {
@@ -478,7 +478,7 @@ describe("network mode", () => {
     it("returns the catalog without sending the token, cached for an hour", async () => {
       fetchMock.mockResolvedValue(json(200, fixture("catalog.json")));
       const catalog = await getCatalog();
-      expect(catalog?.rows).toHaveLength(100);
+      expect(catalog?.rows).toHaveLength(104);
       expect(calledUrl().pathname).toBe("/pap/catalog.json");
       expect(new Headers(calledInit().headers).has("authorization")).toBe(false);
       expect(calledInit().next).toEqual({ revalidate: 3600 });
@@ -487,7 +487,7 @@ describe("network mode", () => {
     it("keeps the spec version, draft flag and Tier 1 policy", async () => {
       fetchMock.mockResolvedValue(json(200, fixture("catalog.json")));
       const catalog = await getCatalog();
-      expect(catalog).toMatchObject({ profile: "pap-0.1@2026-10-09", spec_version: "0.1", draft: true });
+      expect(catalog).toMatchObject({ profile: "pap-0.2@2026-10-19", spec_version: "0.2", draft: true });
       expect(catalog?.tier1_policy).toMatch(/^Tier 1 requests are sent only on a scan that asks for active probes/);
       expect(catalog?.rows.every((row) => typeof row.pass_when === "string" && row.pass_when.length > 0)).toBe(true);
     });

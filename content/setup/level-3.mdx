@@ -52,7 +52,7 @@ All of these steps are in the spec ([spec 4.5](https://personalagentprotocol.org
 
 Device sign-in is the OAuth device authorization grant (RFC 8628). Your OAuth metadata must list a `device_authorization_endpoint` ([spec 4.6](https://personalagentprotocol.org/docs/spec#device-sign-in)).
 
-The assistant asks for a code and shows the person your link and the short code, or a link with the code built in. The person opens it on any device, such as their phone, signs in, and approves some or all of the scopes, or declines. Opening the link must not approve anything by itself ([spec 4.6](https://personalagentprotocol.org/docs/spec#device-sign-in)).
+The assistant asks for a code and shows the person your link and the short code, or a link with the code built in. The person opens it on any device, such as their phone, signs in, and approves some or all of the scopes, or declines. Opening the link must not approve anything by itself. Assistants show the link only if its host is your `auth.issuer` host or one of your `poppy_domains`, or a subdomain of either, so serve your device page there ([spec 4.6](https://personalagentprotocol.org/docs/spec#device-sign-in)).
 
 <details>
 <summary>Details for implementers: answering the assistant while it waits</summary>
@@ -92,7 +92,7 @@ Every kind of sign-in ends the same way. You return an account token as `refresh
 
 `refresh_token_expires_in` is the account token's lifetime in seconds, if you set one. After it, the person signs in again ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)).
 
-You keep a record for each account token: the `client_id`, the user ID, the account, the granted scopes and when it expires. A session is signed in to at most one account, and once it has been, it cannot switch: answer `account_mismatch`, and the assistant starts a new session ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)).
+You keep a record for each account token: the `client_id`, the user ID, the account, the granted scopes and when it expires. A session is signed in to at most one account, and once it has been, it cannot switch, even after it signs out: answer `account_mismatch`, and the assistant starts a new session. This holds for every kind of sign-in ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)).
 
 ### Account tokens
 
@@ -114,7 +114,7 @@ Accept an account token only at your `token_endpoint` and `revocation_endpoint`,
 
 All from the spec ([spec 4.8](https://personalagentprotocol.org/docs/spec#account-tokens)):
 
-- The session must belong to the same `client_id` and user ID as the account token, and be signed out or signed in to the same account. Otherwise answer `invalid_session` or `account_mismatch`.
+- The session must belong to the same `client_id` and user ID as the account token, and must never have been signed in to a different account, even if it is signed out now. Otherwise answer `invalid_session` or `account_mismatch`.
 - `scope` may ask for fewer scopes than the account token has, for example read only access for a lookup. It can never ask for more.
 - Using an account token does not extend its lifetime. You may return a new one in `refresh_token`, and the assistant must use the new one from then on.
 - When an account token has expired or been revoked, answer `invalid_grant`. The session carries on signed out.
@@ -123,7 +123,7 @@ All from the spec ([spec 4.8](https://personalagentprotocol.org/docs/spec#accoun
 
 ### Signing out and disconnecting
 
-To sign out, the assistant revokes its account token at your `revocation_endpoint` (RFC 7009). Revoke it and sign out every session that used it. Those sessions usually carry on signed out ([spec 4.9](https://personalagentprotocol.org/docs/spec#sign-out)).
+To sign out, the assistant revokes its account token at your `revocation_endpoint` (RFC 7009). Revoke it and sign out every session that used it. Those sessions usually carry on signed out, and can be signed in again only to the same account ([spec 4.9](https://personalagentprotocol.org/docs/spec#sign-out)).
 
 Session tokens issued before sign-out may still work. So you should check on each request whether the session is still signed in, so sign-out takes effect right away. If you do not, you should keep session tokens much shorter, such as a few minutes ([spec 4.9](https://personalagentprotocol.org/docs/spec#sign-out)).
 
@@ -156,13 +156,15 @@ Content-Type: application/json
 }
 ```
 
-Every answer has a `status` ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)):
+Every answer has a `status`, and comes with HTTP 200 ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)):
 
 - `complete`: signed in. The answer has the same fields as the sign-in response above.
 - `code_required`: you sent the person a one-time code. The answer has a `sign_in_id`, a `code` object whose `sent_to` says where the code went, and `expires_at`. The assistant then posts only `{ "code": "…" }` to the endpoint address followed by `/` and the `sign_in_id`, such as `https://auth.example.com/poppy/sign-in/sgn_3Hq8`, with a session token for the same session.
 - `failed`: sign-in did not succeed, for example a wrong password, or too many wrong codes. A wrong code answers `code_required` again until your attempt limit.
 - `expired`: the sign-in took longer than `expires_at`.
 
-Only the session that started a sign-in can finish it ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)). The guides add: return the same `failed` answer for an unknown account and a wrong password, never store raw credentials or codes, and tell the person, for example by email, when an assistant signs in ([guides: mediated sign-in](https://personalagentprotocol.org/docs/guides#company-mediated)).
+Once a sign-in is `failed` or `expired`, a code sent to it gets the same status again. Problems with the request itself are errors with a JSON body: `invalid_scope` (400), `account_mismatch` (400), and `sign_in_not_found` (404) for a `sign_in_id` that is unknown or that another session started ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)).
+
+Only the session that started a sign-in can finish it ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)). The guides add: return the same `failed` answer for an unknown account and a wrong password, ask for a one-time code on an assistant's first mediated sign-in after the person disconnected it, never store raw credentials or codes, and tell the person, for example by email, when an assistant signs in ([guides: mediated sign-in](https://personalagentprotocol.org/docs/guides#company-mediated)).
 
 </details>
