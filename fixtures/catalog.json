@@ -127,7 +127,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Every URL field the spec defines, and every string in the file that carries a URL scheme, is an absolute https URL",
+      "pass_when": "Every URL field the spec defines, and every string in the file that carries a URL scheme, is an absolute https URL; for a file declaring 0.2, a feedback block without an endpoint fails too",
       "replaces": null
     },
     {
@@ -165,7 +165,7 @@
         "target": "the issuer's RFC 8414 metadata URL",
         "condition": "when the file names an issuer"
       },
-      "pass_when": "The issuer's RFC 8414 metadata (/.well-known/oauth-authorization-server for auth.issuer, following redirects only within the issuer's registrable domain) answers 200 with a JSON object",
+      "pass_when": "The issuer's RFC 8414 metadata (/.well-known/oauth-authorization-server for auth.issuer, following redirects only within the issuer's registrable domain) answers 200 with a JSON object. For a file declaring 0.2, an issuer whose host resolves to a loopback, private, link-local or other non-public address fails (spec 3), since no agent may connect to it",
       "replaces": null
     },
     {
@@ -451,7 +451,7 @@
         "target": "each other domain in poppy_domains: /.well-known/poppy.json",
         "condition": "when the issuer binding holds and the issuer lists other domains, at most 3"
       },
-      "pass_when": "Ora consistency check, not a spec requirement: each other domain in the issuer's poppy_domains (the first 3) serves a poppy.json naming the same issuer",
+      "pass_when": "Ora consistency check, not a spec requirement: each other domain in the issuer's poppy_domains (the first 3) serves a poppy.json naming the same issuer; for a file declaring 0.2 a www. host counts as its own domain",
       "replaces": null
     },
     {
