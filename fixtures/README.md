@@ -35,7 +35,7 @@ These names are made up; Ora never scanned them. `example.com` in `summary-not-s
 | `summary-unreachable.json` | summary for `unreachable.example.com` | Verdict `unreachable`: `poppy.json` never answered, so every Tier 0 and Tier 1 row is `not_tested`, reason `timeout`. |
 | `summary-owner-opt-out.json` | summary for `opt-out.example.com` | Verdict `working`; the owner turned active probes off, so T1-01 and T1-03 are `not_tested`, reason `owner_opt_out`. |
 | `sites.json` | `GET /api/pap/v1/sites` | The sites list at capture time: one site. Test domains are never listed. |
-| `catalog.json` | `GET /pap/catalog.json` | The full check catalog: 103 rows, with `spec_version`, `draft`, `tier1_policy` and a `pass_when` on every row. |
+| `catalog.json` | `GET /pap/catalog.json` | The full check catalog: 104 rows, with `spec_version`, `draft`, `tier1_policy` and a `pass_when` on every row. |
 | `scan-in-progress.sse` | `GET /api/scan/stream?domain=example.org&activeProbes=1` | The first 131 frames of a live scan, up to the tenth `check_complete`. The stream had 279 frames and ended with `scan_complete`. |
 | `errors/not-scanned.json` | summary for a domain Ora has not scanned | 404 |
 | `errors/invalid-domain.json` | summary with `domain=not_a_domain` (also a missing or empty `domain`) | 400 |

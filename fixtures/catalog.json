@@ -644,18 +644,33 @@
       "replaces": null
     },
     {
-      "id": "ADV-REDIRECT",
+      "id": "T1-14",
       "tier": 1,
       "level": "1",
-      "severity": "Adv",
-      "title": "Endpoint answers without a redirect",
+      "severity": "P1",
+      "title": "Protocol endpoints answer without a redirect",
       "spec_ref": "§3",
       "spec_url": "https://personalagentprotocol.org/docs/spec#discovery",
       "profile": "pap-0.2@2026-10-19",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Every probed endpoint answers without a redirect: an agent sends no token, DPoP proof, assertion or credentials to the URL a protocol endpoint redirects to",
+      "pass_when": "Draft 0.2: every probed endpoint (token, conversation, MCP, operations, feedback; never the browser join, whose success is a 303) answers without a redirect, since an agent sends no token, DPoP proof, assertion or credentials to the URL a protocol endpoint redirects to. N/A for a file declaring 0.1, which ADV-REDIRECT grades",
+      "replaces": null
+    },
+    {
+      "id": "ADV-REDIRECT",
+      "tier": 1,
+      "level": "1",
+      "severity": "Adv",
+      "title": "Endpoint answers without a redirect",
+      "spec_ref": "guides",
+      "spec_url": "https://personalagentprotocol.org/docs/guides",
+      "profile": "pap-0.2@2026-10-19",
+      "implemented": true,
+      "provisional": false,
+      "request": null,
+      "pass_when": "For a file declaring 0.1: every probed endpoint answers without a redirect, as the 0.1 guides recommend (each hop would need a fresh DPoP proof). N/A for a 0.2 file, which T1-14 grades",
       "replaces": null
     },
     {
