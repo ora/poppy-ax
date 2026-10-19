@@ -392,7 +392,7 @@
       "level": "0",
       "severity": "P1",
       "title": "MCP resource metadata",
-      "spec_ref": "§6",
+      "spec_ref": "§6, §4.3",
       "spec_url": "https://personalagentprotocol.org/docs/spec#apis",
       "profile": "pap-0.2@2026-10-19",
       "implemented": true,
