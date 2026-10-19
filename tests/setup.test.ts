@@ -81,10 +81,20 @@ describe("content/setup/index.json", () => {
     expect(groups[0]).toBe("today");
   });
 
+  it("lists what a site owner needs before level 1, in plain words", () => {
+    const { needs } = setupContent.page;
+    expect(needs.heading).toBe("What you'll need");
+    expect(needs.items.length).toBeGreaterThanOrEqual(3);
+    expect(needs.items.join(" ")).toContain("poppy.json");
+    // OAuth is explained where the page first names it.
+    expect(needs.items.find((item) => item.includes("OAuth"))).toContain("the standard behind");
+    for (const item of needs.items) expect(item).not.toContain(String.fromCharCode(0x2014));
+  });
+
   it("ends with the one hosted note", () => {
     expect(setupContent.page.hosted.href).toBe("https://ora.ai/pap/managed");
     expect(setupContent.page.hosted.before + setupContent.page.hosted.linkText).toBe(
-      "Rather not run an issuer yourself? Ora can host Poppy on your domain, with your login, in front of your existing APIs.",
+      "Rather not run a sign-in server yourself? Ora can host Poppy on your domain, with your login, in front of your existing APIs.",
     );
   });
 });

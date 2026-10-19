@@ -34,12 +34,12 @@ The `client_id` inside must equal the address you fetched it from. The `jwks_uri
 
 ### The assistant starts a session
 
-To start a session, the assistant calls your `token_endpoint` with the JWT bearer grant (RFC 7523). A JWT is a small piece of JSON with a signature. The request carries two of them, both signed with a key from the assistant's `jwks_uri` ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity), [spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)):
+To start a session, the assistant calls your `token_endpoint`, the address where your sign-in server hands out tokens, with the JWT bearer grant (RFC 7523). A JWT is a small piece of JSON with a signature. The request carries two of them, both signed with a key from the assistant's `jwks_uri` ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity), [spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)):
 
 - a client assertion, which proves the request comes from the assistant (`private_key_jwt`);
 - a session assertion, which names the assistant in `iss` and the person in `sub`.
 
-Like every token request, it also carries a DPoP proof, explained below. Only a request for a Bearer token for an MCP server may leave the proof out ([spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)).
+Like every token request, it also carries a DPoP proof, a fresh signature from a key only the assistant holds, explained below. Only a request for a Bearer token for an MCP server may leave the proof out ([spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)).
 
 <CodeLabel>Session assertion, the JWT's claims</CodeLabel>
 

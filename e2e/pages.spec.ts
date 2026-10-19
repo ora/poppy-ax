@@ -287,13 +287,22 @@ test.describe("keyboard", () => {
 test.describe("setup and sites", () => {
   test("/setup has four levels, then the managed box", async ({ page }) => {
     await page.goto("/setup");
+    // What you'll need comes first, before level 1.
+    const needs = page.getByRole("heading", { name: "What you'll need" });
+    await expect(needs).toBeVisible();
+    const needsFirst = await page.evaluate(() => {
+      const list = document.querySelector(".needs");
+      const first = document.querySelector('section.level[data-level="1"]');
+      return list && first ? list.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING : 0;
+    });
+    expect(needsFirst).toBeTruthy();
     const levels = page.locator("section.level");
     await expect(levels).toHaveCount(4);
     for (const n of [1, 2, 3, 4]) {
       await expect(page.locator(`section.level[data-level="${n}"] h2`)).toBeVisible();
     }
     const box = page.locator(".hosted-note");
-    await expect(box).toContainText("Rather not run an issuer yourself?");
+    await expect(box).toContainText("Rather not run a sign-in server yourself?");
     await expect(box.getByRole("link")).toHaveAttribute("href", "https://ora.ai/pap/managed");
     // The box comes after level 4.
     const order = await page.evaluate(() => {

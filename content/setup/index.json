@@ -2,6 +2,15 @@
   "page": {
     "navLabel": "Levels",
     "levelPrefix": "Level",
+    "needs": {
+      "heading": "What you'll need",
+      "items": [
+        "Control of your domain, so you can publish one small public file, poppy.json, on it over HTTPS.",
+        "A sign-in server that speaks OAuth, the standard behind most \"Sign in with...\" screens. Level 1 names it, and levels 2 and 3 build on it.",
+        "For level 3, sign-in and consent pages on your own site, where customers approve what an assistant may do.",
+        "Developer time that grows with each level: about a day for level 1, then days to weeks for each level after it."
+      ]
+    },
     "sizeLabel": "Rough size",
     "checksLabel": "Checks it turns green",
     "checksSummary": {
@@ -18,7 +27,7 @@
       "signedIn": "Signed-in checks, not run by the checker yet"
     },
     "hosted": {
-      "before": "Rather not run an issuer yourself? ",
+      "before": "Rather not run a sign-in server yourself? ",
       "linkText": "Ora can host Poppy on your domain, with your login, in front of your existing APIs.",
       "href": "https://ora.ai/pap/managed",
       "label": "Hosted option"
@@ -70,7 +79,7 @@
       "id": "level-2",
       "number": 2,
       "title": "Let agents in, signed out",
-      "summary": "Assistants prove who they are and get session tokens that expire. Except at MCP servers that cannot check proofs, each token works only together with a key the assistant holds.",
+      "summary": "Assistants prove who they are and get session tokens, short-lived keys to your APIs. Except at MCP servers (a common way to plug tools into AI assistants) that cannot check proofs yet, each token works only together with a key the assistant holds.",
       "size": "Medium. Changes to your token endpoint, and a proof check in front of every API. Days to weeks, depending on whether your OAuth server can bind tokens to keys.",
       "rows": [
         "T1-01",

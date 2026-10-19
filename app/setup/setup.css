@@ -42,3 +42,31 @@
   margin-block-start: 0;
   border-block-start: 0;
 }
+
+/* What you'll need: a short checklist between the intro and the levels. */
+.setup .needs {
+  max-width: var(--measure);
+  margin-block: var(--space-8) var(--space-12);
+  padding: var(--space-6);
+  border: 1px solid var(--color-rule);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+}
+
+.setup .needs__title {
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.setup .needs__list {
+  margin-block-start: var(--space-3);
+  padding-inline-start: var(--space-6);
+}
+
+.setup .needs__list li + li {
+  margin-block-start: var(--space-2);
+}
+
+.setup .needs__list li::marker {
+  color: var(--color-poppy);
+}
