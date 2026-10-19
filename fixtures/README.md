@@ -4,7 +4,7 @@ Real responses from Ora's public API, recorded so poppy.ax can run with `ORA_FIX
 
 ## How they were captured
 
-On 10 October 2026 (UTC) we ran a local Ora instance and called its public API with a partner key, exactly as poppy.ax does in production. On 11 October, after Ora changed its catalog, sites list and notes, we captured `catalog.json`, `sites.json`, `summary-not-set-up.json` and `summary-demo-receiver.json` again from the stored scans (the demo receiver's had been rescanned at 23:51 UTC).
+On 10 October 2026 (UTC) we ran a local Ora instance and called its public API with a partner key, exactly as poppy.ax does in production. On 11 October, after Ora changed its catalog, sites list and notes, we captured `catalog.json`, `sites.json`, `summary-not-set-up.json` and `summary-demo-receiver.json` again from the stored scans (the demo receiver's had been rescanned at 23:51 UTC). On 19 October, after Ora moved its checks to Personal Agent Protocol Draft 0.2, we captured `catalog.json` again from a local Ora (`GET /pap/catalog.json`); the summaries still carry the profile of the scans they were recorded from.
 
 - `example.com`, `poppy-receiver.roundtrip.workers.dev` and `example.org` were scanned live through the scan stream.
 - The four test sites (failing P0, timeout, unreachable, owner opt-out) cannot be scanned live, so Ora stored scans for them that it had built from recorded responses. We then read their summaries through the same public API.
@@ -35,7 +35,7 @@ These names are made up; Ora never scanned them. `example.com` in `summary-not-s
 | `summary-unreachable.json` | summary for `unreachable.example.com` | Verdict `unreachable`: `poppy.json` never answered, so every Tier 0 and Tier 1 row is `not_tested`, reason `timeout`. |
 | `summary-owner-opt-out.json` | summary for `opt-out.example.com` | Verdict `working`; the owner turned active probes off, so T1-01 and T1-03 are `not_tested`, reason `owner_opt_out`. |
 | `sites.json` | `GET /api/pap/v1/sites` | The sites list at capture time: one site. Test domains are never listed. |
-| `catalog.json` | `GET /pap/catalog.json` | The full check catalog: 100 rows, with `spec_version`, `draft`, `tier1_policy` and a `pass_when` on every row. |
+| `catalog.json` | `GET /pap/catalog.json` | The full check catalog: 103 rows, with `spec_version`, `draft`, `tier1_policy` and a `pass_when` on every row. |
 | `scan-in-progress.sse` | `GET /api/scan/stream?domain=example.org&activeProbes=1` | The first 131 frames of a live scan, up to the tenth `check_complete`. The stream had 279 frames and ended with `scan_complete`. |
 | `errors/not-scanned.json` | summary for a domain Ora has not scanned | 404 |
 | `errors/invalid-domain.json` | summary with `domain=not_a_domain` (also a missing or empty `domain`) | 400 |
