@@ -87,7 +87,7 @@ describe("resolveAuditParam", () => {
 describe("buildResultView with the six fixtures", () => {
   it("failing P0: the problem verdict, the T0-11 row to fix, no passing line", () => {
     const view = buildResultView(failing, fixtureCatalog, LATER);
-    expect(view.headline.text).toBe("Set up, with problems");
+    expect(view.headline.text).toBe("Partly ready");
     expect(view.fixFirst.map((row) => row.id)).toEqual(["T0-11"]);
     const [row] = view.fixFirst;
     expect(row?.setupStep).toMatch(/^\/setup#/);
@@ -122,7 +122,7 @@ describe("buildResultView with the six fixtures", () => {
   it("timeout: 'No problems found' lists the unmeasured P0 and P1 rows with their reason (R31)", () => {
     const view = buildResultView(timeout, fixtureCatalog, LATER);
     expect(view.headline.kind).toBe("no_problems_found");
-    expect(view.headline.text).toBe("No problems found");
+    expect(view.headline.text).toBe("Ready");
     expect(view.passingLine).toBe(false);
     expect(view.fixFirst).toEqual([]);
     expect(view.unmeasured.map((row) => row.id)).toEqual(expect.arrayContaining(["T0-09", "T0-10", "T0-11", "T0-12"]));
@@ -142,7 +142,7 @@ describe("buildResultView with the six fixtures", () => {
 
   it("unreachable: says so honestly and points at the file, with nothing to fix", () => {
     const view = buildResultView(unreachable, fixtureCatalog, LATER);
-    expect(view.headline.text).toBe("Couldn't reach it");
+    expect(view.headline.text).toBe("Couldn't check");
     expect(view.explain).toBe(auditContent.verdict.explain.unreachable);
     expect(view.fixFirst).toEqual([]);
     expect(view.fixFirstEmpty).toContain("unreachable.example.com/.well-known/poppy.json");
@@ -153,7 +153,7 @@ describe("buildResultView with the six fixtures", () => {
   it("not checked: Ora couldn't check it, with no verdict, nothing blamed on the site, and a way to check again", () => {
     const view = buildResultView(notChecked, fixtureCatalog, LATER);
     expect(view.headline.kind).toBe("not_checked");
-    expect(view.headline.text).toBe("Ora couldn't check it");
+    expect(view.headline.text).toBe("Couldn't check");
     expect(view.isVerdict).toBe(false);
     expect(view.explain).toBe(auditContent.verdict.explain.not_checked);
     expect(view.explain).toContain("Ora's own check failed");
@@ -191,7 +191,7 @@ describe("buildResultView with the six fixtures", () => {
 
   it("demo receiver: 'Working' gets the one passing line and nothing else", () => {
     const view = buildResultView(receiver, fixtureCatalog, LATER);
-    expect(view.headline.text).toBe("Working (Tier 0 and 1 pass)");
+    expect(view.headline.text).toBe("Ready");
     expect(view.passingLine).toBe(true);
     expect(view.fixFirst).toEqual([]);
     expect(view.unmeasured).toEqual([]);
@@ -200,9 +200,11 @@ describe("buildResultView with the six fixtures", () => {
 
   it("not set up: an invitation into /setup, not a failure", () => {
     const view = buildResultView(notSetUp, fixtureCatalog, LATER);
-    expect(view.headline.text).toBe("Not set up");
+    expect(view.headline.text).toBe("Not yet");
+    expect(view.headline.state).toBe("not_yet");
     expect(view.invitation).toBe(true);
-    expect(view.explain).toBe("");
+    // Not a failure: the line under it says this is the normal case.
+    expect(view.explain).toContain("That's normal");
     expect(view.passingLine).toBe(false);
   });
 
@@ -301,19 +303,19 @@ describe("countText", () => {
 describe("auditMeta", () => {
   it("titles a result with its domain and headline, indexable", () => {
     expect(auditMeta(failing.domain, { kind: "ok", summary: failing }, fixtureCatalog)).toEqual({
-      title: "failing-p0.example.com: Set up, with problems",
+      title: "failing-p0.example.com: partly ready for Poppy",
       description: expect.stringContaining("failing-p0.example.com"),
       noindex: false,
     });
     expect(auditMeta(timeout.domain, { kind: "ok", summary: timeout }, fixtureCatalog).title).toBe(
-      "timeout.example.com: No problems found",
+      "timeout.example.com: ready for Poppy",
     );
   });
 
   it("keeps a not_checked result out of search, and never blames the site in its description", () => {
     const meta = auditMeta(notChecked.domain, { kind: "ok", summary: notChecked }, fixtureCatalog);
     expect(meta).toEqual({
-      title: "not-checked.example.com: Ora couldn't check it",
+      title: "not-checked.example.com: couldn't check",
       description: "Ora's own check failed when it looked at not-checked.example.com, so there is no result yet.",
       noindex: true,
     });
@@ -335,11 +337,11 @@ describe("imageCard", () => {
     expect(card).toEqual({
       kind: "result",
       domain: "failing-p0.example.com",
-      headline: "Set up, with problems",
+      headline: "Partly ready",
       accent: "poppy",
       tiers: [
-        { label: "Tier 0 checks", text: "19 passed, 1 failed, 10 didn't apply" },
-        { label: "Tier 1 checks", text: "7 not measured" },
+        { label: "Public file", text: "19 passed, 1 failed, 10 didn't apply" },
+        { label: "Safety checks", text: "7 not measured" },
       ],
       profile: "pap-0.1@2026-10-09",
     });

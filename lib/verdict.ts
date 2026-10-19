@@ -27,6 +27,23 @@ export interface UnmeasuredRow extends RowRef {
 export type HeadlineKind = Verdict | "no_problems_found" | "unknown";
 
 /**
+ * The four plain states a reader sees. Several kinds share one: both passing
+ * kinds read "Ready", and every result that says nothing about the site
+ * itself reads "Couldn't check". The kind stays for analytics and styling.
+ */
+export type HeadlineState = "ready" | "partly" | "not_yet" | "couldnt_check";
+
+export const HEADLINE_STATES: Readonly<Record<HeadlineKind, HeadlineState>> = {
+  working: "ready",
+  no_problems_found: "ready",
+  problems: "partly",
+  not_set_up: "not_yet",
+  unreachable: "couldnt_check",
+  not_checked: "couldnt_check",
+  unknown: "couldnt_check",
+};
+
+/**
  * The one line answer to "does it work for agents?". `unmeasured` is filled
  * only for "No problems found": the rows that kept it from being "Working".
  * `verdict` is null when the summary carried a verdict this site does not know.
@@ -34,6 +51,7 @@ export type HeadlineKind = Verdict | "no_problems_found" | "unknown";
 export interface Headline {
   verdict: Verdict | null;
   kind: HeadlineKind;
+  state: HeadlineState;
   text: string;
   unmeasured: UnmeasuredRow[];
 }
@@ -105,7 +123,7 @@ export function unmeasured(summary: Summary, catalog: Catalog): UnmeasuredRow[] 
 }
 
 /**
- * The verdict headline (Rulings R31 and R42). "Working" needs every P0 and P1
+ * The verdict headline (Rulings R31 and R42). "Working" ("Ready") needs every P0 and P1
  * check the checker runs today to have been measured; otherwise the page says
  * "No problems found" and lists what could not be measured. `not_checked`
  * (Ruling R70) says Ora's own check failed, never that the site did. A
@@ -113,7 +131,13 @@ export function unmeasured(summary: Summary, catalog: Catalog): UnmeasuredRow[] 
  */
 export function headline(summary: Summary, catalog: Catalog, content: VerdictContent = verdictContent): Headline {
   const { headlines } = content;
-  const plain = (kind: Verdict): Headline => ({ verdict: kind, kind, text: headlines[kind], unmeasured: [] });
+  const plain = (kind: Verdict): Headline => ({
+    verdict: kind,
+    kind,
+    state: HEADLINE_STATES[kind],
+    text: headlines[kind],
+    unmeasured: [],
+  });
   switch (summary.verdict) {
     case "not_set_up":
     case "unreachable":
@@ -123,13 +147,19 @@ export function headline(summary: Summary, catalog: Catalog, content: VerdictCon
     case "working": {
       const missing = unmeasured(summary, catalog);
       if (missing.length === 0) return plain("working");
-      return { verdict: "working", kind: "no_problems_found", text: headlines.no_problems_found, unmeasured: missing };
+      return {
+        verdict: "working",
+        kind: "no_problems_found",
+        state: HEADLINE_STATES.no_problems_found,
+        text: headlines.no_problems_found,
+        unmeasured: missing,
+      };
     }
     default: {
       // The API may add a verdict before this site learns it.
       const unknown: never = summary.verdict;
       void unknown;
-      return { verdict: null, kind: "unknown", text: headlines.unknown, unmeasured: [] };
+      return { verdict: null, kind: "unknown", state: HEADLINE_STATES.unknown, text: headlines.unknown, unmeasured: [] };
     }
   }
 }
