@@ -130,3 +130,20 @@ export function HostedNote() {
     </aside>
   );
 }
+
+/** What a site owner needs before level 1, so the size of the job is clear up front. */
+export function NeedsList() {
+  const { needs } = setupContent.page;
+  return (
+    <section className="needs" aria-labelledby="needs-title">
+      <h2 id="needs-title" className="needs__title">
+        {needs.heading}
+      </h2>
+      <ul className="needs__list">
+        {needs.items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}

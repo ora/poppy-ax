@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { MDXContent } from "mdx/types";
 import { LevelViewed } from "@/components/analytics/level-viewed";
 import { PageIntro } from "@/components/page-intro";
-import { HostedNote, LevelNav, LevelSection } from "@/components/setup-level";
+import { HostedNote, LevelNav, LevelSection, NeedsList } from "@/components/setup-level";
 import Level1 from "@/content/setup/level-1.mdx";
 import Level2 from "@/content/setup/level-2.mdx";
 import Level3 from "@/content/setup/level-3.mdx";
@@ -29,6 +29,7 @@ export default function SetupPage() {
     <div className="setup">
       <LevelViewed />
       <PageIntro heading={page.heading} lede={page.lede} />
+      <NeedsList />
       <div className="setup__layout">
         <LevelNav levels={levels} />
         <div className="setup__levels">
