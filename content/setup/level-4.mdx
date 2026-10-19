@@ -46,7 +46,7 @@ Conversations are JSON over HTTPS, and every request carries a session token wit
 
 - `POST` to the endpoint starts a conversation with its first message ([spec 7.3](https://personalagentprotocol.org/docs/spec#sending-messages)).
 - `POST` to `/messages` under a conversation sends another message. The assistant chooses each message `id`. A retry with the same `id` and content gets the original answer, and the same `id` with different content gets `message_id_conflict` ([spec 7.3](https://personalagentprotocol.org/docs/spec#sending-messages)).
-- `GET` to `/events` reads messages and changes in order. The assistant passes a `cursor`, the id of the last event it handled, and can wait up to `wait` seconds for something new. Every read includes `cursor`, `has_more`, `status` and `responder` ([spec 7.5](https://personalagentprotocol.org/docs/spec#reading-events)). Streaming the events is optional ([spec 7.6](https://personalagentprotocol.org/docs/spec#streaming)).
+- `GET` to `/events` reads messages and changes in order. The assistant passes a `cursor`, the id of the last event it handled, and can wait up to `wait` seconds for something new. Every read includes `conversation_id`, `events` (empty when there are none), `cursor`, `has_more`, `status` and `responder` ([spec 7.5](https://personalagentprotocol.org/docs/spec#reading-events)). Streaming the events is optional ([spec 7.6](https://personalagentprotocol.org/docs/spec#streaming)).
 - `POST` to `/handoff` asks for a person at your company ([spec 7.9](https://personalagentprotocol.org/docs/spec#handoff)).
 - `POST` to `/close` closes the conversation ([spec 7.12](https://personalagentprotocol.org/docs/spec#closing)).
 
@@ -69,7 +69,7 @@ To offer it, list the extension in `poppy.json` with your operations endpoint, w
 }
 ```
 
-Return operations only to assistants whose metadata lists the extension. For other assistants, perform the action as usual or refuse with `extension_required` ([operations 2](https://personalagentprotocol.org/docs/extensions/operations#support)).
+Return operations only to assistants whose metadata lists the extension. For other assistants, perform the action as usual or refuse with `extension_required`. An MCP server cannot refuse a single tool call that way, so an MCP tool that needs the extension returns an ordinary tool error instead ([operations 2](https://personalagentprotocol.org/docs/extensions/operations#support)).
 
 The flow has four steps ([operations 1](https://personalagentprotocol.org/docs/extensions/operations#intro)):
 
@@ -114,7 +114,7 @@ The fields ([operations 3](https://personalagentprotocol.org/docs/extensions/ope
 
 The six states: `proposed` (waiting to be confirmed), `in_progress` (confirmed, being performed, or you are finding out whether it took effect), and four final ones, `succeeded`, `failed`, `cancelled` and `expired`. A final operation never changes state again ([operations 3](https://personalagentprotocol.org/docs/extensions/operations#operations)).
 
-Once issued, a revision never changes. New terms get a new revision with the next number, and only the latest revision can be confirmed ([operations 3.1](https://personalagentprotocol.org/docs/extensions/operations#revisions)). An operation belongs to the session it was proposed in. If that session is signed in, it also belongs to the account, so any session of the same assistant and person signed in to that account can use it. One proposed while signed out can be used only in that session. Answer `operation_not_found` to anyone else ([operations 3.2](https://personalagentprotocol.org/docs/extensions/operations#ownership)).
+Once issued, a revision never changes. New terms get a new revision with the next number, and only the latest revision can be confirmed ([operations 3.1](https://personalagentprotocol.org/docs/extensions/operations#revisions)). An operation proposed while signed out can be used only in that session. One proposed while signed in belongs to the account instead: any session of the same assistant and person can use it while that session is signed in to the same account. Check this on each request, so after a session signs out, the original one included, it gets `sign_in_required`. Answer `operation_not_found` to anyone else ([operations 3.2](https://personalagentprotocol.org/docs/extensions/operations#ownership)).
 
 </details>
 

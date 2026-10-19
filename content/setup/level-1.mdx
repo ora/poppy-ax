@@ -1,6 +1,6 @@
 ### Publish one public file
 
-A person's AI assistant (the spec calls it a Personal Agent) starts at one public file on your domain, at `https://example.com/.well-known/poppy.json`. You must serve it over HTTPS. The address may redirect, for example to a provider that hosts the file for you, but every redirect must go to an HTTPS address ([spec 3](https://personalagentprotocol.org/docs/spec#discovery)).
+A person's AI assistant (the spec calls it a Personal Agent) starts at one public file on your domain, at `https://example.com/.well-known/poppy.json`. You must serve it over HTTPS. The address may redirect, for example from `www.example.com` to `example.com`, but every redirect must go to an HTTPS address. The file speaks for the host that finally serves it, so if a provider runs Poppy for you, have it serve the file on your own domain. Every other address the protocol uses, in this file, in your OAuth metadata and in your answers, must be HTTPS too ([spec 3](https://personalagentprotocol.org/docs/spec#discovery)).
 
 The smallest useful file names your company and your website. This one follows the shape of the spec's example, cut down to what level 1 needs ([spec 3](https://personalagentprotocol.org/docs/spec#discovery), [spec 3.1](https://personalagentprotocol.org/docs/spec#fields)):
 
@@ -8,7 +8,7 @@ The smallest useful file names your company and your website. This one follows t
 
 ```json
 {
-  "protocol_version": "0.1",
+  "protocol_version": "0.2",
   "organization": {
     "name": "Example Company",
     "domain": "example.com"
@@ -23,10 +23,11 @@ With only `web`, assistants browse your site as ordinary signed-out visitors ([s
 
 All of these come from the spec's field list ([spec 3.1](https://personalagentprotocol.org/docs/spec#fields)).
 
-- `protocol_version` is the version of the protocol the file follows. For this draft it is `"0.1"`.
-- `organization` holds your display `name` and your `domain`. The `domain` must match the host the assistant asked for, ignoring a leading `www.`. If the address redirected, the host that finally served the file does not count.
+- `protocol_version` is the version of the protocol the file follows, as major.minor. For this draft it is `"0.2"`. Before 1.0 each version can break the one before, so an assistant does not use a file whose version it does not support.
+- `organization` holds your display `name` and your `domain`. The `domain` must be the host that serves the file, after any redirects. Hosts are compared ignoring case and nothing else, so `www.example.com` and `example.com` are different hosts. A file redirected to a provider's domain speaks for the provider, not for you.
 - `agent`, `apis` and `web` say what assistants can use, and you need at least one of them. `web` is your website. `apis` lists your APIs, which level 2 covers. `agent` lists ways to talk with your own AI agent, which level 4 covers.
-- `auth` names your sign-in server. You need it as soon as the file lists `agent`, `apis` or `web.browser_session_endpoint`. A company without `auth` can only be browsed like an ordinary website.
+- `auth` names your sign-in server. You need it as soon as the file lists `agent`, `apis`, `feedback` or `web.browser_session_endpoint`. A company without `auth` can only be browsed like an ordinary website.
+- `feedback` is optional. Its `endpoint` is an HTTPS address where assistants report a person's task that your company offers no way to do through the protocol ([spec 8](https://personalagentprotocol.org/docs/spec#feedback)).
 - `extensions` is optional. It lists extra features you support, such as `operations` (level 4).
 
 <details>
@@ -61,7 +62,7 @@ The server must publish a second public file, its OAuth metadata (RFC 8414). In 
 }
 ```
 
-The two files point at each other. Before an assistant uses your `poppy.json`, it fetches this metadata and checks two things: its `issuer` exactly matches `auth.issuer`, and `poppy_domains` includes your `organization.domain`. So `poppy_domains` must list every domain whose `poppy.json` names this issuer. Without that check, any domain could claim your sign-in server and receive its tokens ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)).
+The two files point at each other. Before an assistant uses your `poppy.json`, it fetches this metadata and checks two things: its `issuer` exactly matches `auth.issuer`, and `poppy_domains` includes your `organization.domain`, ignoring case. So `poppy_domains` must list every domain whose `poppy.json` names this issuer. Without that check, any domain could claim your sign-in server and receive its tokens ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)).
 
 The assistant takes its addresses from this metadata ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)):
 
@@ -69,7 +70,7 @@ The assistant takes its addresses from this metadata ([spec 3.2](https://persona
 - `revocation_endpoint` is where an assistant signs out. Required. Level 3 uses it.
 - `authorization_endpoint` and `device_authorization_endpoint` start the two kinds of sign-in in level 3. You need each one only if you offer that kind.
 
-If you run a domain for each country, several domains may name the same issuer. They then count as one company: the same user IDs, sessions and account tokens apply across all of them ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)). A session is one person's activity at your company through one assistant; level 2 explains sessions and user IDs, and level 3 account tokens.
+If you run a domain for each country, several domains may name the same issuer. They then count as one company: the same user IDs, sessions and account tokens apply across all of them, and their files must have the same `auth`. The other way round, an issuer stands for exactly one company, so a provider that hosts several companies gives each its own issuer ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)). A session is one person's activity at your company through one assistant; level 2 explains sessions and user IDs, and level 3 account tokens.
 
 Assistants should cache both files according to their HTTP caching headers ([spec 3](https://personalagentprotocol.org/docs/spec#discovery), [spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)), so send caching headers that match how often the files change.
 

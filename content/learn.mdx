@@ -24,7 +24,7 @@ When a task needs the customer's account, the customer signs in, usually on the 
 
 ### One exception, for tool servers
 
-Some assistants reach a company's tools through MCP (Model Context Protocol), a common way to plug tools into AI assistants. An MCP server can't check the assistant's secret. So a key made for one MCP server works at that one server only ([spec](https://personalagentprotocol.org/docs/spec#sending-tokens)).
+Some assistants reach a company's tools through MCP (Model Context Protocol), a common way to plug tools into AI assistants. Many MCP servers can't check the assistant's secret yet. For those, a key made for one MCP server works at that one server only. New MCP servers should check the secret, like the company's other tools ([spec](https://personalagentprotocol.org/docs/spec#sending-tokens)).
 
 ## What changes
 
@@ -34,11 +34,11 @@ Some assistants reach a company's tools through MCP (Model Context Protocol), a 
 
 ## Where it stands
 
-- Meta and Sierra announced Poppy on October 6, 2026 ([Sierra](https://sierra.ai/blog/introducing-personal-agent-protocol)). They published Draft 0.1 of the spec on October 9 ([Sierra](https://sierra.ai/blog/poppy)).
+- Meta and Sierra announced Poppy on October 6, 2026 ([Sierra](https://sierra.ai/blog/introducing-personal-agent-protocol)). They published Draft 0.1 of the spec on October 9 ([Sierra](https://sierra.ai/blog/poppy)). Draft 0.2 is in progress, and this guide follows it ([changelog](https://personalagentprotocol.org/docs/changelog)).
 - It is a draft. Any part of it can still change, including in ways that break what came before ([spec](https://personalagentprotocol.org/docs/spec#intro)).
 - They are building it with partners including Shopify, Stripe and Walmart. Another 35 design partners, such as OpenAI, Visa and PayPal, give feedback on the design ([Sierra](https://sierra.ai/blog/poppy)).
 - A reference implementation, working code for developers to start from, is promised but not yet published ([Sierra](https://sierra.ai/blog/poppy)).
-- Some topics are still open, including payments, push notifications and attachments ([open topics](https://personalagentprotocol.org/docs/open-topics)).
+- Some topics are still open, including payments, push notifications and attachments ([open topics](https://personalagentprotocol.org/docs/path-to-1#open-topics)).
 - Almost no company supports it yet. [The sites list](/sites) shows every site Ora has seen publishing the file.
 
 ## Words to know
@@ -54,12 +54,12 @@ Some assistants reach a company's tools through MCP (Model Context Protocol), a 
 
 - **MCP and OpenAPI**: ways for an assistant to call a company's tools. Poppy lists them in `poppy.json`, but it doesn't replace them ([spec](https://personalagentprotocol.org/docs/spec#apis)). A company that only runs an MCP server still needs the public file and the sign-in steps to support Poppy.
 - **Shopping protocols, such as UCP**: these cover shopping and checkout. Sierra calls Poppy complementary: it covers who the assistant is and what it may do, for any kind of task ([Sierra](https://sierra.ai/blog/poppy)).
-- **Payment protocols, such as AP2**: these cover paying. Poppy leaves payments open for now ([open topics](https://personalagentprotocol.org/docs/open-topics)).
+- **Payment protocols, such as AP2**: these cover paying. Poppy leaves payments open for now ([open topics](https://personalagentprotocol.org/docs/path-to-1#open-topics)).
 - **PACT**: a separate proposal from Decagon and Instinct, published the same day as Poppy. Decagon has said it is joining the Poppy working group. How the two fit together is not settled yet.
 - **AI Catalog**: a list of the tools a company offers to agents, in a file called `ai-catalog.json`. It doesn't cover sign-in, which is the part Poppy adds.
 
 ## For developers
 
-- [Read the official spec](https://personalagentprotocol.org/docs/spec), Draft 0.1.
-- [See the open topics](https://personalagentprotocol.org/docs/open-topics) the authors haven't settled yet.
+- [Read the official spec](https://personalagentprotocol.org/docs/spec), Draft 0.2, still in progress.
+- [See the open topics](https://personalagentprotocol.org/docs/path-to-1#open-topics) the authors haven't settled yet.
 - [Set it up on your site](/setup), one level at a time, from one public file to signed-in flows.

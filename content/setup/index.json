@@ -68,7 +68,7 @@
       "id": "level-2",
       "number": 2,
       "title": "Let agents in, signed out",
-      "summary": "Assistants prove who they are and get session tokens that expire. Outside MCP, each token works only together with a key the assistant holds.",
+      "summary": "Assistants prove who they are and get session tokens that expire. Except at MCP servers that cannot check proofs, each token works only together with a key the assistant holds.",
       "size": "Medium. Changes to your token endpoint, and a proof check in front of every API. Days to weeks, depending on whether your OAuth server can bind tokens to keys.",
       "rows": [
         "T1-01",
