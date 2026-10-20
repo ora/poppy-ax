@@ -91,8 +91,11 @@ jobs:
             --opened-out "$RUNNER_TEMP/opened.json" \
             --escalate-after 14 --escalate-label spec-drift-overdue --escalate-mention @liady
       - name: Ask Claude to fix each newly opened issue
+        if: ${{ !cancelled() }}
         continue-on-error: true
         run: |
+          # Only issues this run opened; none when the issues step never got that far.
+          [ -f "$RUNNER_TEMP/opened.json" ] || exit 0
           # Issue numbers come from the script, which only records digits.
           for n in $(jq -r '.[].number' "$RUNNER_TEMP/opened.json"); do
             gh workflow run spec-drift-fix.yml --repo "$GITHUB_REPOSITORY" -f issue="$n"
