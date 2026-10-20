@@ -91,6 +91,12 @@ We use Vercel Web Analytics with seven custom events, to learn whether the guide
 
 `domain` is the normalised company domain. `referrer_host` is the host the visitor came from, never a path or query, and empty for a direct visit. The package sends nothing unless the page is served by Vercel with Web Analytics on.
 
+## Staying on Ora's draft
+
+poppy.ax explains the draft Ora's checks grade, and the recorded catalog (`fixtures/catalog.json`) says which one in its `profile`. `tests/spec-version.test.ts` fails if the draft line, the home page status, the spec line on /learn or this README names a different draft or read date.
+
+Once a week, `.github/workflows/spec-drift-watch.yml` runs `scripts/spec-drift.mjs` (shared with ax.guide and Ora) to compare Ora's live catalog with the pin in `spec-watch.json`. When Ora has moved to a new draft, it opens an issue that lists what to update, and escalates it after 14 days. With an `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` secret, it also starts `.github/workflows/spec-drift-fix.yml`, where Claude records the catalog again, updates the guide and opens a pull request for review. A failed run opens its own issue.
+
 ## Licenses
 
 - Code: [MIT](LICENSE).

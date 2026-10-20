@@ -9,7 +9,7 @@ We wrote it from responses captured from a local Ora instance on 10 and 11 Octob
 - **Base URL:** `https://ora.ai`. In poppy.ax it comes from `ORA_BASE_URL`.
 - **Auth:** `Authorization: Bearer <ORA_SERVICE_TOKEN>`. The token is a partner key that Ora issues with PAP read access (`pap:read`). Send it from the server only. It must never reach a browser, a log line or the repo.
 - **Fixture mode:** with `ORA_FIXTURES=1`, poppy.ax reads `fixtures/` instead of calling Ora.
-- **Spec label:** the checks follow the PAP draft spec. Ora labels it "PAP Draft 0.1 (published 2026-10-09; may change)" on its reports. The catalog carries the same facts as `spec_version` and `draft`.
+- **Spec label:** the checks follow the PAP draft spec. Ora names the draft on its reports, for example "PAP Draft 0.2 (in progress, read 2026-10-19; may change)". The catalog carries the same facts as `profile` (`pap-0.2@2026-10-19`: the version and the day Ora read it), `spec_version` and `draft`. poppy.ax follows the same draft: see [Staying on Ora's draft](README.md#staying-on-oras-draft).
 
 | Endpoint | Auth | What it is for |
 | --- | --- | --- |
