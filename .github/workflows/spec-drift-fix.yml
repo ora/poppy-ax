@@ -14,7 +14,7 @@ name: spec drift fix
 #            (`spec-drift.mjs context`).
 #            It also records Ora's current catalog, checked to be JSON with
 #            a well-formed profile; verify writes it to fixtures/catalog.json.
-#   draft    only the Claude key: no GitHub token, no stored credentials, and
+#   draft    only the Claude key: no GitHub token, no git directory, and
 #            Claude Code limited to files inside the checkout (no shell, web,
 #            subagents, hooks or MCP). Its only output is the review.
 #   verify   no token, no Claude key. Moves the pins (`spec-drift.mjs
@@ -63,6 +63,7 @@ jobs:
       issues: read
     outputs:
       ready: ${{ steps.gate.outputs.ready }}
+      pack: ${{ steps.hash.outputs.pack }}
     steps:
       - name: Skip unless a Claude key is configured
         id: gate
@@ -101,13 +102,26 @@ jobs:
       - name: Record Ora's current catalog
         if: steps.gate.outputs.ready == 'true'
         run: |
-          curl -sf --max-time 30 -o "$RUNNER_TEMP/catalog.raw" https://ora.ai/pap/catalog.json
+          curl -sf --max-time 30 --max-filesize 2000000 -o "$RUNNER_TEMP/catalog.raw" https://ora.ai/pap/catalog.json
           node -e '
             const fs = require("fs");
             const doc = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            const live = JSON.parse(fs.readFileSync(process.argv[3], "utf8")).moved[0]?.live;
             if (!/^pap-\d+\.\d+@\d{4}-\d{2}-\d{2}$/.test(doc.profile ?? "")) throw new Error("the catalog has no well-formed profile");
+            if (doc.profile !== live) throw new Error("the catalog profile is not the one the watch saw");
+            // Every link the site will render from the fixture must be https, as the live client requires.
+            const walk = (v, key) => {
+              if (Array.isArray(v)) return v.forEach((x) => walk(x, key));
+              if (v && typeof v === "object") return Object.entries(v).forEach(([k, x]) => walk(x, k));
+              if (typeof v === "string" && /(url|href)$/i.test(key ?? "") && !/^https:\/\//.test(v)) throw new Error(key + " is not an https URL");
+            };
+            walk(doc);
             fs.writeFileSync(process.argv[2], JSON.stringify(doc, null, 2) + "\n");
-          ' "$RUNNER_TEMP/catalog.raw" "$RUNNER_TEMP/pack/catalog.json"
+          ' "$RUNNER_TEMP/catalog.raw" "$RUNNER_TEMP/pack/catalog.json" "$RUNNER_TEMP/pack/changes/entry.json"
+      - name: Record the pack's hash, so later jobs use exactly this pack
+        id: hash
+        if: steps.gate.outputs.ready == 'true'
+        run: echo "pack=$(cd "$RUNNER_TEMP/pack" && find . -type f | LC_ALL=C sort | xargs sha256sum | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         if: steps.gate.outputs.ready == 'true'
         with:
@@ -133,6 +147,8 @@ jobs:
         with:
           name: spec-drift-pack
           path: .spec-drift
+      - name: Leave the agent no git directory
+        run: rm -rf .git
       - name: Install Claude Code
         run: npm install --global --no-audit --no-fund "@anthropic-ai/claude-code@$CLAUDE_CODE_VERSION"
       - name: Review the change
@@ -187,13 +203,14 @@ jobs:
           retention-days: 7
 
   verify:
-    needs: draft
+    needs: [prepare, draft]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
     outputs:
       checks: ${{ steps.checks.outcome }}
+      changed: ${{ steps.pins.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -210,17 +227,28 @@ jobs:
         with:
           name: spec-drift-review
           path: ${{ runner.temp }}/review
+      - name: Check the pack is the one prepare wrote
+        env:
+          PACK: ${{ needs.prepare.outputs.pack }}
+        run: |
+          got=$(cd "$RUNNER_TEMP/pack" && find . -type f | LC_ALL=C sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+          [ -n "$PACK" ] && [ "$got" = "$PACK" ] || { echo "the pack artifact changed after prepare"; exit 1; }
       - name: Move the pins, and have git confirm that is all that changed
+        id: pins
         run: |
           node scripts/spec-drift.mjs apply-pins spec-watch.json --entry "$RUNNER_TEMP/pack/changes/entry.json"
           cp "$RUNNER_TEMP/pack/catalog.json" fixtures/catalog.json
           npm ci
           git add -u
+          # Nothing to move: only a newer revision, which a person adopts.
+          if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
           node scripts/spec-drift.mjs vet-staged \
             --allow '^(spec-watch\.json|fixtures/catalog\.json)$' \
               --json-pins '^spec-watch\.json$'
       - name: Run the checks
         id: checks
+        if: steps.pins.outputs.changed == 'true'
         continue-on-error: true
         run: |
           npm run typecheck && npm run lint && npm test
@@ -236,7 +264,7 @@ jobs:
           retention-days: 7
 
   propose:
-    needs: verify
+    needs: [prepare, verify]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -258,7 +286,27 @@ jobs:
         with:
           name: spec-drift-pack
           path: ${{ runner.temp }}/pack
+      - name: Check the pack is the one prepare wrote
+        env:
+          PACK: ${{ needs.prepare.outputs.pack }}
+        run: |
+          got=$(cd "$RUNNER_TEMP/pack" && find . -type f | LC_ALL=C sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+          [ -n "$PACK" ] && [ "$got" = "$PACK" ] || { echo "the pack artifact changed after prepare"; exit 1; }
+      - name: Post the review on the issue when no pin moved
+        if: needs.verify.outputs.changed != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp scripts/spec-drift.mjs "$RUNNER_TEMP/spec-drift.mjs"
+          node "$RUNNER_TEMP/spec-drift.mjs" pr-body "$RUNNER_TEMP/vetted/review.md" --out "$RUNNER_TEMP/review.md"
+          {
+            echo "No pin could move automatically: the spec has a newer dated revision, which a person adopts (move the snapshot, the watched folder and the code together). Claude's review of the change:"
+            echo
+            cat "$RUNNER_TEMP/review.md"
+          } > "$RUNNER_TEMP/comment.md"
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.md"
       - name: Apply the change and check it again
+        if: needs.verify.outputs.changed == 'true'
         run: |
           # main's copy of the script, taken before anything is applied
           cp scripts/spec-drift.mjs "$RUNNER_TEMP/spec-drift.mjs"
@@ -268,6 +316,7 @@ jobs:
               --json-pins '^spec-watch\.json$'
           node "$RUNNER_TEMP/spec-drift.mjs" pr-body "$RUNNER_TEMP/vetted/review.md" --out "$RUNNER_TEMP/review.md"
       - name: Open the pull request
+        if: needs.verify.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           CHECKS: ${{ needs.verify.outputs.checks }}
