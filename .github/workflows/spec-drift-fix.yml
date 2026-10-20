@@ -18,8 +18,10 @@ name: spec drift fix
 #   propose  holds the write token and no Claude key, and runs no model. It
 #            writes fixtures/catalog.json from the prepared copy, refuses a
 #            patch outside content/, README.md, fixtures/README.md and
-#            spec-watch.json (`spec-drift.mjs vet-patch`), runs the checks, and
-#            opens the pull request.
+#            spec-watch.json, or one that adds JSX, expressions or imports to
+#            the guide's .md/.mdx (which a site build, Vercel previews
+#            included, would run) (`spec-drift.mjs vet-patch`), runs the
+#            checks, and opens the pull request.
 #
 # Needs a repository secret: ANTHROPIC_API_KEY (preferably from a workspace
 # with a spend limit), or CLAUDE_CODE_OAUTH_TOKEN. Without one, the run skips.
@@ -162,7 +164,9 @@ jobs:
              spec anchors in tests/spec-anchors.ts that need updating (you may not edit that file).
 
           Change no file outside content/, README.md, fixtures/README.md and spec-watch.json, and do not edit
-          fixtures/catalog.json yourself: the workflow refuses the whole patch if you do.
+          fixtures/catalog.json yourself. In .md and .mdx files, add only plain text: no "<", "{" or "}" and no
+          import or export lines (describe any component or code block that needs changing in pr-body.md
+          instead). The workflow refuses the whole patch otherwise.
           PROMPT
           )" \
             --restricted \
@@ -214,7 +218,8 @@ jobs:
       - name: Refuse a patch outside the guide's text and the pin
         run: |
           node scripts/spec-drift.mjs vet-patch "$RUNNER_TEMP/fix/fix.patch" \
-            --allow '^(content/[A-Za-z0-9/_-]+\.(md|mdx|json)|README\.md|fixtures/README\.md|spec-watch\.json)$'
+            --allow '^(content/[A-Za-z0-9/_-]+\.(md|mdx|json)|README\.md|fixtures/README\.md|spec-watch\.json)$' \
+            --plain '^content/.+\.mdx?$'
       - name: Apply it, record the catalog and run the checks
         run: |
           git apply --index "$RUNNER_TEMP/fix/fix.patch"
