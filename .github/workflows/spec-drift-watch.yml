@@ -1,0 +1,132 @@
+name: spec drift watch
+
+# Once a week, compares the Poppy draft Ora's checks grade (the `profile` in
+# Ora's public catalog) with the one poppy.ax follows (the pin in
+# spec-watch.json, which tests/spec-version.test.ts ties to the recorded
+# catalog and the guide's draft lines). When Ora has moved on, it opens one
+# issue and starts spec-drift-fix.yml for it; the issue closes once the pin
+# moves. An issue still open after 14 days is escalated once. A run that
+# fails opens its own issue, closed by the next good run.
+#
+# The check is scripts/spec-drift.mjs, shared byte for byte with ax.guide
+# (ora/standards) and Ora (eralabs-ai/ora); the `script` job compares this
+# copy with ax.guide's. It needs no npm install.
+
+on:
+  schedule:
+    - cron: "37 5 * * 1"
+  workflow_dispatch:
+
+# The job that reads Ora's catalog holds no write token; only `report` and
+# `health` can write issues.
+permissions:
+  contents: read
+
+concurrency:
+  group: spec-drift-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      outcome: ${{ steps.check.outcome }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Compare Ora's catalog with the pin
+        id: check
+        continue-on-error: true
+        run: node scripts/spec-drift.mjs check spec-watch.json --out "$RUNNER_TEMP/report.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spec-drift-report
+          path: ${{ runner.temp }}/report.json
+          retention-days: 7
+
+  script:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Compare scripts/spec-drift.mjs with ax.guide's copy
+        run: |
+          curl -sf --max-time 30 -o "$RUNNER_TEMP/peer.mjs" https://raw.githubusercontent.com/ora/standards/main/scripts/spec-drift.mjs
+          cmp -s scripts/spec-drift.mjs "$RUNNER_TEMP/peer.mjs" || {
+            echo "scripts/spec-drift.mjs differs from ax.guide's copy (ora/standards). Bring the older copy up to the newer one."
+            exit 1
+          }
+
+  report:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      actions: write # start spec-drift-fix.yml for each newly opened issue
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        with:
+          name: spec-drift-report
+          path: ${{ runner.temp }}
+      - name: Open, refresh or close the drift issue
+        run: |
+          node scripts/spec-drift.mjs issues "$RUNNER_TEMP/report.json" --repo "$GITHUB_REPOSITORY" \
+            --opened-out "$RUNNER_TEMP/opened.json" \
+            --escalate-after 14 --escalate-label spec-drift-overdue --escalate-mention @liady
+      - name: Ask Claude to fix each newly opened issue
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: |
+          # Only issues this run opened; none when the issues step never got that far.
+          [ -f "$RUNNER_TEMP/opened.json" ] || exit 0
+          # Issue numbers come from the script, which only records digits.
+          for n in $(jq -r '.[].number' "$RUNNER_TEMP/opened.json"); do
+            gh workflow run spec-drift-fix.yml --repo "$GITHUB_REPOSITORY" -f issue="$n"
+          done
+      - name: Fail when Ora's catalog could not be read
+        if: needs.check.outputs.outcome == 'failure'
+        run: |
+          echo "Ora's catalog could not be read; see the check job. The issue was left as it was."
+          exit 1
+
+  health:
+    needs: [check, script, report]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      # A cancelled run is not a failure.
+      FAILED: ${{ contains(needs.*.result, 'failure') || needs.check.outputs.outcome == 'failure' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Open or close the watch-failed issue
+        run: |
+          node scripts/spec-drift.mjs health --failed "$FAILED" \
+            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --out "$RUNNER_TEMP/health.json"
+          node scripts/spec-drift.mjs issues "$RUNNER_TEMP/health.json" --repo "$GITHUB_REPOSITORY" --label spec-drift-watch

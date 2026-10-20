@@ -1,0 +1,16 @@
+{
+  "$comment": "What poppy.ax watches for changes, read by scripts/spec-drift.mjs in .github/workflows/spec-drift-watch.yml. poppy.ax follows the Poppy draft that Ora's checks grade, so it watches Ora's published catalog profile, not the spec pages themselves: Ora watches those and moves its profile once it has re-verified a change. The pin must equal `profile` in fixtures/catalog.json (tests/spec-version.test.ts).",
+  "issue": {
+    "title": "Ora's Poppy checks moved to a new spec version - update poppy.ax",
+    "impact": "poppy.ax explains the draft its checker grades, so its pages, its recorded catalog and its draft label now describe a version Ora no longer uses.",
+    "todo": "Capture `fixtures/catalog.json` again from `GET https://ora.ai/pap/catalog.json` (see fixtures/README.md, and note the date there). Then bring the guide in line with the new draft: the draft line in `content/site.json`, the status in `content/home.json`, the spec lines in `content/learn.mdx` and README.md, the rows under `content/rows/`, and the anchors in `tests/spec-anchors.ts`. `tests/spec-version.test.ts` fails until the draft lines match the recorded catalog. Finally set the pin in `spec-watch.json` to the live value below."
+  },
+  "standards": [
+    {
+      "id": "ora-pap-catalog",
+      "name": "Ora's Poppy check catalog",
+      "page": "https://poppy.ax",
+      "sources": [{ "kind": "json-field", "url": "https://ora.ai/pap/catalog.json", "field": "profile", "pin": "pap-0.2@2026-10-19" }]
+    }
+  ]
+}
