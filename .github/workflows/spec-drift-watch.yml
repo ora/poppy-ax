@@ -91,6 +91,7 @@ jobs:
             --opened-out "$RUNNER_TEMP/opened.json" \
             --escalate-after 14 --escalate-label spec-drift-overdue --escalate-mention @liady
       - name: Ask Claude to fix each newly opened issue
+        continue-on-error: true
         run: |
           # Issue numbers come from the script, which only records digits.
           for n in $(jq -r '.[].number' "$RUNNER_TEMP/opened.json"); do
@@ -112,7 +113,8 @@ jobs:
       issues: write
     env:
       GH_TOKEN: ${{ github.token }}
-      FAILED: ${{ needs.check.result != 'success' || needs.check.outputs.outcome == 'failure' || needs.script.result != 'success' || needs.report.result != 'success' }}
+      # A cancelled run is not a failure.
+      FAILED: ${{ contains(needs.*.result, 'failure') || needs.check.outputs.outcome == 'failure' }}
     steps:
       - uses: actions/checkout@v4
         with:

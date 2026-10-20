@@ -32,10 +32,13 @@ describe("the draft poppy.ax follows", () => {
     expect(content.draft.text).toContain(`Draft ${version} `);
     expect(content.draft.text).toContain(`read ${readOn}`);
     expect(home.status).toContain(`Draft ${version},`);
-    expect(read("content/learn.mdx")).toContain(`[Read the official spec](https://personalagentprotocol.org/docs/spec), Draft ${version},`);
+    const learn = read("content/learn.mdx");
+    expect(learn).toContain(`[Read the official spec](https://personalagentprotocol.org/docs/spec), Draft ${version},`);
+    // "Draft 0.2 is in progress, and this guide follows it": the draft named in the sentence that says which one.
+    expect(/Draft (\d+\.\d+)[^.]*this guide follows it/.exec(learn)?.[1]).toBe(version);
     const readme = read("README.md");
-    expect(readme).toContain(`Every page is based on [PAP Draft ${version}](https://personalagentprotocol.org/docs/spec)`);
-    expect(readme).toContain(`read ${readOn}`);
+    expect(readme).toMatch(new RegExp(`Every page is based on \\[PAP Draft ${version.replace(".", "\\.")}\\]\\(https://personalagentprotocol\\.org/docs/spec\\), which is still in progress \\(read ${readOn};`));
+    expect(readme).toContain(`checked against the spec, Draft ${version} (in progress, read ${readOn})`);
   });
 
   it("is the version the weekly watch compares with Ora's live catalog", () => {
