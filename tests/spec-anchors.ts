@@ -24,4 +24,5 @@ export const SPEC_ANCHORS: Record<string, string[]> = {
     "company-conversations", "company-errors", "operations", "operations-agents", "operations-companies",
   ],
   "/docs/path-to-1": ["process", "feedback", "open-topics", "partners"],
+  "/kit/company": ["requirements", "install", "usage", "architecture", "validator", "feedback"],
 };
