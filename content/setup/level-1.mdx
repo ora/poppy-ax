@@ -1,3 +1,5 @@
+Building this with a coding agent? The spec's authors publish an implementation kit for companies. Its skill has the agent survey your systems, write a design for you to approve, and build it in milestones. Its validator acts as a test assistant against your deployment and reports which requirements you meet. The kit follows Draft 0.2, like this guide ([implementation kit](https://personalagentprotocol.org/kit/company#install)).
+
 ### Publish one public file
 
 A person's AI assistant (the spec calls it a Personal Agent) starts at one public file on your domain, at `https://example.com/.well-known/poppy.json`. You must serve it over HTTPS. The address may redirect, for example from `www.example.com` to `example.com`, but every redirect must go to an HTTPS address. The file speaks for the host that finally serves it, so if a provider runs Poppy for you, have it serve the file on your own domain. Every other address the protocol uses, in this file, in your OAuth metadata and in your answers, must be HTTPS too ([spec 3](https://personalagentprotocol.org/docs/spec#discovery)).
