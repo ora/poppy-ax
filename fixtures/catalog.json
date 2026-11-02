@@ -67,7 +67,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1 or 0.2), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested",
+      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1 or 0.2), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested, and so do the rows that version changed (for Draft 0.3: T0-07, T0-11, T0-12, T0-13, T0-14, T0-16, T0-18, T0-19, T0-20, T0-22, T0-23, X-04, X-10, T1-01, T1-03, T1-07, T1-09, T1-13, where the T1 probes are not sent, and T1-05 unless the server answers 401)",
       "replaces": null
     },
     {
