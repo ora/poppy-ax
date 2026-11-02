@@ -262,7 +262,7 @@ Top level:
 | `profile` | The check profile, such as `pap-0.1@2026-10-09`. |
 | `spec_version` | The spec version the checks follow, such as `"0.1"`. |
 | `draft` | `true` while that spec is a draft that may change. |
-| `spec_url` | The PAP spec, `https://personalagentprotocol.org/docs/spec`. |
+| `spec_url` | The PAP spec, `https://personalagentprotocol.org/docs/0.2/spec`. |
 | `generated_from` | `"ora"`. |
 | `tier1_policy` | One sentence on when Ora sends Tier 1 requests. Ora sends them only on a scan that asks for active probes, and at most once per target domain every 6 hours. It never sends them to a domain whose verified owner turned them off. |
 | `rows` | Every check, in report order (100 today). |
