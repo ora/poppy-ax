@@ -1,7 +1,7 @@
 {
   "heading": "Give your customers' AI assistants a valet key.",
   "lede": "Poppy, the Personal Agent Protocol, is a new open standard. It lets a person's AI assistant work with your company, say who it is, and do only what that person allowed.",
-  "status": "Draft 0.2, in progress, October 2026",
+  "status": "Draft 0.3, published November 2026",
   "check": {
     "label": "Is a site ready for Poppy?",
     "hint": "Type its domain, like example.com.",
@@ -41,7 +41,7 @@
       {
         "number": 1,
         "title": "Put up a sign",
-        "caption": "You publish one small file on your site. It tells assistants where to go and how customers sign in."
+        "caption": "You publish one small file on your site. It tells assistants where to go and what they can use there."
       },
       {
         "number": 2,

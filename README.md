@@ -8,7 +8,7 @@ PAP is an open standard for how an AI assistant finds a company's front door, pr
 
 An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) and 35 design partners, at [personalagentprotocol.org](https://personalagentprotocol.org).
 
-poppy.ax is not the official PAP site and does not speak for its authors. Every page is based on [PAP Draft 0.2](https://personalagentprotocol.org/docs/spec), which is still in progress (read 2026-10-19; Draft 0.1 was published 2026-10-09), and links the section of the spec each claim comes from. If a sentence is wrong, use the "Report an error" link at the foot of the page.
+poppy.ax is not the official PAP site and does not speak for its authors. Every page is based on [PAP Draft 0.3](https://personalagentprotocol.org/docs/0.3/spec), published 2026-11-04 (read 2026-11-09; Draft 0.1 was published 2026-10-09 and Draft 0.2 2026-10-24), and links the section of the frozen 0.3 pages each claim comes from. Draft 0.4 is in progress at the unversioned `/docs/spec` address, so the guide links `/docs/0.3/` pages, which do not change. If a sentence is wrong, use the "Report an error" link at the foot of the page.
 
 ## How it works
 
@@ -110,7 +110,7 @@ In order. Each item is done by a person; tick it in a pull request.
 
 Before anyone outside sees it:
 
-- [ ] Every factual line checked against the spec, Draft 0.2 (in progress, read 2026-10-19). Each page's content was reviewed against the spec when it was written; before launch, run the spec anchor check again: every `personalagentprotocol.org` link with a `#section` in `content/`, `app/`, `components/` and `lib/` must land on a heading that exists on the live page. Last run 2026-10-11: 55 of 55 found (29 in the spec, 13 in the guides, 13 in the operations extension).
+- [ ] Every factual line checked against the spec, Draft 0.3 (published 2026-11-04, read 2026-11-09). Each page's content was reviewed against the spec when it was written; before launch, run the spec anchor check again: every `personalagentprotocol.org` link with a `#section` in `content/`, `app/`, `components/` and `lib/` must land on a heading that exists on the live page. Last run 2026-11-09: 105 of 105 distinct links found (42 in the 0.3 spec, 22 in the 0.3 guides, 7 in the 0.3 operations extension, 6 in the 0.3 mediated sign-in extension, 25 in the frozen 0.2 spec and operations pages that the planned checks still link, and 3 on the kit, roadmap and changelog pages).
 - [ ] Owner review of the copy, for voice.
 - [x] The home page's problem copy: the owner chose it on 2026-10-11. It cites Sierra's announcement, and the claim about passwords is gone.
 

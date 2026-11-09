@@ -62,7 +62,7 @@ describe("content/setup/index.json", () => {
     const onSurface = (row: (typeof catalog.rows)[number]) => {
       const url = new URL(row.spec_url);
       return (
-        url.pathname === "/docs/extensions/operations" ||
+        url.pathname.endsWith("/extensions/operations") ||
         surfaceAnchors.has(url.hash.slice(1)) ||
         surfaceTargets.test(row.request?.target ?? "")
       );

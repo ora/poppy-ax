@@ -11,8 +11,8 @@ describe("content/site.json", () => {
   });
 
   it("carries the draft line and links the spec", () => {
-    expect(content.draft.text).toBe("Based on Poppy Draft 0.2 (in progress, read 2026-10-19)");
-    expect(content.draft.href).toBe("https://personalagentprotocol.org/docs/spec");
+    expect(content.draft.text).toBe("Based on Poppy Draft 0.3 (published 2026-11-04, read 2026-11-09)");
+    expect(content.draft.href).toBe("https://personalagentprotocol.org/docs/0.3/spec");
   });
 
   it("names the nav items, then the Check a site button", () => {

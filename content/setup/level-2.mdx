@@ -1,14 +1,16 @@
 ### Everything happens in a session
 
-Everything an assistant does at your company happens in a session: one person's activity, at your company, through one assistant, across your APIs, conversations and website. A session starts signed out. You know which assistant is asking and you can recognise the same person over time, but you do not know who they are ([spec 4](https://personalagentprotocol.org/docs/spec#sessions)).
+Everything an assistant does at your company happens in a session: one person's activity, at your company, through one assistant, across your APIs, conversations and website. A session starts signed out. You know which assistant is asking and you can recognise the same person over time, but you do not know who they are ([spec 5](https://personalagentprotocol.org/docs/0.3/spec#sessions)).
 
-The rest of this level is standard OAuth with one addition, a `session_id`, so you can usually keep your existing OAuth server ([spec 4](https://personalagentprotocol.org/docs/spec#sessions)).
+There is no step to start a session and no token to hand out. The assistant names the session itself and signs every request it sends you with a `Poppy-Session` header; the first request with a new session ID starts the session. A signed-out request carries only that header. Signing in, in level 3, adds an ordinary OAuth access token next to it, and stays separate ([spec 5](https://personalagentprotocol.org/docs/0.3/spec#sessions), [spec 5.4](https://personalagentprotocol.org/docs/0.3/spec#sign-in)). So this level needs no sign-in server at all.
+
+You choose how much of this to use. An endpoint that uses nothing from the session, such as a product catalog, can answer without checking the header. To recognise a person, keep a cart, or connect a conversation with the website, you must check the header first ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification), [guides: choosing capabilities](https://personalagentprotocol.org/docs/0.3/guides#company-adoption)).
 
 ### The assistant publishes who it is
 
-Each assistant publishes its own metadata at an HTTPS address, and that address is its `client_id`. You fetch it to learn the assistant's name and logo, the public keys it signs with, and where sign-in may send people back ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity)). Shortened from the spec's example, for an assistant at `agent.example`:
+Each assistant publishes its own metadata at an HTTPS address, and that address is its `client_id`. You fetch it to learn the assistant's name and logo, the public keys it signs with, and where sign-in may send people back ([spec 4.1](https://personalagentprotocol.org/docs/0.3/spec#agent-identity)). From the spec's example, for an assistant at `agent.example`:
 
-<CodeLabel>Client metadata, published by the assistant (excerpt)</CodeLabel>
+<CodeLabel>Client metadata, published by the assistant</CodeLabel>
 
 ```json
 {
@@ -21,122 +23,87 @@ Each assistant publishes its own metadata at an HTTPS address, and that address 
 }
 ```
 
-The `client_id` inside must equal the address you fetched it from. The `jwks_uri` and every entry in `redirect_uris` must be HTTPS addresses on the same domain as the `client_id` ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity)).
+The `client_id` inside must equal the address you fetched it from. The `jwks_uri`, the assistant's list of public keys, must be an HTTPS address on the same domain as the `client_id` ([spec 4.1](https://personalagentprotocol.org/docs/0.3/spec#agent-identity)).
 
 <details>
 <summary>Details for implementers: fetching and limiting assistants</summary>
 
-- Fetch the `client_id` address without following redirects, and cache the metadata and keys within limits ([guides: verifying personal agents](https://personalagentprotocol.org/docs/guides#company-agents)).
-- You may ask assistants to register first. A company that requires it rejects an unregistered assistant with `invalid_client` (HTTP 401) when it starts a session ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity)).
-- You may keep lists of assistants you allow or block, revoke a `client_id` that misuses the protocol, and limit how fast each `client_id` can start sessions ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity)).
+- Fetch the `client_id` address without following redirects, and cache the metadata and keys within limits ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification), [guides: verifying personal agents](https://personalagentprotocol.org/docs/0.3/guides#company-agents)).
+- You decide which assistants you accept. You may keep lists of assistants you allow or block, and limit how fast new sessions and new `client_id` values arrive. A refused assistant gets `invalid_session` at your APIs ([spec 4.1](https://personalagentprotocol.org/docs/0.3/spec#agent-identity), [guides: verifying personal agents](https://personalagentprotocol.org/docs/0.3/guides#company-agents)).
 
 </details>
 
-### The assistant starts a session
+### Every request carries a Session header
 
-To start a session, the assistant calls your `token_endpoint`, the address where your sign-in server hands out tokens, with the JWT bearer grant (RFC 7523). A JWT is a small piece of JSON with a signature. The request carries two of them, both signed with a key from the assistant's `jwks_uri` ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity), [spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)):
+On every request to your APIs, conversations and other protocol endpoints, the assistant sends a `Poppy-Session` header. It holds a JWT, a small piece of JSON with a signature, that the assistant signs for that one request ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#session-header)):
 
-- a client assertion, which proves the request comes from the assistant (`private_key_jwt`);
-- a session assertion, which names the assistant in `iss` and the person in `sub`.
-
-Like every token request, it also carries a DPoP proof, a fresh signature from a key only the assistant holds, explained below. Only a request for a Bearer token for an MCP server may leave the proof out ([spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)).
-
-<CodeLabel>Session assertion, the JWT's claims</CodeLabel>
+<CodeLabel>Session JWT, from the spec's example (header, then claims)</CodeLabel>
 
 ```json
+{
+  "typ": "poppy-session+jwt",
+  "alg": "ES256",
+  "kid": "9E421cSqd5UfAq5slDKYxXQd8Zmm8B3CIsT9cDxRHx8",
+  "poppy_dlg": "eyJhbGciOiJFUzI1NiIsInR5cCI6InBhcC1kZWxlZ2F0aW9uK2p3dCIs…"
+}
+.
 {
   "iss": "https://agent.example/agent.json",
-  "sub": "usr_Q7c1vK",
   "aud": "https://auth.example.com",
+  "sid": "Yx2b7Qd_Kp8mR3vT1nWc4A",
+  "sub": "usr_Q7c1vK",
+  "htm": "POST",
+  "htu": "https://api.example.com/orders/ord_7Hk2/exchanges",
   "iat": 1790900000,
-  "exp": 1790900060,
-  "jti": "V6vJGs2ixBAvGdaQgGaTzg"
+  "jti": "e1j3V_bKic8-LAEBq7Rw2g"
 }
 ```
 
-The `sub` is a user ID the assistant makes for this person at your company. It stays the same across sessions, it is different at every company, and it is never made from personal details such as an email address ([spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)).
+The claims, all from the spec ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#session-header)):
 
-Verify both assertions against the assistant's `jwks_uri`. Check that `iss` is the `client_id` that authenticated, and that `aud` is your `auth.issuer` as a single string, compared character for character. Reject any other `aud`, your token endpoint's address included. Check that the assertion has not expired, that its `exp` is at most five minutes after `iat`, and that you have not seen its `jti` from the same `client_id` before it expires. The client assertion follows the same rules ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity), [spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)). A browser assertion, the kind level 4 uses on your website, must not be accepted here ([spec 5](https://personalagentprotocol.org/docs/spec#web-browsing)). Then return a new session:
+- `iss` is the assistant's `client_id`.
+- `aud` is your company's identifier: your issuer, or `https://` and your domain if you have none (level 1).
+- `sid` is the session ID, chosen at random by the assistant and never reused.
+- `sub` is a user ID the assistant makes for this person at your company. It stays the same across sessions, it is different at every company, and it is never made from personal details such as an email address ([spec 5.1](https://personalagentprotocol.org/docs/0.3/spec#user-ids)).
+- `htm` and `htu` are the request's method and address, so a copied JWT works only for the same request.
+- `iat` is when it was signed, and `jti` is unique.
+- `ath` is a hash of the access token, present only on signed-in requests (level 3).
 
-<CodeLabel>Response body from your token endpoint</CodeLabel>
+The JWT is not signed with a key from the assistant's `jwks_uri`. It is signed with a short-lived delegated key, and its header carries, in `poppy_dlg`, a delegation: another JWT, signed with a key from `jwks_uri`, that vouches for the delegated key for at most 24 hours. Each delegated key signs for one user ID only, so a leaked key exposes one person at one company ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#delegated-keys)).
 
-```json
-{
-  "access_token": "eyJhbGciOi…Lm9x",
-  "token_type": "DPoP",
-  "expires_in": 3600,
-  "scope": "",
-  "session_id": "ses_2Lm0",
-  "signed_in": false
-}
-```
+### Check the Session header
 
-The `access_token` is the session token. `token_type` is `DPoP` for a token bound to a key, or `Bearer` for a token for an MCP server that does not support DPoP (below). You choose the lifetime in `expires_in`, in seconds; it must be more than 0 and should be hours, not days. `scope` lists the account access granted, which is none while signed out, and `signed_in` says whether the session is signed in to an account. The `session_id` names the session. It is not a credential: knowing it does not let anyone use the session ([spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)).
+Before you rely on anything in the header, such as who the assistant is, which person this is, or which session or cart the request belongs to, check it in this order ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#delegated-keys), [spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification)):
 
-When a signed-out token runs out, the assistant sends the same request again with fresh assertions and the `session_id`. Check that the session belongs to the same `client_id` and user ID, then issue a new token. If the session has ended, answer `invalid_session`. A signed-in session is renewed with its account token instead, which level 3 covers ([spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)).
+1. Fetch the client metadata from `iss`, without following redirects, and the keys from its `jwks_uri`.
+2. Verify the delegation with the key its `kid` names: `typ` is `poppy-delegation+jwt`, its `iss` is the JWT's `iss`, it has not expired, and its `exp` is at most 24 hours after its `iat`.
+3. Verify the Session JWT with the key in the delegation's `cnf.jwk`, and check that the JWT's `kid` is that key's thumbprint. Reject a JWT with no delegation, including one signed directly with a key from `jwks_uri`.
+4. Check `typ` is `poppy-session+jwt`, `aud` is your identifier character for character, `htm` and `htu` match the request, and `iat` is recent, for example within the last minute.
+5. If the request has an access token, check that `ath` matches it and that the token was issued to the same `client_id`. Without one, `ath` must be absent.
+6. Look up the session by `client_id` and `sid`. A new `sid` starts a signed-out session. A known one continues it, and must have the same user ID.
 
-<details>
-<summary>Details for implementers: token endpoint errors and token contents</summary>
+You must accept ES256 delegations, and should accept PS384 ones too ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#delegated-keys)). Reject `alg: none` and symmetric algorithms such as HS256 ([guides: signing and verifying JWTs](https://personalagentprotocol.org/docs/0.3/guides#both-signing)). Do not expect a person's delegated key to stay the same between requests, and store nothing by it ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#delegated-keys)).
 
-Answer with the standard OAuth error response, using these codes ([spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)):
-
-- `invalid_client` (401): you do not accept this `client_id`. It is unregistered, blocked or revoked, or its metadata or signature does not check out.
-- `invalid_grant` (400): the assertion or account token is missing, expired, reused, revoked or malformed.
-- `invalid_session` (400): the session has ended, or belongs to another assistant or person.
-- `account_mismatch` (400): the session is signed in to a different account (level 3).
-- `invalid_dpop_proof` or `use_dpop_nonce` (400): the DPoP proof is missing or invalid, or needs a nonce.
-- `extension_required` (403): you require an extension the assistant does not list, named in `extension`.
-- `rate_limited` (429): too many requests for this `client_id`. Say when to retry in a `Retry-After` header.
-
-Session tokens are opaque to the assistant, which must not depend on what is inside them. You may put your own session credentials in a token so your existing systems can read them. If you do, you must encrypt the token ([spec 4.2](https://personalagentprotocol.org/docs/spec#starting-sessions)).
-
-Support ES256 and RS256 for assertions, and reject `alg: none` and symmetric algorithms such as HS256 ([guides: signing and verifying JWTs](https://personalagentprotocol.org/docs/guides#both-signing)). Keep `error_description` and other error text free of account details and other people's data ([guides: error messages](https://personalagentprotocol.org/docs/guides#company-errors)).
-
-</details>
-
-### Tokens work only with the assistant's key
-
-A copied token should be useless. So each session token is bound to a key the assistant holds, using DPoP (RFC 9449), which proves the sender holds a private key. This key is not one of the keys the assistant publishes: it stays private, the assistant uses a different one for each user ID, and it may make a new one for each session ([spec 4.1](https://personalagentprotocol.org/docs/spec#agent-identity), [spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)).
-
-The assistant signs a fresh proof, a JWT, for every request, token requests included. Every API call and conversation request then carries the token and the proof ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)):
-
-<CodeLabel>Request headers</CodeLabel>
-
-```http
-Authorization: DPoP eyJhbGciOi…Lm9x
-DPoP: eyJ0eXAiOiJkcG9wK2p3dCIs…
-```
-
-You must accept proofs signed with ES256. You may list the algorithms you accept in `dpop_signing_alg_values_supported` in your OAuth metadata, and the list must then include ES256 ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server)).
-
-When you issue a token, bind it to the key in that request's proof. Then, on every request, check that ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)):
-
-- the request has exactly one `DPoP` header;
-- `typ` is `dpop+jwt`, `alg` is an asymmetric algorithm you accept, never `none`, and the key in the header is a public key only;
-- the proof's signature verifies with the key in its header;
-- that key is the one the token is bound to;
-- `htm` and `htu` match the request's method and URL;
-- the proof is recent, for example within the last minute, judged by `iat` or by when you issued its nonce;
-- `ath`, a hash of the token, matches the token sent with it. Proofs sent to the token endpoint have no `ath`.
-
-At your token endpoint, also reject a proof whose `jti` you have already accepted in that time, since a replayed proof there could get a new token. Your APIs and conversation endpoint may check this too ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)).
-
-If a check fails, answer `invalid_dpop_proof` or `use_dpop_nonce`. Your token endpoint returns them as OAuth errors with HTTP 400. Your APIs and conversation endpoint return HTTP 401 with the error in a `WWW-Authenticate: DPoP` header. You may also require a nonce, a value you hand out, so proofs cannot be made in advance ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)).
-
-Accept the token in the `Authorization` header without asking for cookies, and never accept a token from a URL ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)).
+If a check fails, answer HTTP 400 with `{"error": "invalid_session"}`. When a session you ended comes back, answer 400 with `{"error": "session_ended"}`, and the assistant starts a new one. These use 400, not 401, so OAuth libraries do not throw away a valid access token. A request with no header at all also gets `invalid_session` when handling it depends on the session ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification), [spec 5.5](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions)).
 
 <details>
-<summary>Details for implementers: if your OAuth server cannot bind tokens</summary>
+<summary>Details for implementers: where and how to check</summary>
 
-The guides suggest a gateway in front of both your token endpoint and your APIs and conversation endpoint. It checks the proof on each token request, records the key for the token it issues, and checks that key on every later request. Checking a proof's signature alone is not enough ([guides: verifying DPoP](https://personalagentprotocol.org/docs/guides#company-dpop)).
+The guides suggest checking the header in one place, such as a gateway in front of your APIs, your conversation endpoint and your browser join, and passing the verified `client_id`, `sid` and user ID to the services behind it. Cache verified delegations by a hash of the whole delegation until they expire, so most requests need one signature check. Behind proxies, compare `htu` with the public address the assistant used, not the `Host` header your server receives ([guides: verifying the Session header](https://personalagentprotocol.org/docs/0.3/guides#company-session-header)).
 
-Serve each endpoint at the address you publish. If your token endpoint, an API or another protocol endpoint answers with a redirect, the assistant must not send a token, DPoP proof, assertion or credentials to the new address ([spec 3](https://personalagentprotocol.org/docs/spec#discovery)).
+Rejecting a reused `jti` is optional. If you keep a list of seen `jti` values, share it across every server ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification), [guides: verifying the Session header](https://personalagentprotocol.org/docs/0.3/guides#company-session-header)).
+
+Keep a session record only as long as the session lasts, with the user ID it started with. Remember the `sid` of each session you end for a while, so it gets `session_ended` instead of silently starting again ([spec 5.5](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions), [guides: sessions](https://personalagentprotocol.org/docs/0.3/guides#company-sessions)).
+
+Accept the header and any access token without asking for cookies, and never accept either from a URL ([spec 5.6](https://personalagentprotocol.org/docs/0.3/spec#sending-requests)). Serve each endpoint at the address you publish: if an API or protocol endpoint answers with a redirect, the assistant must not send a token, Session JWT or credentials to the new address ([spec 3](https://personalagentprotocol.org/docs/0.3/spec#discovery)).
+
+The spec also recommends that assistants sign their requests with Web Bot Auth, so bot defenses at your edge can recognise the assistant's operator before the request reaches your application. That signature does not replace the Session header ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#operator-signatures), [guides: operator signatures and bot defenses](https://personalagentprotocol.org/docs/0.3/guides#both-operator-signatures)).
 
 </details>
 
 ### List your APIs
 
-Now you can add `apis` to `poppy.json`. Every API you list must accept session tokens as this level describes ([spec 6](https://personalagentprotocol.org/docs/spec#apis)). Each entry has a `type`, a `url`, and a short `description` that helps the assistant pick the right API ([spec 3.1](https://personalagentprotocol.org/docs/spec#fields)):
+Now you can add `apis` to `poppy.json`. Every API you list must accept the Session header and, once you offer sign-in, your access tokens, and enforce their scopes ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)). Each entry has a `type`, a `url`, and a short `description` that helps the assistant pick the right API ([spec 3.1](https://personalagentprotocol.org/docs/0.3/spec#fields)):
 
 <CodeLabel>Excerpt from poppy.json</CodeLabel>
 
@@ -155,34 +122,34 @@ Now you can add `apis` to `poppy.json`. Every API you list must accept session t
 ]
 ```
 
-There are two types ([spec 6](https://personalagentprotocol.org/docs/spec#apis)):
+The spec defines two types, and assistants skip types they do not know, so later versions can add more ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)):
 
-- `openapi`: the `url` points to an OpenAPI 3.0 or 3.1 description. OpenAPI is a standard file that describes a web API's requests and responses. These APIs take DPoP tokens.
-- `mcp`: the `url` points to a remote MCP server using the Streamable HTTP transport and MCP version 2025-06-18 or later. These take DPoP tokens if the server supports DPoP, and Bearer tokens if it does not, as the next section explains.
+- `openapi`: the `url` points to an OpenAPI 3.0 or 3.1 description. OpenAPI is a standard file that describes a web API's requests and responses.
+- `mcp`: the `url` points to a remote MCP server using the Streamable HTTP transport and MCP version 2025-06-18 or later. MCP, the Model Context Protocol, is a common way to offer tools to AI assistants.
 
-### Plain Bearer tokens, for MCP only
+A language model usually reads these descriptions to choose and call your operations, so say what each one does in terms of the person's task, and keep them short ([guides: describing APIs](https://personalagentprotocol.org/docs/0.3/guides#company-api-descriptions)).
 
-MCP, the Model Context Protocol, is a common way to offer tools to AI models. Many MCP servers cannot check proofs yet. An MCP server supports DPoP if its protected resource metadata (RFC 9728), a public file that names the sign-in servers it trusts, lists `dpop_signing_alg_values_supported`. That list must include ES256 ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)).
+### MCP servers
 
-Every token request for an MCP server has `resource` set to that server's `url`, and you choose the token type by that server ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)):
+An MCP server carries the Session header like any other API. One that accepts the header can take signed-out calls with it alone. One that ignores the header can still work, but its calls do not join the session's cart, conversations or website ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)).
 
-- For an MCP server that supports DPoP, issue a DPoP session token, used with proofs as at your other APIs. Never issue an assistant a Bearer token for it.
-- For an MCP server that does not, issue a plain `Bearer` token, even if the request has a proof. Anyone who copies a Bearer token can use it, so it must work only at the MCP server whose `url` equals its `resource`, not even at other paths on the same host.
+When the server offers account access, it publishes protected resource metadata (RFC 9728), the same kind of file as in level 1, for its own address. Its `resource` must equal the server's `url` in `poppy.json`, and its `authorization_servers` must include your issuer. That is how MCP clients find where to get a token. A token issued for the server works only at the server whose `url` equals its `resource`, not even at other paths on the same host ([spec 4.5](https://personalagentprotocol.org/docs/0.3/spec#access-tokens), [spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)).
 
-New MCP servers should support DPoP. Everywhere else, require DPoP, and reject a DPoP token sent with the Bearer scheme. An MCP server with DPoP still accepts Bearer tokens from MCP clients that do not implement Poppy ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)). Each MCP server must accept only tokens issued for its own `url` ([spec 6](https://personalagentprotocol.org/docs/spec#apis)).
-
-MCP clients find out where to get a token from that metadata, and its `authorization_servers` must include your `auth.issuer`. When a request has no token or a bad one, the server's 401 carries a challenge for each scheme it accepts: `Bearer`, and `DPoP` if it supports DPoP. Each challenge includes `resource_metadata` with the address of that metadata ([spec 6](https://personalagentprotocol.org/docs/spec#apis)).
+When a request needs a token it does not have, the server answers 401 with a challenge for each scheme it accepts, and each challenge includes `resource_metadata` with the address of that metadata ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)). MCP clients that do not use Poppy sign in with MCP's own flow, outside the protocol, and their requests belong to no session ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)).
 
 ### What your APIs answer
 
-When a token is not good enough, say why in the `WWW-Authenticate` header ([spec 6](https://personalagentprotocol.org/docs/spec#apis)):
+Access token problems follow OAuth and go in the `WWW-Authenticate` header. Session problems go in a JSON body ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)):
 
-- `invalid_token` (401): the token is missing or expired.
-- `sign_in_required` (403): the request needs a signed-in token, which level 3 provides.
-- `insufficient_scope` (403): the token lacks the account access the request needs. Name the scopes needed in the header's `scope` attribute.
+- 401 with no error code: the request needs the person's account and has no access token. Name the scopes needed in the challenge's `scope` attribute.
+- `invalid_token` (401): the access token is expired, revoked or not valid.
+- `insufficient_scope` (403): the access token lacks the scopes the request needs, named in `scope`.
+- `invalid_session` (400, JSON body): the Session header is missing or fails a check, or you refuse this assistant.
+- `session_ended` (400, JSON body): the session has ended. The assistant starts a new one and tries once more.
+- `extension_required` (403): the request needs an extension the assistant does not list, named in the header's `extension` attribute.
 
-If you limit request rates, answer HTTP 429 with a `Retry-After` header ([spec 4.3](https://personalagentprotocol.org/docs/spec#sending-tokens)). The guides suggest letting a signed-out session do whatever a signed-out visitor can do on your website, and limiting abuse by `client_id` rather than turning assistants away ([guides: guest access](https://personalagentprotocol.org/docs/guides#company-guest)).
+If you limit request rates, answer HTTP 429 with a `Retry-After` header, on any endpoint ([spec 5.6](https://personalagentprotocol.org/docs/0.3/spec#sending-requests)). The guides suggest letting a signed-out session do whatever a signed-out visitor can do on your website, and limiting abuse by `client_id` rather than turning assistants away ([guides: guest access](https://personalagentprotocol.org/docs/0.3/guides#company-guest)). Keep error text free of account details and other people's data ([guides: error messages](https://personalagentprotocol.org/docs/0.3/guides#company-errors)).
 
 ### Tools that help
 
-Datalayer's SDK, which is pre-beta, includes DPoP creation and verification for Python and TypeScript ([on GitHub](https://github.com/datalayer/personal-agent-protocol)). It is written mainly for assistants, so check what it covers before you build on it.
+Datalayer's SDK, which was pre-beta when this guide first listed it, includes Session JWT signing and verification for Python and TypeScript ([on GitHub](https://github.com/datalayer/personal-agent-protocol)). It now follows Draft 0.4, and it is written mainly for assistants, so check what it covers before you build on it.

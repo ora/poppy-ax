@@ -1,170 +1,158 @@
 ### Choose how people sign in
 
-A session does not need sign-in. When a task needs the person's account, the person signs in once, in one of the ways you offer ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)):
+A session does not need sign-in. When a task needs the person's account, the person signs in, and from then on the assistant sends an ordinary OAuth access token next to the Session header. Sign-in is plain OAuth, so you can usually keep the OAuth server you already run, and it does not need to know about sessions ([spec 4](https://personalagentprotocol.org/docs/0.3/spec#oauth), [spec 5.4](https://personalagentprotocol.org/docs/0.3/spec#sign-in)).
 
-- Direct sign-in (`auth.direct`): the person signs in on your own page in their browser and approves access.
-- Device sign-in (`auth.device`): the assistant shows the person a link and a short code, and they sign in on your page on any device they like.
-- Mediated sign-in (`auth.mediated`): the assistant sends you the person's credentials. This one is not OAuth, and it puts more on you (see the end of this level).
+You say which kinds of sign-in you offer in your OAuth metadata, not in `poppy.json`, by the grants in `grant_types_supported` (level 1) ([spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server), [spec 4](https://personalagentprotocol.org/docs/0.3/spec#oauth)):
 
-Each kind you offer goes under `auth` in `poppy.json`, with the scopes it can grant. A scope is a named piece of account access. From the spec's example ([spec 3](https://personalagentprotocol.org/docs/spec#discovery), [spec 3.1](https://personalagentprotocol.org/docs/spec#fields)):
+- Direct sign-in (`authorization_code`): the person signs in on your own page in their browser and approves access.
+- Device sign-in (`urn:ietf:params:oauth:grant-type:device_code`): the assistant shows the person a link and a short code, and they sign in on your page on any device they like.
+- Mediated sign-in, an extension: the assistant sends you the person's credentials. It is a stopgap, and it puts more on you (see the end of this level).
+
+An assistant authenticates to your token endpoint as a confidential OAuth client, with a client assertion: a JWT signed with a key from its `jwks_uri` (`private_key_jwt`, RFC 7523). Its `aud` must be your issuer as a single string; reject any other `aud`, your token endpoint's address included. You must accept ES256 assertions, and should accept PS384 ones ([spec 4.1](https://personalagentprotocol.org/docs/0.3/spec#agent-identity)).
+
+Your metadata is public, so every client sees the same grants. To offer assistants less than your other apps, limit the scopes you grant by client, or refuse one assistant sign-in, or one kind of it, with `unauthorized_client`; that assistant carries on signed out. To turn sign-in off for every assistant, use `auth.disabled` (level 1) ([spec 4](https://personalagentprotocol.org/docs/0.3/spec#oauth), [spec 4.1](https://personalagentprotocol.org/docs/0.3/spec#agent-identity), [guides: offering personal agents less](https://personalagentprotocol.org/docs/0.3/guides#company-agent-issuer)).
+
+### Describe your scopes
+
+A scope is a named piece of account access. The protocol defines none: you use your own, usually the OAuth scopes you already have, such as `orders:read` or `addresses`. List them in `scopes_supported` in your OAuth metadata ([spec 4.7](https://personalagentprotocol.org/docs/0.3/spec#scopes)).
+
+Describe each scope you offer assistants, so they can pick the ones a task needs: in the OAuth security scheme of an OpenAPI description you list, or otherwise in `auth.scopes` in `poppy.json`. You may also say how much each scope can do, in `auth.scope_hints`. From the spec's example ([spec 3](https://personalagentprotocol.org/docs/0.3/spec#discovery), [spec 4.7](https://personalagentprotocol.org/docs/0.3/spec#scopes)):
 
 <CodeLabel>Excerpt from poppy.json</CodeLabel>
 
 ```json
 "auth": {
-  "issuer": "https://auth.example.com",
-  "direct": {
-    "scopes": ["poppy:read", "poppy:write", "addresses"]
+  "scopes": {
+    "orders:read": "See your orders, returns, and bookings",
+    "orders:write": "Exchange or return items, and change bookings",
+    "addresses": "See and change your saved shipping addresses"
   },
-  "device": {
-    "scopes": ["poppy:read", "poppy:write"]
-  },
-  "mediated": {
-    "endpoint": "https://auth.example.com/poppy/sign-in",
-    "fields": [
-      { "name": "email", "label": "Email", "secret": false },
-      { "name": "password", "label": "Password", "secret": true }
-    ],
-    "scopes": ["poppy:read"]
-  },
-  "custom_scopes": {
-    "addresses": "Manage saved shipping addresses"
+  "scope_hints": {
+    "orders:read": { "changes": "none", "personal_data": true },
+    "orders:write": { "changes": "irreversible", "personal_data": true },
+    "addresses": { "changes": "reversible", "personal_data": true }
   }
 }
 ```
 
-The protocol defines two scopes. `poppy:read` lets the assistant view account information, such as orders. `poppy:write` lets it make changes, such as exchanging an item. They are independent, so `poppy:write` does not include `poppy:read`. You may add your own scopes and describe each one in `auth.custom_scopes`. Names that start with `poppy:` are reserved ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)).
+Each hint describes the most serious action the scope allows, and must have both fields. `changes` is `none`, `reversible` or `irreversible`; `personal_data` is `true` if any action shows or changes the person's personal data, such as an address or a payment method ([spec 4.7](https://personalagentprotocol.org/docs/0.3/spec#scopes)). The guides add: write descriptions a person understands, such as "See your orders and returns" rather than "Read access", and leave a scope out of the hints rather than guess ([guides: describing scopes](https://personalagentprotocol.org/docs/0.3/guides#company-scope-descriptions)).
 
-Every sign-in request names its scopes in `scope`. Reject missing, unknown or unavailable ones with `invalid_scope`, and never grant more than was asked for and allowed for that kind of sign-in ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)). You decide which actions need each scope, and you enforce that on your website, your APIs and your own agent alike ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in), [spec 7.11](https://personalagentprotocol.org/docs/spec#conversation-sign-in)). One shared check that every channel calls is easiest to keep consistent ([guides: enforcing scopes](https://personalagentprotocol.org/docs/guides#company-scopes)).
+Every sign-in request names its scopes in `scope`. Reject missing or unknown ones with `invalid_scope`, and never grant more than was asked for. You may grant fewer ([spec 4.7](https://personalagentprotocol.org/docs/0.3/spec#scopes)). You decide which actions need each scope, and you enforce that on your website, your APIs and your own agent alike. One shared check that every channel calls is easiest to keep consistent ([spec 4.7](https://personalagentprotocol.org/docs/0.3/spec#scopes), [guides: enforcing scopes everywhere](https://personalagentprotocol.org/docs/0.3/guides#company-scopes)).
 
 ### Direct sign-in
 
-Direct sign-in is the standard OAuth authorization code flow with PKCE (RFC 7636). PKCE ties the one-time code to the assistant that asked for it. Your OAuth metadata must list an `authorization_endpoint` ([spec 3.2](https://personalagentprotocol.org/docs/spec#oauth-server), [spec 4.5](https://personalagentprotocol.org/docs/spec#direct-sign-in)).
+Direct sign-in is the standard OAuth authorization code flow with PKCE (RFC 7636). PKCE ties the one-time code to the assistant that asked for it ([spec 4.2](https://personalagentprotocol.org/docs/0.3/spec#direct-sign-in)).
 
-1. The assistant opens your authorization address in the person's browser.
-2. Your page shows which assistant is asking, using the name and logo from its metadata. The person signs in however you allow, sees the requested scopes, and approves some or all of them, or declines.
-3. You send the browser back to `redirect_uri` with a one-time `code`, the same `state`, and your `auth.issuer` in `iss`. The `redirect_uri` must exactly match one of the assistant's `redirect_uris`. If the person declines, send `error=access_denied` and `iss` instead.
-4. The assistant exchanges the code at your `token_endpoint`, with its client assertion, a DPoP proof and the `session_id`. Check the code, the PKCE verifier and the assertion, and that the session belongs to the same `client_id`.
+1. The assistant opens your `authorization_endpoint` in the person's browser.
+2. The person signs in however you allow, such as a password or a passkey, sees the requested scopes, and approves some or all of them, or declines.
+3. You send the browser back to `redirect_uri` with a one-time `code`. The `redirect_uri` must exactly match one of the assistant's `redirect_uris`. Include your issuer in `iss`, on a decline (`error=access_denied`) too.
+4. The assistant exchanges the code at your `token_endpoint`, with its client assertion.
 
-All of these steps are in the spec ([spec 4.5](https://personalagentprotocol.org/docs/spec#direct-sign-in)). The guides add: accept PKCE with `S256` only, and reject `plain` ([guides: consent pages](https://personalagentprotocol.org/docs/guides#company-consent)).
+All of these steps are in the spec ([spec 4.2](https://personalagentprotocol.org/docs/0.3/spec#direct-sign-in)). The guides add: accept PKCE with `S256` only, and reject `plain` ([guides: consent pages](https://personalagentprotocol.org/docs/0.3/guides#company-consent)).
 
 ### Device sign-in
 
-Device sign-in is the OAuth device authorization grant (RFC 8628). Your OAuth metadata must list a `device_authorization_endpoint` ([spec 4.6](https://personalagentprotocol.org/docs/spec#device-sign-in)).
+Device sign-in is the OAuth device authorization grant (RFC 8628). The assistant asks your `device_authorization_endpoint` for a code, with the scopes it needs and its client assertion, then shows the person your link and the short code. The person opens it on any device, such as their phone, signs in, and approves or declines. Opening the link must not approve anything by itself. Meanwhile the assistant asks your `token_endpoint` every `interval` seconds until the person finishes ([spec 4.3](https://personalagentprotocol.org/docs/0.3/spec#device-sign-in)).
 
-The assistant asks for a code and shows the person your link and the short code, or a link with the code built in. The person opens it on any device, such as their phone, signs in, and approves some or all of the scopes, or declines. Opening the link must not approve anything by itself. Assistants show the link only if its host is your `auth.issuer` host or one of your `poppy_domains`, or a subdomain of either, so serve your device page there ([spec 4.6](https://personalagentprotocol.org/docs/spec#device-sign-in)).
+Assistants show the link only if its host is your issuer's host, or the host of an address in your issuer's `protected_resources`, or a subdomain of either, so serve your device page there ([spec 4.3](https://personalagentprotocol.org/docs/0.3/spec#device-sign-in)).
 
-<details>
-<summary>Details for implementers: answering the assistant while it waits</summary>
-
-Every `interval` seconds, the assistant asks your `token_endpoint` whether the person has finished, sending the `device_code` and its `session_id`. Answer `authorization_pending` until then, or `slow_down` to make it wait longer between requests. Once the person approves, return the tokens. If they decline, answer `access_denied`, and if the request runs past `expires_in`, `expired_token` ([spec 4.6](https://personalagentprotocol.org/docs/spec#device-sign-in)).
-
-The guides suggest asking the person to confirm that the code on your page matches the one the assistant shows, and keeping `expires_in` short, such as 10 minutes ([guides: device sign-in](https://personalagentprotocol.org/docs/guides#company-device)).
-
-</details>
+Device sign-in is easier to abuse for phishing than direct sign-in, because whoever holds the device code gets the tokens. So companies that offer it must follow the best practices in RFC 10027 ([spec 4.3](https://personalagentprotocol.org/docs/0.3/spec#device-sign-in)). The guides suggest short-lived codes, rate limits, asking the person to confirm that the code on your page matches the one the assistant shows, and keeping `expires_in` short, such as 10 minutes ([guides: device sign-in](https://personalagentprotocol.org/docs/0.3/guides#company-device)).
 
 ### The consent page
 
-The spec asks your page to show which assistant is asking, by the name and logo from its metadata, and the requested scopes ([spec 4.5](https://personalagentprotocol.org/docs/spec#direct-sign-in)). The guides go further ([guides: consent pages](https://personalagentprotocol.org/docs/guides#company-consent)):
+The page where the person approves access, in direct and device sign-in. The guides suggest ([guides: consent pages](https://personalagentprotocol.org/docs/0.3/guides#company-consent)):
 
-- Show the domain of the assistant's `client_id` next to its name. The assistant chooses its own name, so the domain is what the person can trust.
-- Show the account being connected, each scope in plain language, and how long access lasts.
+- Show the assistant's name and logo from its metadata, and the domain of its `client_id`. The assistant chooses its own name, so the domain is what the person can trust.
+- Show the account being connected, each scope in plain language, and how long access lasts. Point out the scopes your hints mark `irreversible` or with personal data.
+- When the person already granted some of the scopes, show which ones are new.
 - Protect the page against forged requests, and stop other sites from framing it with `Content-Security-Policy: frame-ancestors`.
 
 ### What sign-in returns
 
-Every kind of sign-in ends the same way. You return an account token as `refresh_token`, and a signed-in session token for the current session. The person may have approved fewer scopes than asked, so `scope` says what was granted ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)):
+Every kind of sign-in ends with the standard OAuth token response: an access token and a refresh token ([spec 4.7](https://personalagentprotocol.org/docs/0.3/spec#scopes)):
 
 <CodeLabel>Response body after sign-in</CodeLabel>
 
 ```json
 {
   "access_token": "eyJhbGciOi…Qp4w",
-  "token_type": "DPoP",
+  "token_type": "Bearer",
   "expires_in": 3600,
   "refresh_token": "pat_8Hk2…Wq1",
-  "refresh_token_expires_in": 2592000,
-  "scope": "poppy:read poppy:write",
-  "session_id": "ses_2Lm0",
-  "signed_in": true
+  "scope": "orders:read orders:write"
 }
 ```
 
-`refresh_token_expires_in` is the account token's lifetime in seconds, if you set one. After it, the person signs in again ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)).
+The person may have approved fewer scopes than asked, so `scope` says what you granted; you may leave it out only when you granted exactly what was asked. A sign-in grants at least one scope: if the person approves none, it ends as a decline ([spec 4.7](https://personalagentprotocol.org/docs/0.3/spec#scopes)).
 
-You keep a record for each account token: the `client_id`, the user ID, the account, the granted scopes and when it expires. A session is signed in to at most one account, and once it has been, it cannot switch, even after it signs out: answer `account_mismatch`, and the assistant starts a new session. This holds for every kind of sign-in ([spec 4.4](https://personalagentprotocol.org/docs/spec#sign-in)).
+Sign-in does not belong to a session. One sign-in can serve several of the person's sessions, and a session is signed in on each request that carries an access token, with that token's account and scopes. You may refuse a request whose access token is for a different account than its session used before, with `session_ended` ([spec 5.4](https://personalagentprotocol.org/docs/0.3/spec#sign-in)).
 
-### Account tokens
+### Access tokens
 
-The account token stands for the person's approval. It is an OAuth refresh token, and it lets the assistant get signed-in session tokens later without asking the person again ([spec 4.8](https://personalagentprotocol.org/docs/spec#account-tokens)). The assistant sends it to your `token_endpoint` with the `refresh_token` grant, its client assertion and a DPoP proof. With a `session_id`, you return a token for that session, signing it in if it was signed out. Without one, you start a new session that is already signed in ([spec 4.8](https://personalagentprotocol.org/docs/spec#account-tokens)).
+A signed-in request carries the access token in the `Authorization` header, with the scheme `token_type` names, and the Session header next to it, whose `ath` covers the token. Whether you bind access tokens to a key with DPoP (RFC 9449) is your choice, as in plain OAuth. Assistants that support DPoP send a proof with their token requests when your metadata lists `dpop_signing_alg_values_supported`. You then decide for each token whether to bind it, and return `token_type` `Bearer` for one you don't ([spec 4.5](https://personalagentprotocol.org/docs/0.3/spec#access-tokens)).
+
+Without DPoP, a copied token is still of little use: the Session header ties it to the `client_id` it was issued to, and only the assistant can sign that header ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#session-header), [guides: verifying the Session header](https://personalagentprotocol.org/docs/0.3/guides#company-session-header)).
+
+By default, one access token works at all of your services. A service that accepts only tokens issued for it, as MCP servers do, says so in its own protected resource metadata, with a `resource` other than your domain. The assistant then asks for a token with `resource` set to it, and uses that token only there. Accept such a token only at that service, and answer `invalid_target` for a `resource` you do not serve ([spec 4.5](https://personalagentprotocol.org/docs/0.3/spec#access-tokens)). The guides suggest access tokens that last hours, not days ([guides: token lifetimes and sign-out](https://personalagentprotocol.org/docs/0.3/guides#company-lifetimes)).
+
+### Refresh tokens
+
+The refresh token stands for the person's approval. The assistant sends it to your `token_endpoint` with `grant_type=refresh_token` and its client assertion to get new access tokens, without asking the person again. It may ask for fewer scopes than the refresh token has, and for a token for one service with `resource`, never for more ([spec 4.4](https://personalagentprotocol.org/docs/0.3/spec#refresh-tokens)).
 
 <CodeLabel>Request body to your token endpoint (excerpt)</CodeLabel>
 
 ```http
 grant_type=refresh_token
 &refresh_token=pat_8Hk2…Wq1
-&session_id=ses_4Tn8
-&scope=poppy%3Aread
+&scope=orders%3Aread
+&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer
+&client_assertion=eyJhbGciOiJFUzI1NiIs…
 ```
 
-Accept an account token only at your `token_endpoint` and `revocation_endpoint`, and only from the `client_id` it was issued to ([spec 4.8](https://personalagentprotocol.org/docs/spec#account-tokens)).
-
-<details>
-<summary>Details for implementers: the rules for account tokens</summary>
-
-All from the spec ([spec 4.8](https://personalagentprotocol.org/docs/spec#account-tokens)):
-
-- The session must belong to the same `client_id` and user ID as the account token, and must never have been signed in to a different account, even if it is signed out now. Otherwise answer `invalid_session` or `account_mismatch`.
-- `scope` may ask for fewer scopes than the account token has, for example read only access for a lookup. It can never ask for more.
-- Using an account token does not extend its lifetime. You may return a new one in `refresh_token`, and the assistant must use the new one from then on.
-- When an account token has expired or been revoked, answer `invalid_grant`. The session carries on signed out.
-
-</details>
+Using a refresh token does not extend its lifetime. You may return a new one, and the assistant then uses the new one. A refresh token is not tied to a session, so any of the person's sessions can use the access tokens it gets ([spec 4.4](https://personalagentprotocol.org/docs/0.3/spec#refresh-tokens)). When a task needs more than the refresh token allows, the person signs in again and the new refresh token replaces the old one ([spec 4.7](https://personalagentprotocol.org/docs/0.3/spec#scopes)). Answer `invalid_grant` for an expired or revoked refresh token; the assistant then carries on signed out ([spec 5.5](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions)). The guides suggest a lifetime that fits the account, such as 90 days ([guides: token lifetimes and sign-out](https://personalagentprotocol.org/docs/0.3/guides#company-lifetimes)).
 
 ### Signing out and disconnecting
 
-To sign out, the assistant revokes its account token at your `revocation_endpoint` (RFC 7009). Revoke it and sign out every session that used it. Those sessions usually carry on signed out, and can be signed in again only to the same account ([spec 4.9](https://personalagentprotocol.org/docs/spec#sign-out)).
+To sign out, the assistant revokes its refresh tokens at your `revocation_endpoint` (RFC 7009), with `token_type_hint=refresh_token` and its client assertion. The account is signed out once no refresh token you issued to that assistant for it is still valid. Its sessions carry on signed out: the assistant keeps sending the Session header, without an access token ([spec 4.6](https://personalagentprotocol.org/docs/0.3/spec#revocation), [spec 5.5](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions)).
 
-Session tokens issued before sign-out may still work. So you should check on each request whether the session is still signed in, so sign-out takes effect right away. If you do not, you should keep session tokens much shorter, such as a few minutes ([spec 4.9](https://personalagentprotocol.org/docs/spec#sign-out)).
+Access tokens issued before sign-out may still work. The guides suggest invalidating them when their refresh token is revoked, or checking on each request whether the sign-in is still active, so sign-out takes effect right away. If you can do neither, keep access tokens to a few minutes ([spec 5.5](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions), [guides: token lifetimes and sign-out](https://personalagentprotocol.org/docs/0.3/guides#company-lifetimes)).
 
-People can also disconnect an assistant from your account settings. That revokes the assistant's account tokens for that account and signs out its sessions ([spec 4.9](https://personalagentprotocol.org/docs/spec#sign-out)). The guides suggest listing each connected assistant in account settings with its name, domain, scopes and when it was last used, with a control to disconnect each one ([guides: account settings](https://personalagentprotocol.org/docs/guides#company-account-settings)).
+People can also disconnect an assistant from your account settings. That revokes its refresh tokens for the account, and it finds out from `invalid_token` or `invalid_grant` ([spec 5.5](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions)). The guides suggest listing each connected assistant in account settings with its name, domain, scopes and when it was last used, with a control to disconnect each one ([guides: account settings](https://personalagentprotocol.org/docs/0.3/guides#company-account-settings)).
 
 ### If you offer mediated sign-in
 
-In mediated sign-in, the assistant signs in for the person with credentials the person gave it. It is not an OAuth flow ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)). Assistants are told to prefer direct sign-in, then device sign-in, because then the password stays with you ([guides: choosing how to sign in](https://personalagentprotocol.org/docs/guides#agent-choosing-sign-in)).
+In mediated sign-in, the assistant signs in for the person with credentials the person gave it, such as an email and password. In Draft 0.3 it is an extension: an extra grant type at your token endpoint, so it uses OAuth's client authentication, errors and token responses ([mediated sign-in 1](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#intro)).
 
-If you offer it, you must limit how often anyone can try, and you must never return credentials in any response. You should ask for a one-time code when a sign-in looks unusual ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)).
+It is a stopgap. Offer it only until you can add direct or device sign-in, and stop once those cover the scopes it grants. The protocol plans to retire it, on a date set when version 1.0 is published ([mediated sign-in 1](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#intro)). Assistants are told to prefer direct or device sign-in when you offer them ([mediated sign-in 6](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#security)).
+
+To offer it, list the extension in `poppy.json` with the credential fields you need and the scopes it can grant, and list the grant type `https://personalagentprotocol.org/grant/mediated-sign-in` in your issuer's `grant_types_supported` ([mediated sign-in 2](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#support)):
+
+<CodeLabel>Excerpt from poppy.json</CodeLabel>
+
+```json
+"extensions": {
+  "mediated-sign-in": {
+    "version": "1",
+    "fields": [
+      { "name": "email", "label": "Email", "secret": false },
+      { "name": "password", "label": "Password", "secret": true }
+    ],
+    "scopes": ["orders:read"]
+  }
+}
+```
+
+Each field has a `name`, the parameter the assistant sends, which must not clash with an OAuth parameter such as `grant_type` or `scope`; a `label`, what to ask the person for; and `secret`, which marks a value the assistant must protect. Never grant more than the scopes listed here ([mediated sign-in 2](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#support)).
 
 <details>
 <summary>Details for implementers: the mediated sign-in requests</summary>
 
-`auth.mediated` has an `endpoint`, the `fields` you need, and the `scopes` it can grant. Each field has a `name` (the key the assistant sends), a `label` (what to ask the person for), and `secret`, which marks a value the assistant must protect ([spec 3.1](https://personalagentprotocol.org/docs/spec#fields), [spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)).
+The assistant posts to your `token_endpoint` with the grant type, its client assertion, `scope`, and every field as a parameter. If the credentials are right and nothing else is needed, return the token response above ([mediated sign-in 3](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#signing-in)).
 
-The assistant posts the fields in `credentials`, with its `scope` and its current session token ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)):
+If you need a second step, send the person a one-time code and answer HTTP 400 with `code_required`, a `sign_in_id`, `sent_to` (where the code went) and `expires_in`. The assistant then sends the same grant with `sign_in_id` and `one_time_code`, and its client assertion, without the credentials or `scope`. A wrong code gets `code_required` again until your attempt limit, then `invalid_grant`. Only the `client_id` that started a sign-in can finish it ([mediated sign-in 4](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#one-time-codes)).
 
-<CodeLabel>Request: assistant to your sign-in endpoint</CodeLabel>
+Other answers are OAuth errors: `invalid_grant` when sign-in did not succeed, `expired_token` when it took longer than `expires_in`, `access_denied` when you refuse it, and `invalid_scope`. Rate limits are HTTP 429 with `Retry-After` ([mediated sign-in 5](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#errors)).
 
-```http
-POST https://auth.example.com/poppy/sign-in
-Authorization: DPoP eyJhbGciOi…Lm9x
-DPoP: eyJ0eXAiOiJkcG9wK2p3dCIs…
-Content-Type: application/json
-
-{
-  "scope": "poppy:read",
-  "credentials": { "email": "…", "password": "…" }
-}
-```
-
-Every answer has a `status`, and comes with HTTP 200 ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)):
-
-- `complete`: signed in. The answer has the same fields as the sign-in response above.
-- `code_required`: you sent the person a one-time code. The answer has a `sign_in_id`, a `code` object whose `sent_to` says where the code went, and `expires_at`. The assistant then posts only `{ "code": "…" }` to the endpoint address followed by `/` and the `sign_in_id`, such as `https://auth.example.com/poppy/sign-in/sgn_3Hq8`, with a session token for the same session.
-- `failed`: sign-in did not succeed, for example a wrong password, or too many wrong codes. A wrong code answers `code_required` again until your attempt limit.
-- `expired`: the sign-in took longer than `expires_at`.
-
-Once a sign-in is `failed` or `expired`, a code sent to it gets the same status again. Problems with the request itself are errors with a JSON body: `invalid_scope` (400), `account_mismatch` (400), and `sign_in_not_found` (404) for a `sign_in_id` that is unknown or that another session started ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)).
-
-Only the session that started a sign-in can finish it ([spec 4.7](https://personalagentprotocol.org/docs/spec#mediated-sign-in)). The guides add: return the same `failed` answer for an unknown account and a wrong password, ask for a one-time code on an assistant's first mediated sign-in after the person disconnected it, never store raw credentials or codes, and tell the person, for example by email, when an assistant signs in ([guides: mediated sign-in](https://personalagentprotocol.org/docs/guides#company-mediated)).
+The guides add: rate-limit attempts by account, by `client_id` and by network address; return the same `invalid_grant` for an unknown account and a wrong password; ask for a one-time code when a sign-in looks unusual, including an assistant's first mediated sign-in after the person disconnected it; never store raw credentials or codes, logs included; and tell the person, for example by email, when an assistant signs in ([guides: mediated sign-in](https://personalagentprotocol.org/docs/0.3/guides#company-mediated)).
 
 </details>

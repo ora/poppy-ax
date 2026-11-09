@@ -85,17 +85,17 @@ describe("content/rows", () => {
     // them (Tier 0 rows all sit in level 1, but some read fields a later level explains).
     const CROSS_LEVEL: Record<string, string> = {
       "ADV-PKCE": "level-3: S256-only PKCE is taught under direct sign-in",
-      "T0-13": "level-3: scopes and auth.custom_scopes are taught with the sign-in types",
-      "T0-14": "level-3: the auth.mediated entry is taught with mediated sign-in",
+      "T0-13": "level-3: auth.scopes and auth.scope_hints are taught under Describe your scopes",
+      "T0-14": "level-3: the mediated-sign-in extension entry is taught with mediated sign-in",
       "T0-15": "level-4: agent.protocols is taught with conversations",
       "T0-16": "level-2: apis entries are taught under List your APIs",
       "T0-17": "level-2: OpenAPI descriptions are taught under List your APIs",
-      "T0-18": "level-2: MCP protected resource metadata is taught with Bearer tokens for MCP",
+      "T0-18": "level-2: MCP protected resource metadata is taught under MCP servers",
       "T0-20": "level-4: extensions.operations is taught with operations",
-      "T0-22": "level-2: ES256 and dpop_signing_alg_values_supported are taught with DPoP proofs",
+      "T0-22": "level-3: DPoP and dpop_signing_alg_values_supported are taught with access tokens",
       "T1-13": "level-1: feedback.endpoint is taught with the poppy.json fields",
-      "X-01": "level-2: the MCP server's url is taught with Bearer tokens for MCP",
-      "X-12": "level-2: MCP protected resource metadata is taught with Bearer tokens for MCP",
+      "X-01": "level-2: the MCP server's url is taught under MCP servers",
+      "X-12": "level-2: MCP protected resource metadata is taught under MCP servers",
     };
     const unexpected: string[] = [];
     for (const id of fileIds) {
@@ -209,7 +209,7 @@ describe("rowContent", () => {
     expect(content.what_failed.length).toBeGreaterThan(0);
     expect(content.why_it_matters?.length).toBeGreaterThan(0);
     expect(content.setup_step).toBe("/setup#level-1-publish-one-public-file");
-    expect(content.spec_section).toBe("https://personalagentprotocol.org/docs/spec#discovery");
+    expect(content.spec_section).toBe("https://personalagentprotocol.org/docs/0.3/spec#discovery");
   });
 
   it("falls back to the catalog title when a row has no file", () => {
@@ -222,7 +222,7 @@ describe("rowContent", () => {
       what_failed: "Document exists",
       why_it_matters: null,
       setup_step: "/setup#level-1",
-      spec_section: "https://personalagentprotocol.org/docs/spec#discovery",
+      spec_section: "https://personalagentprotocol.org/docs/0.3/spec#discovery",
       body: "",
       source: "fallback",
     });

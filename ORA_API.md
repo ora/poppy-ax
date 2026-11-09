@@ -9,7 +9,7 @@ We wrote it from responses captured from a local Ora instance on 10 and 11 Octob
 - **Base URL:** `https://ora.ai`. In poppy.ax it comes from `ORA_BASE_URL`.
 - **Auth:** `Authorization: Bearer <ORA_SERVICE_TOKEN>`. The token is a partner key that Ora issues with PAP read access (`pap:read`). Send it from the server only. It must never reach a browser, a log line or the repo.
 - **Fixture mode:** with `ORA_FIXTURES=1`, poppy.ax reads `fixtures/` instead of calling Ora.
-- **Spec label:** the checks follow the PAP draft spec. Ora names the draft on its reports, for example "PAP Draft 0.2 (in progress, read 2026-10-19; may change)". The catalog carries the same facts as `profile` (`pap-0.2@2026-10-19`: the version and the day Ora read it), `spec_version` and `draft`. poppy.ax follows the same draft: see [Staying on Ora's draft](README.md#staying-on-oras-draft).
+- **Spec label:** the checks follow the PAP draft spec. Ora names the draft on its reports, for example "PAP Draft 0.3 (published 2026-11-04; Draft 0.4 is being written and may change it)". The catalog carries the same facts as `profile` (`pap-0.3@2026-11-09`: the version and the day Ora read it), `spec_version` and `draft`. poppy.ax follows the same draft: see [Staying on Ora's draft](README.md#staying-on-oras-draft).
 
 | Endpoint | Auth | What it is for |
 | --- | --- | --- |
@@ -262,10 +262,10 @@ Top level:
 | `profile` | The check profile, such as `pap-0.1@2026-10-09`. |
 | `spec_version` | The spec version the checks follow, such as `"0.1"`. |
 | `draft` | `true` while that spec is a draft that may change. |
-| `spec_url` | The PAP spec, `https://personalagentprotocol.org/docs/spec`. |
+| `spec_url` | The frozen page of the spec version the checks follow, such as `https://personalagentprotocol.org/docs/0.3/spec`. |
 | `generated_from` | `"ora"`. |
 | `tier1_policy` | One sentence on when Ora sends Tier 1 requests. Ora sends them only on a scan that asks for active probes, and at most once per target domain every 6 hours. It never sends them to a domain whose verified owner turned them off. |
-| `rows` | Every check, in report order (100 today). |
+| `rows` | Every check, in report order (108 in the recorded catalog). |
 
 Each row:
 

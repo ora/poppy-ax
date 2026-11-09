@@ -91,7 +91,7 @@ describe("buildResultView with the six fixtures", () => {
     expect(view.fixFirst.map((row) => row.id)).toEqual(["T0-11"]);
     const [row] = view.fixFirst;
     expect(row?.setupStep).toMatch(/^\/setup#/);
-    expect(row?.specUrl).toMatch(/^https:\/\/personalagentprotocol\.org\/docs\/spec/);
+    expect(row?.specUrl).toMatch(/^https:\/\/personalagentprotocol\.org\/docs\/0\.3\/spec/);
     expect(row?.note).toBe("the metadata has no poppy_domains");
     expect(row?.whatFailed.length).toBeGreaterThan(0);
     expect(view.passingLine).toBe(false);

@@ -6,7 +6,7 @@ import catalog from "@/fixtures/catalog.json";
 import { content } from "@/lib/content";
 
 // poppy.ax explains the draft Ora's checks grade. The recorded catalog says
-// which one (`profile`, such as "pap-0.2@2026-10-19": the version and the day
+// which one (`profile`, such as "pap-0.3@2026-11-09": the version and the day
 // Ora read it), so every line that names the draft the guide follows has to
 // agree with it. When Ora moves to a new draft, the weekly spec drift watch
 // opens an issue, the catalog is recorded again, and this test fails until the
@@ -33,12 +33,13 @@ describe("the draft poppy.ax follows", () => {
     expect(content.draft.text).toContain(`read ${readOn}`);
     expect(home.status).toContain(`Draft ${version},`);
     const learn = read("content/learn.mdx");
-    expect(learn).toContain(`[Read the official spec](https://personalagentprotocol.org/docs/spec), Draft ${version},`);
-    // "Draft 0.2 is in progress, and this guide follows it": the draft named in the sentence that says which one.
+    expect(learn).toContain(`[Read the official spec](https://personalagentprotocol.org/docs/${version}/spec), Draft ${version},`);
+    // "Draft 0.3, published on November 4, changed a lot, and this guide follows it": the draft named in the sentence that says which one.
     expect(/Draft (\d+\.\d+)[^.]*this guide follows it/.exec(learn)?.[1]).toBe(version);
     const readme = read("README.md");
-    expect(readme).toMatch(new RegExp(`Every page is based on \\[PAP Draft ${version.replace(".", "\\.")}\\]\\(https://personalagentprotocol\\.org/docs/spec\\), which is still in progress \\(read ${readOn};`));
-    expect(readme).toContain(`checked against the spec, Draft ${version} (in progress, read ${readOn})`);
+    const v = version.replace(".", "\\.");
+    expect(readme).toMatch(new RegExp(`Every page is based on \\[PAP Draft ${v}\\]\\(https://personalagentprotocol\\.org/docs/${v}/spec\\), published \\d{4}-\\d{2}-\\d{2} \\(read ${readOn};`));
+    expect(readme).toMatch(new RegExp(`checked against the spec, Draft ${v} \\(published \\d{4}-\\d{2}-\\d{2}, read ${readOn}\\)`));
   });
 
   it("is the version the weekly watch compares with Ora's live catalog", () => {
