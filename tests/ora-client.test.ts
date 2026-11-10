@@ -139,7 +139,7 @@ describe("fixture mode", () => {
   it("serves the sites list and the catalog", async () => {
     expect(await getSites()).toEqual(fixture("sites.json").sites);
     const catalog = await getCatalog();
-    expect(catalog?.rows).toHaveLength(108);
+    expect(catalog?.rows).toHaveLength(111);
     expect(catalog?.profile).toBe("pap-0.3@2026-11-09");
   });
 
@@ -478,7 +478,7 @@ describe("network mode", () => {
     it("returns the catalog without sending the token, cached for an hour", async () => {
       fetchMock.mockResolvedValue(json(200, fixture("catalog.json")));
       const catalog = await getCatalog();
-      expect(catalog?.rows).toHaveLength(108);
+      expect(catalog?.rows).toHaveLength(111);
       expect(calledUrl().pathname).toBe("/pap/catalog.json");
       expect(new Headers(calledInit().headers).has("authorization")).toBe(false);
       expect(calledInit().next).toEqual({ revalidate: 3600 });

@@ -45,6 +45,7 @@
         "T0-02",
         "T0-03",
         "T0-04",
+        "T0-27",
         "T0-05",
         "T0-06",
         "T0-07",
@@ -111,6 +112,7 @@
       "summary": "People sign in with plain OAuth on your own pages, choose what each assistant may do with their account, and can disconnect it later.",
       "size": "Large. Sign-in and consent pages, scope descriptions, refresh tokens, sign out, and an account settings page. Weeks, less if your OAuth server already does most of it.",
       "rows": [
+        "T0-26",
         "T1-01",
         "T2-M5",
         "T2-M4",
@@ -148,6 +150,7 @@
         "T1-15",
         "T1-07",
         "T1-16",
+        "T0-28",
         "T1-09",
         "T2-19",
         "T2-25",

@@ -37,7 +37,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Every redirect hop on the way to poppy.json is HTTPS, and (Draft 0.3) the last URL's path is exactly /.well-known/poppy.json with no query",
+      "pass_when": "Every redirect hop on the way to poppy.json is HTTPS, and for a file declaring 0.3 or later the last URL's path is exactly /.well-known/poppy.json, with no query",
       "replaces": null
     },
     {
@@ -67,7 +67,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1, 0.2, 0.3), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested, and the file is graded by Draft 0.3 except the rows Draft 0.4 changed, which read not tested too",
+      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1, 0.2, 0.3 or 0.4), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested. Draft 0.4 is still in progress, so a file declaring it is graded by its rules as a preview, and a later well-formed version reads not tested with the rest graded as a preview of Draft 0.4. A file declaring an older draft passes with an advisory to move to 0.3, the latest published one, and a preview file with an advisory unless its supported_versions lists a 0.3 document",
       "replaces": null
     },
     {
@@ -97,7 +97,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "The file has at least one interface: an agent object, a non-empty apis array or a web object",
+      "pass_when": "The file has at least one interface: an agent object, a non-empty apis array or a web object. For a file declaring 0.4, web.disabled needs agent or apis too",
       "replaces": null
     },
     {
@@ -113,10 +113,10 @@
       "provisional": false,
       "request": {
         "method": "GET",
-        "target": "https://{organization.domain}/.well-known/oauth-protected-resource",
-        "condition": "when a file declaring 0.3 names the host that served it in organization.domain"
+        "target": "https://{domain}/.well-known/oauth-protected-resource",
+        "condition": "when a file declaring 0.3 or later is served by the host its organization.domain names"
       },
-      "pass_when": "Draft 0.3: the domain's RFC 9728 protected resource metadata, with resource exactly https://{organization.domain}, names the issuer: the one authorization server it lists, or the one auth.issuer chooses when it lists several (auth.issuer, when set, is in that list). A 404, or no authorization server, means no issuer, which passes only with no auth.issuer and no mediated-sign-in extension; another status or metadata that is not valid fails, and a timeout, or a body past Ora's 100 KB read cap (the spec sets no size limit), reads not tested; a bot shield's answer in place of the site (a challenge or a block page) reads blocked. A file declaring 0.1 or 0.2 is graded by its draft instead: auth.issuer is set whenever agent, apis, feedback (0.2) or web.browser_session_endpoint is present",
+      "pass_when": "From Draft 0.3, the issuer comes from the protected resource metadata of https://{organization.domain}, following redirects only within that domain. A 404, or metadata whose resource is that URL and which lists no authorization server, means no issuer, which passes unless auth.issuer, signed_in access or Mediated Sign-In needs one; one server is the issuer (auth.issuer, when set, names it); several need auth.issuer to name one of them. Any other answer fails, a rate limit or server error included, since an agent never falls back to the domain; a bot challenge reads blocked and metadata past Ora's 100 KB read cap reads not tested. For a file declaring 0.1 or 0.2: auth.issuer is set whenever agent, apis, feedback (0.2) or web.browser_session_endpoint is present, N/A when nothing needs sign-in",
       "replaces": null
     },
     {
@@ -131,7 +131,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Every URL field the spec defines, and every string in the file that carries a URL scheme, is an absolute https URL; a feedback block without an endpoint fails too (Drafts 0.2 and 0.3), and so does an excluded_tasks block without a url (Draft 0.3)",
+      "pass_when": "Every URL field the spec defines, and every string in the file that carries a URL scheme, is an absolute https URL. A block that exists to carry its URL (feedback in 0.2 and 0.3, excluded_tasks in 0.3, tasks in 0.4) fails without it, and for a file declaring 0.4 (graded as a preview; 0.3 defines no supported_versions) every supported_versions URL is on the host that served poppy.json",
       "replaces": null
     },
     {
@@ -154,6 +154,25 @@
       "replaces": null
     },
     {
+      "id": "T0-27",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "title": "Other version documents consistent",
+      "spec_ref": "Draft 0.4 §3.4",
+      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#versions",
+      "profile": "pap-0.3@2026-11-09",
+      "implemented": true,
+      "provisional": false,
+      "request": {
+        "method": "GET",
+        "target": "each supported_versions URL in poppy.json",
+        "condition": "when a file declaring 0.4 lists one on the host that served it; up to 3, no redirect followed"
+      },
+      "pass_when": "Draft 0.4 (in progress, graded as a preview): for a file declaring 0.4, each document supported_versions links to answers 200 with no redirect, since an agent must not follow one; declares the protocol_version it is listed under; has no supported_versions of its own; and names the same organization.domain and selects the same issuer as poppy.json, so a new version does not change the Company's identifier. Ora reads at most 3, each on the host that served poppy.json (T0-08 grades entries on another host). Blocked when a bot shield answers; not tested when a document is past Ora's 100 KB read cap or the Company's issuer is not known; N/A without supported_versions, when poppy.json fails a row an agent stops at, or for a file declaring 0.3 or earlier, whose drafts define no supported_versions",
+      "replaces": null
+    },
+    {
       "id": "T0-09",
       "tier": 0,
       "level": "0",
@@ -167,9 +186,9 @@
       "request": {
         "method": "GET",
         "target": "the issuer's RFC 8414 metadata URL",
-        "condition": "when the file has an issuer (Draft 0.3: named by the domain's protected resource metadata; before it, auth.issuer)"
+        "condition": "when the file names an issuer, or from Draft 0.3 its domain's protected resource metadata does"
       },
-      "pass_when": "The issuer's RFC 8414 metadata (/.well-known/oauth-authorization-server for the issuer, following redirects only within the issuer's registrable domain) answers 200 with a JSON object. From Draft 0.2, an issuer whose host resolves to a loopback, private, link-local or other non-public address fails (spec 3), since no agent may connect to it",
+      "pass_when": "The issuer's RFC 8414 metadata (/.well-known/oauth-authorization-server for the issuer, following redirects only within the issuer's registrable domain) answers 200 with a JSON object. For a file declaring 0.2 or later, an issuer whose host resolves to a loopback, private, link-local or other non-public address fails (spec 3), since no agent may connect to it",
       "replaces": null
     },
     {
@@ -184,7 +203,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "The metadata's issuer is exactly the issuer found (Draft 0.3) or auth.issuer (Drafts 0.1 and 0.2)",
+      "pass_when": "The metadata's issuer is exactly the issuer: auth.issuer, or from Draft 0.3 the one T0-07 found",
       "replaces": null
     },
     {
@@ -199,7 +218,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Draft 0.3: the metadata's protected_resources lists https://{organization.domain} with no path, port or trailing slash, the host compared ignoring case. A file declaring 0.1 or 0.2: the metadata's poppy_domains lists organization.domain, case insensitive",
+      "pass_when": "From Draft 0.3, the metadata's protected_resources lists https://{organization.domain}, host case aside. For a file declaring 0.1 or 0.2, its poppy_domains lists organization.domain, case insensitive",
       "replaces": null
     },
     {
@@ -214,7 +233,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Draft 0.3: the metadata has https token_endpoint and revocation_endpoint, a grant_types_supported that includes refresh_token, authorization_endpoint when it lists authorization_code, device_authorization_endpoint when it lists the device code grant, and the Mediated Sign-In grant when poppy.json lists that extension. A file declaring 0.1 or 0.2: https token_endpoint and revocation_endpoint, plus authorization_endpoint when auth.direct is set and device_authorization_endpoint when auth.device is set",
+      "pass_when": "From Draft 0.3, the metadata has https token_endpoint and revocation_endpoint, a grant_types_supported that includes refresh_token, plus authorization_endpoint when that list has authorization_code and device_authorization_endpoint when it has the device_code grant. For a file declaring 0.1 or 0.2: https token_endpoint and revocation_endpoint, plus authorization_endpoint when auth.direct is set and device_authorization_endpoint when auth.device is set",
       "replaces": null
     },
     {
@@ -223,13 +242,13 @@
       "level": "0",
       "severity": "P2",
       "title": "Cache headers",
-      "spec_ref": "guides#both-fetching",
-      "spec_url": "https://personalagentprotocol.org/docs/0.3/guides#both-fetching",
+      "spec_ref": "Draft 0.2 §3.2",
+      "spec_url": "https://personalagentprotocol.org/docs/0.2/spec#oauth-server",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Ora inference, graded P2: the issuer metadata response sends Cache-Control or Expires. The guides tell agents to cache by those headers; nothing binds the Company to send them",
+      "pass_when": "Ora inference, graded P2, for a file declaring 0.1 or 0.2: the issuer metadata response sends Cache-Control or Expires. The spec's caching SHOULD bound agents, not the Company, and Draft 0.3 removed it, so the row reads N/A from 0.3",
       "replaces": null
     },
     {
@@ -237,14 +256,14 @@
       "tier": 0,
       "level": "0",
       "severity": "P1",
-      "title": "DPoP algorithms include ES256",
-      "spec_ref": "§4.5",
-      "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#access-tokens",
+      "title": "Signing algorithms valid",
+      "spec_ref": "§4.1",
+      "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#agent-identity",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Draft 0.2 only: when the issuer metadata lists dpop_signing_alg_values_supported (it may leave it out), the list includes ES256. N/A for a file declaring 0.1, and for Draft 0.3, which leaves DPoP to the Company",
+      "pass_when": "From Draft 0.3, when the issuer metadata lists token_endpoint_auth_signing_alg_values_supported (it may leave it out), the list includes ES256, which every Company accepts for client assertions, and never none; it must be present when token_endpoint_auth_methods_supported lists private_key_jwt or client_secret_jwt (RFC 8414). Draft 0.2: when it lists dpop_signing_alg_values_supported, the list includes ES256. N/A when the list is not given or the file declares 0.1",
       "replaces": null
     },
     {
@@ -260,10 +279,10 @@
       "provisional": false,
       "request": {
         "method": "GET",
-        "target": "each other domain the issuer binds: /.well-known/poppy.json",
-        "condition": "when the issuer binding holds and the issuer lists other domains (in protected_resources; for a file declaring 0.1 or 0.2, in poppy_domains), at most 3"
+        "target": "each other domain the issuer binds (poppy_domains, or protected_resources from Draft 0.3): /.well-known/poppy.json",
+        "condition": "when the issuer binding holds and the issuer lists other domains, at most 3"
       },
-      "pass_when": "Draft 0.3: no other domain in the issuer's protected_resources (the first 3) selects a different issuer in its poppy.json's auth.issuer; other scope descriptions or hints there are noted, never failed. A file declaring 0.2: every other domain in poppy_domains whose poppy.json names the same issuer carries the same auth block (key and scope order aside). N/A when no other domain serves a poppy.json, or the file declares 0.1",
+      "pass_when": "From Draft 0.3, every other domain in the issuer's protected_resources (the first 3) whose poppy.json names an issuer names the same one (with an advisory when it describes a scope both files list differently, spec 3.2 SHOULD), and for a file declaring 0.4 every such domain that lists a browser_session_endpoint sets web.unscoped the same way; a file that names none selects its issuer through its own protected resource metadata, which Ora does not fetch, and reads not tested. Draft 0.2: every other domain in poppy_domains whose poppy.json names the same issuer carries the same auth block (key and scope order aside). N/A when none does or the file declares 0.1",
       "replaces": null
     },
     {
@@ -287,13 +306,13 @@
       "level": "0",
       "severity": "P1",
       "title": "Scopes defined",
-      "spec_ref": "§4.7",
-      "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#scopes",
+      "spec_ref": "§3.1, §4.7",
+      "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#fields",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Draft 0.3: auth.scopes, when present, maps each scope to a string description, and every auth.scope_hints entry has changes and a boolean personal_data (a changes value other than none, reversible or irreversible is noted); N/A when neither is set. A file declaring 0.1 or 0.2: each sign-in type in auth lists scopes, each poppy:read, poppy:write or a key of auth.custom_scopes, and every custom scope has a description and no poppy: prefix",
+      "pass_when": "From Draft 0.3, each Company defines its own scopes: every auth.scopes entry has a description, and every auth.scope_hints entry has a changes value and a boolean personal_data, and for a file declaring 0.4 web.unscoped comes with a browser_session_endpoint (N/A when none of these is set). For a file declaring 0.1 or 0.2: each sign-in type in auth (direct, device, mediated) lists scopes, each poppy:read, poppy:write or a key of auth.custom_scopes; every custom scope has a description and no poppy: prefix",
       "replaces": null
     },
     {
@@ -302,13 +321,13 @@
       "level": "0",
       "severity": "P1",
       "title": "Mediated sign-in well formed",
-      "spec_ref": "Mediated §2",
+      "spec_ref": "Mediated Sign-In §2",
       "spec_url": "https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#support",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Draft 0.3: extensions.mediated-sign-in has version \"1\", a non-empty fields list (each with a name the grant does not already use, a label and a boolean secret) and scopes. Another version reads N/A, since agents ignore an extension version they do not support (spec 3.3); an entry with no version string fails. A file declaring 0.1 or 0.2: auth.mediated has an https endpoint, fields and scopes",
+      "pass_when": "From Draft 0.3, Mediated Sign-In is an extension: its version 1 entry has a non-empty fields list (each with a label, a boolean secret and a name that is no OAuth or extension parameter) and scopes, and the issuer's grant_types_supported lists its grant when the metadata was read (T0-24 grades it next to auth.disabled). For a file declaring 0.1 or 0.2: auth.mediated has an https endpoint, a non-empty fields list (each with a name, a label and a boolean secret) and scopes",
       "replaces": null
     },
     {
@@ -323,7 +342,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Every extension name is either one the protocol defines (Draft 0.3: operations, mediated-sign-in, links, disclosures, ucp; before it, operations) or prefixed with a domain (example.com/name), and every extension has a version",
+      "pass_when": "Every extension name is one the protocol defines (operations; mediated-sign-in, links, disclosures and ucp from Draft 0.3; browser-control from Draft 0.4) or is prefixed with a domain (example.com/name), and every extension carries a version (from Draft 0.4, a list of entries that each carry one)",
       "replaces": null
     },
     {
@@ -331,14 +350,14 @@
       "tier": 0,
       "level": "0",
       "severity": "P1",
-      "title": "Operations advertised fully",
+      "title": "Extensions advertised fully",
       "spec_ref": "Ops §2",
       "spec_url": "https://personalagentprotocol.org/docs/0.3/extensions/operations#support",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Draft 0.3: extensions.operations has version \"2\", which needs no endpoint. Another version (the older drafts' 1 included) reads N/A, since agents ignore an extension version they do not support (spec 3.3); an entry with no version string fails. A file declaring 0.1 or 0.2: version \"1\" and an https endpoint",
+      "pass_when": "From Draft 0.3, extensions.operations has the version the draft defines, \"2\" in 0.3 and \"3\" in 0.4 (with no entry at that version, agents ignore it and the row reads N/A); in 0.4 an operations entry with an endpoint has an https one, and an operations endpoint comes with web.browser_session_endpoint (a browser-control entry without one is an advisory note). For a file declaring 0.1 or 0.2: operations version \"1\" and an https endpoint",
       "replaces": null
     },
     {
@@ -346,14 +365,44 @@
       "tier": 0,
       "level": "0",
       "severity": "P1",
-      "title": "Sign-in switched off consistently",
-      "spec_ref": "§3.2",
+      "title": "Switched off consistently",
+      "spec_ref": "§3.2, §6",
       "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#oauth-server",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Draft 0.3: auth.disabled, when set, is true or false, and a file that sets it to true lists neither the mediated-sign-in extension nor a conversation entry with access set to signed_in. N/A when it is not set, or the file declares 0.1 or 0.2",
+      "pass_when": "From Draft 0.3: auth.disabled, when set, is true or false, and a file that sets it to true lists neither the Mediated Sign-In extension nor a conversation entry with access set to signed_in; for a file declaring 0.4, web.disabled set to true comes with no browser_session_endpoint. N/A when neither is set, or the file declares 0.1 or 0.2",
+      "replaces": null
+    },
+    {
+      "id": "T0-26",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "title": "Offered scopes described",
+      "spec_ref": "§4.7",
+      "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#scopes",
+      "profile": "pap-0.3@2026-11-09",
+      "implemented": true,
+      "provisional": false,
+      "request": null,
+      "pass_when": "From Draft 0.3, every scope in the issuer's scopes_supported has a description, in auth.scopes or in the OAuth flows of a listed OpenAPI document, so an agent can ask for only what a task needs; a scope agents cannot request can be left out of scopes_supported. The spec says SHOULD; Ora weighs it for user experience, so a gap warns and never fails the check. OpenID Connect's standard scopes (openid, profile, email, address, phone, offline_access) are skipped. Not tested when a scope is still undescribed and a listed OpenAPI document could not be read, or the file lists the UCP extension, whose profile may hold the description; N/A when there is no issuer, the metadata lists no other scope, or the file declares 0.1 or 0.2",
+      "replaces": null
+    },
+    {
+      "id": "T0-28",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "title": "Browser sign-in scope listed",
+      "spec_ref": "Draft 0.4 §6",
+      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#web-browsing",
+      "profile": "pap-0.3@2026-11-09",
+      "implemented": true,
+      "provisional": false,
+      "request": null,
+      "pass_when": "Draft 0.4 (in progress, graded as a preview): when the file lists web.browser_session_endpoint and the Company offers sign-in, the issuer's scopes_supported lists poppy:browser-sign-in. The Company must support that scope (section 6) and should list every scope an agent can request (section 3.2), so a missing entry warns and never fails the check. Not tested when the issuer's metadata has no scopes_supported; N/A without a browser join, with auth.disabled set to true, with no issuer, or for a file declaring another draft",
       "replaces": null
     },
     {
@@ -362,13 +411,13 @@
       "level": "0",
       "severity": "P1",
       "title": "Conversation entries",
-      "spec_ref": "§3.1, §3.2",
+      "spec_ref": "§3.1",
       "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#fields",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "agent.protocols is a non-empty list, each entry with a type and an https endpoint; (Draft 0.3) a poppy entry with access set to signed_in needs an issuer",
+      "pass_when": "agent.protocols is a non-empty list, each entry with a type and an https endpoint",
       "replaces": null
     },
     {
@@ -377,13 +426,13 @@
       "level": "0",
       "severity": "P1",
       "title": "API entries",
-      "spec_ref": "§3.1, §7",
+      "spec_ref": "§3.1",
       "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#fields",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "apis is a non-empty list, each entry with a type, an https url and a description. Draft 0.3 allows any type (agents skip ones they do not know); a file declaring 0.1 or 0.2 needs openapi or mcp",
+      "pass_when": "apis is a non-empty list, each entry with a type (openapi or mcp for a file declaring 0.1 or 0.2, any type from 0.3), an https url and a description",
       "replaces": null
     },
     {
@@ -421,7 +470,7 @@
         "target": "each MCP server's RFC 9728 metadata",
         "condition": "when the file lists MCP servers, at most 3"
       },
-      "pass_when": "Draft 0.3: the RFC 9728 protected resource metadata of each listed MCP server (the first 3) names the server's url as its resource, and when it lists authorization servers, the Company's issuer is one of them. A file declaring 0.1 or 0.2: authorization_servers lists auth.issuer, and (0.2) includes ES256 when it lists dpop_signing_alg_values_supported",
+      "pass_when": "From Draft 0.3, the RFC 9728 protected resource metadata at each listed MCP server's own well-known URL (the first 3) names the server's url as its resource, and lists the issuer in authorization_servers when it lists any; a server whose metadata URL answers 404 offers no account access and is not counted. For a file declaring 0.1 or 0.2, the metadata lists auth.issuer in authorization_servers, and (0.2) includes ES256 when it lists dpop_signing_alg_values_supported",
       "replaces": null
     },
     {
@@ -430,7 +479,7 @@
       "level": "0",
       "severity": "P1",
       "title": "Excluded tasks document",
-      "spec_ref": "§9.1",
+      "spec_ref": "Draft 0.3 §9.1",
       "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#excluded-tasks",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
@@ -440,7 +489,7 @@
         "target": "excluded_tasks.url in poppy.json",
         "condition": "when a file declaring 0.3 lists one"
       },
-      "pass_when": "Draft 0.3: the excluded tasks document answers 200 with a JSON object whose tasks list gives each task a task phrase; an alternative has instructions or references, and an openapi or mcp reference names an API the file lists. A document past Ora's 100 KB read cap reads not tested, since the spec sets no size limit. N/A when the file lists none, or declares 0.1 or 0.2",
+      "pass_when": "Draft 0.3: the excluded tasks document answers 200 with a JSON object whose tasks list gives each task a task phrase; an alternative has instructions or references, and an openapi or mcp reference names an API the file lists. A document past Ora's 100 KB read cap reads not tested, since the spec sets no size limit. N/A when the file lists none or declares another draft (Draft 0.4 serves excluded tasks per Session, behind tasks.endpoint)",
       "replaces": null
     },
     {
@@ -486,10 +535,10 @@
       "provisional": false,
       "request": {
         "method": "GET",
-        "target": "each other domain the issuer binds: /.well-known/poppy.json",
-        "condition": "when the issuer binding holds and the issuer lists other domains (in protected_resources; for a file declaring 0.1 or 0.2, in poppy_domains), at most 3"
+        "target": "each other domain the issuer binds (poppy_domains, or protected_resources from Draft 0.3): /.well-known/poppy.json",
+        "condition": "when the issuer binding holds and the issuer lists other domains, at most 3"
       },
-      "pass_when": "Ora consistency check, not a spec requirement: each other domain the issuer binds (the first 3) serves a poppy.json; before Draft 0.3 it must also name the same issuer, and for a file declaring 0.2 a www. host counts as its own domain",
+      "pass_when": "Ora consistency check, not a spec requirement: each other domain the issuer binds (the first 3) serves a poppy.json naming the same issuer, or from Draft 0.3 naming none; for a file declaring 0.2 or later a www. host counts as its own domain",
       "replaces": null
     },
     {
@@ -504,7 +553,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Ora consistency check, not a spec requirement: for a file declaring 0.1 or 0.2, the site's protected resource metadata (auth.md) lists the PAP issuer in authorization_servers. N/A for Draft 0.3, which finds the issuer in that metadata itself (T0-07)",
+      "pass_when": "Ora consistency check, not a spec requirement: for a file declaring 0.1 or 0.2, the site's protected resource metadata (auth.md) lists the PAP issuer in authorization_servers. N/A from Draft 0.3, whose issuer comes from that same metadata",
       "replaces": null
     },
     {
@@ -519,7 +568,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Ora consistency check, not a spec requirement: for a file declaring 0.1 or 0.2, the site serves one authorization server metadata document, the PAP issuer's. N/A for Draft 0.3, which lets the domain list several authorization servers",
+      "pass_when": "Ora consistency check, not a spec requirement: for a file declaring 0.1 or 0.2, the site serves one authorization server metadata document, the PAP issuer's. N/A from Draft 0.3, which allows several authorization servers",
       "replaces": null
     },
     {
@@ -534,7 +583,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Ora consistency check, not a spec requirement: where the PAP issuer also serves auth.md's agent_auth, grant_types_supported lists every grant both protocols send to its token endpoint",
+      "pass_when": "Ora consistency check, not a spec requirement: where the PAP issuer also serves auth.md's agent_auth, grant_types_supported lists every grant both protocols send to its token endpoint (from Draft 0.3, PAP's are refresh_token and Mediated Sign-In's grant when listed)",
       "replaces": null
     },
     {
@@ -566,9 +615,9 @@
       "request": {
         "method": "POST",
         "target": "the token endpoint in the issuer's metadata",
-        "condition": "when the file has an issuer whose metadata has a token endpoint"
+        "condition": "when the file has an issuer whose metadata has a token endpoint on the scanned domain (or, for a file declaring 0.1 or 0.2, on a bound issuer's domain)"
       },
-      "pass_when": "Answers invalid_grant, invalid_client or unauthorized_client, or a DPoP proof error (for a file declaring 0.1 or 0.2: invalid_client (401), invalid_grant (400) or a DPoP proof error (400)). Ora also passes invalid_request at any 4xx status, with an advisory note, and for a file declaring 0.1 or 0.2 any of its codes at a status other than the one its spec 4.2 table lists",
+      "pass_when": "Answers invalid_grant, invalid_client or unauthorized_client, or a DPoP proof error; a 403 extension_required reads not tested (for a file declaring 0.1 or 0.2: invalid_client (401), invalid_grant (400) or a DPoP proof error (400)). Ora also passes invalid_request at any 4xx status, with an advisory note, and for a file declaring 0.1 or 0.2 any of its codes at a status other than the one its spec 4.2 table lists",
       "replaces": null
     },
     {
@@ -598,11 +647,11 @@
       "implemented": true,
       "provisional": false,
       "request": {
-        "method": "POST",
-        "target": "one conversation endpoint that poppy.json lists for the poppy protocol (the first in alphabetical order)",
+        "method": "GET",
+        "target": "{endpoint}/ora_probe/events on one conversation endpoint that poppy.json lists for the poppy protocol (the first in alphabetical order); for a file declaring 0.1 or 0.2, a POST to the endpoint itself",
         "condition": "when the file lists one"
       },
-      "pass_when": "Answers 400 invalid_session, since a conversation needs a Session header (a 400 invalid_request reads not tested; for a file declaring 0.1 or 0.2, 401 with a DPoP challenge). For a file declaring 0.1 or 0.2 it offers no Bearer challenge (one offered next to DPoP still fails)",
+      "pass_when": "Answers 400 with invalid_session in a JSON body (for a file declaring 0.4, a 400 version_unsupported reads not tested, since Poppy-Version may be checked first, and a 403 extension_required reads not tested from 0.3); for a file declaring 0.1 or 0.2, 401 with a DPoP challenge; a conversation_not_found answer fails, since the endpoint looked the conversation up without a Session header, and for a file declaring 0.1 or 0.2 offers no Bearer challenge (one offered next to DPoP still fails)",
       "replaces": null
     },
     {
@@ -621,7 +670,7 @@
         "target": "one MCP server that poppy.json lists (the first in alphabetical order)",
         "condition": "when the file lists one"
       },
-      "pass_when": "Answers 401 with resource_metadata on every challenge it offers (for a file declaring 0.2, a challenge for MCP clients plus a DPoP challenge when the server's RFC 9728 metadata lists DPoP algorithms; for 0.1, a 401 when the metadata is at the well-known URI also passes); a server that answers 400 invalid_session, completes initialize with no token, or rejects it with the 400 and MCP error of a server that speaks only MCP 2026-07-28 has no 401 challenge to grade, so the row reads not tested",
+      "pass_when": "Answers 401 with resource_metadata on every Bearer or DPoP challenge. For a file declaring 0.2: a Bearer challenge, plus a DPoP challenge when the server's RFC 9728 metadata lists DPoP algorithms, each with resource_metadata pointing at that metadata; for 0.1, a 401 when the metadata is at the well-known URI also passes. A server that completes initialize with no token, refuses it before any token check with 400 invalid_session (0.3 and later), 400 version_unsupported (0.4), or 403 extension_required (in WWW-Authenticate for 0.3, in a JSON body for 0.4), or rejects it with the 400 and MCP error of a server that speaks only MCP 2026-07-28 has no 401 challenge to grade, so the row reads not tested",
       "replaces": null
     },
     {
@@ -638,9 +687,9 @@
       "request": {
         "method": "GET",
         "target": "web.browser_session_endpoint in poppy.json",
-        "condition": "when a file declaring 0.3 lists one"
+        "condition": "when a file declaring 0.3 or later lists one"
       },
-      "pass_when": "Answers 200 with a form holding a code, a cookie that ties the code to the browser (SameSite Strict or Lax, no Domain attribute; the guides name it __Host-poppy_join), Cache-Control: no-store, frame-ancestors 'none' (or X-Frame-Options: DENY) and a Cross-Origin-Opener-Policy that severs the opener",
+      "pass_when": "Answers 200 with a form holding a code, a cookie that ties the code to the browser (SameSite Strict or Lax, and a __Host- name, since spec 6 says other hosts on the domain must not be able to set the cookie and only that prefix ensures it), Cache-Control: no-store, frame-ancestors 'none' (or X-Frame-Options: DENY) and a Cross-Origin-Opener-Policy that severs the opener",
       "replaces": null
     },
     {
@@ -676,9 +725,9 @@
       "request": {
         "method": "POST",
         "target": "web.browser_session_endpoint in poppy.json, followed by /authorize",
-        "condition": "when a file declaring 0.3 lists one"
+        "condition": "when a file declaring 0.3 or later lists one"
       },
-      "pass_when": "Answers 400 invalid_session (a 400 invalid_request reads not tested)",
+      "pass_when": "Answers 400 invalid_session (a 400 invalid_request, a 403 extension_required, or for a file declaring 0.4 a 400 version_unsupported, reads not tested)",
       "replaces": null
     },
     {
@@ -687,8 +736,8 @@
       "level": "1",
       "severity": "P2",
       "title": "Operations endpoint requires a token",
-      "spec_ref": "Ops §2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.3/extensions/operations#support",
+      "spec_ref": "Draft 0.2 Ops §2",
+      "spec_url": "https://personalagentprotocol.org/docs/0.2/extensions/operations#support",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
@@ -697,7 +746,7 @@
         "target": "the operations endpoint, with a made up operation id",
         "condition": "when a file declaring 0.1 or 0.2 advertises the operations extension"
       },
-      "pass_when": "Answers 401. For a file declaring 0.1 or 0.2 it offers no Bearer challenge (one offered next to DPoP still fails)",
+      "pass_when": "Answers 401, and for a file declaring 0.1 or 0.2 offers no Bearer challenge (one offered next to DPoP still fails)",
       "replaces": null
     },
     {
@@ -706,8 +755,8 @@
       "level": "1",
       "severity": "P1",
       "title": "Feedback endpoint requires a token",
-      "spec_ref": "§9.3",
-      "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#feedback",
+      "spec_ref": "Draft 0.2 §8",
+      "spec_url": "https://personalagentprotocol.org/docs/0.2/spec#feedback",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
@@ -716,7 +765,7 @@
         "target": "feedback.endpoint in poppy.json",
         "condition": "when a file declaring 0.2 lists one"
       },
-      "pass_when": "Answers 401 with a DPoP challenge. For a file declaring 0.1 or 0.2 it offers no Bearer challenge (one offered next to DPoP still fails)",
+      "pass_when": "Answers 401 with a DPoP challenge, and for a file declaring 0.1 or 0.2 offers no Bearer challenge (one offered next to DPoP still fails)",
       "replaces": null
     },
     {
@@ -731,7 +780,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "From Draft 0.2: every probed endpoint (token, conversation, MCP, operations, feedback, and from 0.3 the browser join's /authorize; never the join page or its form, which a browser loads and follows) answers without a redirect, since an agent sends no token, Session header, assertion or credentials to the URL a protocol endpoint redirects to. N/A for a file declaring 0.1, which ADV-REDIRECT grades",
+      "pass_when": "From Draft 0.2: every probed endpoint (token, conversation, MCP, operations, feedback, and from Draft 0.3 the browser join's /authorize; never the join page or form, whose success is a redirect) answers without a redirect, since an agent sends no token, Session header, DPoP proof, assertion or credentials to the URL a protocol endpoint redirects to. N/A for a file declaring 0.1, which ADV-REDIRECT grades",
       "replaces": null
     },
     {
@@ -740,13 +789,13 @@
       "level": "1",
       "severity": "Adv",
       "title": "Endpoint answers without a redirect",
-      "spec_ref": "guides",
-      "spec_url": "https://personalagentprotocol.org/docs/0.3/guides",
+      "spec_ref": "Draft 0.1 guides#agent-dpop",
+      "spec_url": "https://personalagentprotocol.org/docs/0.1/guides#agent-dpop",
       "profile": "pap-0.3@2026-11-09",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "For a file declaring 0.1: every probed endpoint answers without a redirect, as the 0.1 guides recommend (each hop would need a fresh DPoP proof). N/A for a later draft, which T1-14 grades",
+      "pass_when": "For a file declaring 0.1: every probed endpoint answers without a redirect, as the 0.1 guides recommend (each hop would need a fresh DPoP proof). N/A for a file declaring 0.2 or later, which T1-14 grades",
       "replaces": null
     },
     {
