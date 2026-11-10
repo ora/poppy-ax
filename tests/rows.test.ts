@@ -92,7 +92,7 @@ describe("content/rows", () => {
       "T0-17": "level-2: OpenAPI descriptions are taught under List your APIs",
       "T0-18": "level-2: MCP protected resource metadata is taught under MCP servers",
       "T0-20": "level-4: extensions.operations is taught with operations",
-      "T0-22": "level-3: DPoP and dpop_signing_alg_values_supported are taught with access tokens",
+      "T0-22": "level-3: client assertion signing algorithms are taught with choosing how people sign in",
       "T1-13": "level-1: feedback.endpoint is taught with the poppy.json fields",
       "X-01": "level-2: the MCP server's url is taught under MCP servers",
       "X-12": "level-2: MCP protected resource metadata is taught under MCP servers",
