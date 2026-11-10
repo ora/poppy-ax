@@ -1,6 +1,6 @@
 ## What Poppy is
 
-Poppy, short for the Personal Agent Protocol, is an open standard for how a person's AI assistant works with a company. The assistant finds the company's front door, says who it is, and uses the person's account only within what that person approved. Its authors call it "Poppy for short" ([spec](https://personalagentprotocol.org/docs/spec#intro)). Some news coverage calls it PAP.
+Poppy, short for the Personal Agent Protocol, is an open standard for how a person's AI assistant works with a company. The assistant finds the company's front door, says who it is, and uses the person's account only within what that person approved. Its authors call it "Poppy for short" ([spec](https://personalagentprotocol.org/docs/0.3/spec#intro)). Some news coverage calls it PAP.
 
 ## The problem it solves
 
@@ -12,33 +12,33 @@ That leaves companies with two bad choices. They can block the assistant. Or the
 
 ### A front door anyone can find
 
-The company publishes one public file, `poppy.json`, at a fixed address on its website ([spec](https://personalagentprotocol.org/docs/spec#discovery)). The file says where assistants should go and how customers sign in. The company's sign-in server, the service that runs its logins, confirms that the file belongs to it ([spec](https://personalagentprotocol.org/docs/spec#oauth-server)).
+The company publishes one public file, `poppy.json`, at a fixed address on its website ([spec](https://personalagentprotocol.org/docs/0.3/spec#discovery)). The file says where assistants should go and what they can use there: the company's tools, its website, or its own AI agent. If the company lets customers sign in, its sign-in server, the service that runs its logins, confirms that the file belongs to it ([spec](https://personalagentprotocol.org/docs/0.3/spec#oauth-server)).
 
-### A key for each assistant
+### A signature on every request
 
-The assistant says who it is and starts a visit, which the spec calls a session ([spec](https://personalagentprotocol.org/docs/spec#starting-sessions)). Signed out, it can already do guest tasks, such as checking stock or a returns policy. It gets a short-lived key, called a token. The key is tied to a secret only that assistant holds, so a copy is no use to anyone else ([spec](https://personalagentprotocol.org/docs/spec#sending-tokens)).
+The assistant says who it is on every request, in a signed note that also names the visit, which the spec calls a session, and the person it is acting for ([spec](https://personalagentprotocol.org/docs/0.3/spec#session-header)). The person is known only by an ID the assistant makes for this company, so signed out, the company can recognise them without knowing who they are ([spec](https://personalagentprotocol.org/docs/0.3/spec#user-ids)). Signed out, the assistant can already do guest tasks, such as checking stock or a returns policy. Each note is signed with a key only that assistant holds and is good for one request, so a copy is no use to anyone else ([spec](https://personalagentprotocol.org/docs/0.3/spec#session-header)).
 
 ### The customer says yes
 
-When a task needs the customer's account, the customer signs in, usually on the company's own page. There they approve what the assistant may do, such as view orders or make changes ([spec](https://personalagentprotocol.org/docs/spec#sign-in)). This works like the familiar "Sign in with..." approval screen, a standard called OAuth. The key then covers only what the customer approved. Think of a valet key: it starts the car, but it won't open the trunk.
+When a task needs the customer's account, the customer signs in, usually on the company's own page. There they approve what the assistant may do, such as view orders or make changes ([spec](https://personalagentprotocol.org/docs/0.3/spec#sign-in)). This is the familiar "Sign in with..." approval screen, a standard called OAuth, and the company can usually keep the sign-in server it already runs ([spec](https://personalagentprotocol.org/docs/0.3/spec#oauth)). The assistant then gets a key, called a token, that covers only what the customer approved ([spec](https://personalagentprotocol.org/docs/0.3/spec#scopes)). Think of a valet key: it starts the car, but it won't open the trunk.
 
-### One exception, for tool servers
+### Tools stay as they are
 
-Some assistants reach a company's tools through MCP (Model Context Protocol), a common way to plug tools into AI assistants. Many MCP servers can't check the assistant's secret yet. For those, a key made for one MCP server works at that one server only. New MCP servers should check the secret, like the company's other tools ([spec](https://personalagentprotocol.org/docs/spec#sending-tokens)).
+Some assistants reach a company's tools through MCP (Model Context Protocol), a common way to plug tools into AI assistants. An MCP server can take part in Poppy like any other tool, and a key made for one MCP server works at that one server only ([spec](https://personalagentprotocol.org/docs/0.3/spec#apis)).
 
 ## What changes
 
-**For customers.** When customers sign in on the company's own page, the assistant never sees their password. A company may also allow mediated sign-in. There, the customer gives their sign-in details to the assistant, and it signs in for them ([spec](https://personalagentprotocol.org/docs/spec#mediated-sign-in)). Either way, customers can disconnect an assistant from their account settings ([spec](https://personalagentprotocol.org/docs/spec#sign-out)).
+**For customers.** When customers sign in on the company's own page, the assistant never sees their password. A company may also allow mediated sign-in, for now. There, the customer gives their sign-in details to the assistant, and it signs in for them ([mediated sign-in](https://personalagentprotocol.org/docs/0.3/extensions/mediated-sign-in#intro)). The authors treat this as a stopgap and plan to retire it ([roadmap](https://personalagentprotocol.org/docs/roadmap#mediated-sign-in)). Either way, customers can disconnect an assistant from their account settings ([spec](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions)).
 
-**For companies.** You keep your own login, your own rules, and a record of what each assistant may do. Assistants get one way in that works the same at every company that supports Poppy. You still decide which assistants you let in ([spec](https://personalagentprotocol.org/docs/spec#agent-identity)).
+**For companies.** You keep your own login, your own rules, and a record of what each assistant may do. Assistants get one way in that works the same at every company that supports Poppy. You still decide which assistants you let in ([spec](https://personalagentprotocol.org/docs/0.3/spec#agent-identity)).
 
 ## Where it stands
 
-- Meta and Sierra announced Poppy on October 6, 2026 ([Sierra](https://sierra.ai/blog/introducing-personal-agent-protocol)). They published Draft 0.1 of the spec on October 9 ([Sierra](https://sierra.ai/blog/poppy)). Draft 0.2 is in progress, and this guide follows it ([changelog](https://personalagentprotocol.org/docs/changelog)).
-- It is a draft. Any part of it can still change, including in ways that break what came before ([spec](https://personalagentprotocol.org/docs/spec#intro)).
+- Meta and Sierra announced Poppy on October 6, 2026 ([Sierra](https://sierra.ai/blog/introducing-personal-agent-protocol)). They published Draft 0.1 of the spec on October 9 ([Sierra](https://sierra.ai/blog/poppy)), and Draft 0.2 on October 24. Draft 0.3, published on November 4, changed a lot, and this guide follows it ([changelog](https://personalagentprotocol.org/docs/changelog#v0-3)). Draft 0.4 is being written now; its authors expect it to be much smaller ([path to 1.0](https://personalagentprotocol.org/docs/path-to-1)).
+- It is a draft. Any part of it can still change, including in ways that break what came before ([spec](https://personalagentprotocol.org/docs/0.3/spec#intro)).
 - They are building it with partners including Shopify, Stripe and Walmart. Another 35 design partners, such as OpenAI, Visa and PayPal, give feedback on the design ([Sierra](https://sierra.ai/blog/poppy)).
-- A reference implementation, working code for developers to start from, is promised but not yet published ([Sierra](https://sierra.ai/blog/poppy)).
-- Some topics are still open, including payments, push notifications and attachments ([open topics](https://personalagentprotocol.org/docs/path-to-1#open-topics)).
+- The authors publish an implementation kit for companies: instructions a coding agent follows to build it, and a test tool that checks a company's setup. The kit already follows Draft 0.4 ([implementation kit](https://personalagentprotocol.org/kit/company#install)).
+- Some topics are still open, including payments, push notifications and attachments ([roadmap](https://personalagentprotocol.org/docs/roadmap)).
 - Almost no company supports it yet. [The sites list](/sites) shows every site Ora has seen publishing the file.
 
 ## Words to know
@@ -47,19 +47,20 @@ Some assistants reach a company's tools through MCP (Model Context Protocol), a 
 - **Company**: the business the assistant visits, such as a shop, an airline or a bank.
 - **poppy.json**: the one public file a company publishes, so assistants can find its front door.
 - **Sign-in**: the step where a customer logs in to their account and approves what the assistant may do.
-- **Permissions**: what the customer lets the assistant do, such as view orders or make changes. The spec calls these scopes.
+- **Permissions**: what the customer lets the assistant do, such as view orders or make changes. The spec calls these scopes, and each company names its own.
+- **Session**: one person's visit at one company through one assistant, signed in or not.
 - **Disconnect**: taking an assistant's access away in your account settings, so its key stops working.
 
 ## Often mixed up with
 
-- **MCP and OpenAPI**: ways for an assistant to call a company's tools. Poppy lists them in `poppy.json`, but it doesn't replace them ([spec](https://personalagentprotocol.org/docs/spec#apis)). A company that only runs an MCP server still needs the public file and the sign-in steps to support Poppy.
+- **MCP and OpenAPI**: ways for an assistant to call a company's tools. Poppy lists them in `poppy.json`, but it doesn't replace them ([spec](https://personalagentprotocol.org/docs/0.3/spec#apis)). A company that only runs an MCP server still needs the public file, and the signed requests, to support Poppy.
 - **Shopping protocols, such as UCP**: these cover shopping and checkout. Sierra calls Poppy complementary: it covers who the assistant is and what it may do, for any kind of task ([Sierra](https://sierra.ai/blog/poppy)).
-- **Payment protocols, such as AP2**: these cover paying. Poppy leaves payments open for now ([open topics](https://personalagentprotocol.org/docs/path-to-1#open-topics)).
+- **Payment protocols, such as AP2**: these cover paying. Poppy leaves payments open for now ([roadmap](https://personalagentprotocol.org/docs/roadmap)).
 - **PACT**: a separate proposal from Decagon and Instinct, published the same day as Poppy. Decagon has said it is joining the Poppy working group. How the two fit together is not settled yet.
 - **AI Catalog**: a list of the tools a company offers to agents, in a file called `ai-catalog.json`. It doesn't cover sign-in, which is the part Poppy adds.
 
 ## For developers
 
-- [Read the official spec](https://personalagentprotocol.org/docs/spec), Draft 0.2, still in progress.
-- [See the open topics](https://personalagentprotocol.org/docs/path-to-1#open-topics) the authors haven't settled yet.
+- [Read the official spec](https://personalagentprotocol.org/docs/0.3/spec), Draft 0.3, published on November 4, 2026. Draft 0.4 is in progress.
+- [See the roadmap](https://personalagentprotocol.org/docs/roadmap) of topics the authors haven't settled yet.
 - [Set it up on your site](/setup), one level at a time, from one public file to signed-in flows.

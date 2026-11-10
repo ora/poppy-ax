@@ -2,5 +2,5 @@
 what_failed: "The issuer's OAuth metadata says it accepts the plain PKCE method."
 why_it_matters: "The guides advise accepting PKCE with S256 only, and rejecting plain, on the pages where people approve access."
 setup_step: "/setup#level-3-direct-sign-in"
-spec_section: "https://personalagentprotocol.org/docs/guides"
+spec_section: "https://personalagentprotocol.org/docs/0.3/guides#company-consent"
 ---

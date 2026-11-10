@@ -7,7 +7,7 @@ test.describe("home", () => {
   test("renders the promise and the domain box goes to the result page", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Give your customers' AI assistants a valet key.");
-    await expect(page.getByText("Based on Poppy Draft 0.2 (in progress, read 2026-10-19)").first()).toBeVisible();
+    await expect(page.getByText("Based on Poppy Draft 0.3 (published 2026-11-04, read 2026-11-09)").first()).toBeVisible();
 
     await page.getByLabel("Is a site ready for Poppy?").fill("https://www.Example.com/");
     await page.getByRole("button", { name: "Check", exact: true }).click();
@@ -161,7 +161,8 @@ test.describe("result pages", () => {
     await first.getByText("Technical details").click();
     await expect(note).toBeVisible();
     await expect(first.getByRole("heading")).toContainText("Domain binding");
-    await expect(first).toContainText("poppy_domains in the issuer's OAuth metadata does not include organization.domain.");
+    // The recorded scan declares 0.1, which the row explains in its own sentence.
+    await expect(first).toContainText("For 0.1 and 0.2 files, poppy_domains does not list organization.domain.");
     const fix = first.getByRole("link", { name: "How to fix it" });
     await expect(fix).toHaveAttribute("href", "/setup#level-1-name-your-sign-in-server");
     await fix.click();
@@ -342,7 +343,7 @@ test.describe("setup and sites", () => {
     for (const path of ["/", "/learn", "/setup", "/sites", "/audit/example.com"]) {
       await page.goto(path);
       await expect(page.getByText("An independent guide by Ora.").first(), path).toBeVisible();
-      await expect(page.getByText("Based on Poppy Draft 0.2 (in progress, read 2026-10-19)").first(), path).toBeVisible();
+      await expect(page.getByText("Based on Poppy Draft 0.3 (published 2026-11-04, read 2026-11-09)").first(), path).toBeVisible();
       await expect(page.getByRole("link", { name: /Report an error/ }).first(), path).toBeVisible();
     }
   });

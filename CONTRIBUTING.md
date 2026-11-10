@@ -8,7 +8,7 @@ All page text lives in [`content/`](content/): JSON for the page shell and short
 
 1. Find the sentence. Search the repository for a few words of it; it will be in a file under `content/`.
 2. Edit the file on GitHub (the pencil icon) or in your own fork.
-3. Open a pull request. Say what was wrong and, for anything about the protocol, link the section of the [spec](https://personalagentprotocol.org/docs/spec) that supports your change.
+3. Open a pull request. Say what was wrong and, for anything about the protocol, link the section of the [spec](https://personalagentprotocol.org/docs/0.3/spec) that supports your change. Link the frozen page of the draft the guide follows, such as `/docs/0.3/spec`: the unversioned `/docs/spec` address moves to each new draft while it is being written.
 
 Not sure what the fix should be? Use the "Report an error" link at the foot of any page. It opens an issue with the page path filled in.
 
