@@ -136,9 +136,8 @@ grant_type=refresh_token
 
 You may return a new refresh token with a refresh, and the assistant then uses the new one; otherwise it keeps the old one. A refresh token is not tied to a session, so any of the person's sessions can use the access tokens it gets ([spec 4.4](https://personalagentprotocol.org/docs/1.0/spec#refresh-tokens)). When a task needs more than the refresh token allows, the person signs in again and the new refresh token replaces the old one ([spec 4.7](https://personalagentprotocol.org/docs/1.0/spec#scopes)). Answer `invalid_grant` for an expired or revoked refresh token; the assistant then carries on signed out ([spec 5.5](https://personalagentprotocol.org/docs/1.0/spec#ending-sessions)). How long a refresh token lasts is up to you, and using one may extend it: Poppy no longer fixes a lifetime ([spec 4.4](https://personalagentprotocol.org/docs/1.0/spec#refresh-tokens), [changelog: 0.4 minor changes](https://personalagentprotocol.org/docs/changelog#v0-4-minor)). The guides suggest a lifetime that fits the account, such as 90 days, long enough that people don't have to sign in again often, and expiring ones that go unused sooner. They also suggest ([guides: token lifetimes and sign-out](https://personalagentprotocol.org/docs/1.0/guides#company-lifetimes)):
 
-- Issue a new refresh token on each refresh, and end the whole grant when an old one is used again (RFC 9700 §4.14.2). A copied refresh token then stops working as soon as both copies have been used.
-- If an assistant's signing key may have leaked, revoke every refresh token issued to its `client_id`. Refresh tokens are tied to the `client_id`, not to a DPoP key.
-- Revoke a person's refresh tokens when they reset their password, or when you suspect the account is compromised.
+- Consider issuing a new refresh token on each refresh, and revoking the grant when an old one is used again (RFC 9700 §4.14.2). If a refresh token is copied, the grant then ends as soon as both copies have been used.
+- If an assistant's signing key may have leaked, revoke every refresh token issued to its `client_id`. Refresh tokens are tied to the `client_id`, not to a DPoP key (RFC 9449 §5).
 
 ### Signing out and disconnecting
 
@@ -150,28 +149,32 @@ People can also disconnect an assistant from your account settings. That revokes
 
 ### If you offer mediated sign-in
 
-In mediated sign-in, the assistant signs in for the person with credentials the person gave it, such as an email and password. In Draft 0.3 it is an extension: an extra grant type at your token endpoint, so it uses OAuth's client authentication, errors and token responses ([mediated sign-in 1](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#intro)).
+In mediated sign-in, the assistant signs in for the person with credentials the person gave it, such as an email and password. It is an extension: an extra grant type at your token endpoint, so it uses OAuth's client authentication, errors and token responses ([mediated sign-in 1](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#intro)).
 
 It is a stopgap. Offer it only until you can add direct or device sign-in, and stop once those cover the scopes it grants. The protocol plans to retire it, on a date set when version 1.0 is published ([mediated sign-in 1](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#intro)). Assistants are told to prefer direct or device sign-in when you offer them ([mediated sign-in 6](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#security)).
 
-To offer it, list the extension in `poppy.json` with the credential fields you need and the scopes it can grant, and list the grant type `https://personalagentprotocol.org/grant/mediated-sign-in` in your issuer's `grant_types_supported` ([mediated sign-in 2](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#support)):
+To offer it, list the extension in `poppy.json` with the credential fields you need and the scopes it can grant, and list the grant type `https://personalagentprotocol.org/grant/mediated-sign-in` in your issuer's `grant_types_supported`. Like every extension in `poppy.json`, it is a list, with an entry for each version you support; this page describes version 1 ([spec 3.3](https://personalagentprotocol.org/docs/1.0/spec#extensions), [mediated sign-in 2](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#support)):
 
 <CodeLabel>Excerpt from poppy.json</CodeLabel>
 
 ```json
 "extensions": {
-  "mediated-sign-in": {
-    "version": "1",
-    "fields": [
-      { "name": "email", "label": "Email", "secret": false },
-      { "name": "password", "label": "Password", "secret": true }
-    ],
-    "scopes": ["orders:read"]
-  }
+  "mediated-sign-in": [
+    {
+      "version": "1",
+      "fields": [
+        { "name": "email", "label": "Email", "secret": false },
+        { "name": "password", "label": "Password", "secret": true }
+      ],
+      "scopes": ["orders:read"]
+    }
+  ]
 }
 ```
 
-Each field has a `name`, the parameter the assistant sends, which must not clash with an OAuth parameter such as `grant_type` or `scope`; a `label`, what to ask the person for; and `secret`, which marks a value the assistant must protect. Never grant more than the scopes listed here ([mediated sign-in 2](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#support)).
+Each field has a `name`, the parameter the assistant sends, which must not clash with an OAuth parameter such as `grant_type` or `scope`; a `label`, what to ask the person for; and `secret`, which marks a value the assistant must protect. Never grant more than the scopes listed here, and include them in `scopes_supported` too, in your OAuth server's metadata or your protected resource metadata ([mediated sign-in 2](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#support)).
+
+Assistants declare most extensions they use in the `Poppy-Extensions` header (level 2), but not this one: your token endpoint doesn't receive that header, and you know the extension from the grant type. So your token endpoint never answers `extension_required` ([spec 3.3](https://personalagentprotocol.org/docs/1.0/spec#extensions), [mediated sign-in 2](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#support)).
 
 <details>
 <summary>Details for implementers: the mediated sign-in requests</summary>
