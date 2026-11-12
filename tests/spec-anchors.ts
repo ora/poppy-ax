@@ -1,4 +1,4 @@
-// Heading anchors on the frozen pages of Poppy Draft 0.3 (published 2026-11-04, read 2026-11-09), and on
+// Heading anchors on the frozen pages of Poppy Draft 0.3 (published 2026-11-04, read 2026-11-09, re-checked 2026-11-12), and on
 // the unversioned pages the guide links (the path to 1.0, the roadmap, the changelog and the company kit).
 // A link to any other anchor lands at the top of the page instead of the section.
 export const SPEC_ANCHORS: Record<string, string[]> = {
