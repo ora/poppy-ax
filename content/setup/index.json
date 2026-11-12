@@ -143,7 +143,7 @@
       "id": "level-4",
       "number": 4,
       "title": "Optional surfaces",
-      "summary": "Let an assistant's browser join its session, let assistants talk with your own agent, and ask for the person's approval before you act.",
+      "summary": "Let an assistant's browser join its session, let assistants talk with your own agent, ask for the person's approval before you act, and leave a step on your website to the person.",
       "size": "Varies. Each surface is its own project: days for the browser join, weeks for conversations or operations.",
       "rows": [
         "T1-03",
