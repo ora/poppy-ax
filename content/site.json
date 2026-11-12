@@ -2,11 +2,11 @@
   "siteName": "poppy.ax",
   "metadata": {
     "title": "poppy.ax: Poppy, the Personal Agent Protocol, in plain words",
-    "description": "Poppy, the Personal Agent Protocol (also called PAP), gives your customers' AI assistants a valet key: they can help, but only within what each customer allows. Check whether a site is ready. An independent guide by Ora.",
+    "description": "Poppy, the Personal Agent Protocol (also called PAP), lets your customers' AI assistants in on your terms: they can help, but only within what you and each customer allow. Check whether a site is ready. An independent guide by Ora.",
     "keywords": ["Poppy", "Personal Agent Protocol", "PAP", "poppy.json", "AI assistants", "personal agents", "agent readiness"],
     "image": {
-      "alt": "poppy.ax: give your customers' AI assistants a valet key. Poppy, the Personal Agent Protocol, in plain words, with a checker for any site",
-      "heading": "Give your customers' AI assistants a valet key.",
+      "alt": "poppy.ax: let your customers' AI assistants in, on your terms. Poppy, the Personal Agent Protocol, in plain words, with a checker for any site",
+      "heading": "Let your customers' AI assistants in, on your terms.",
       "line": "Poppy, the Personal Agent Protocol, in plain words.",
       "byline": "An independent guide by Ora"
     }

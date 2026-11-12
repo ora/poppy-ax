@@ -18,7 +18,7 @@ const RECEIVER = "poppy-receiver.roundtrip.workers.dev";
 
 test("home renders and the domain box reaches a live result", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Give your customers' AI assistants a valet key.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Let your customers' AI assistants in, on your terms.");
   await page.getByLabel("Is a site ready for Poppy?").fill("https://www.Example.com/");
   await page.getByRole("button", { name: "Check", exact: true }).click();
   await expect(page).toHaveURL(/\/audit\/example\.com$/);

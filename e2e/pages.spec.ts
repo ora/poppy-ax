@@ -6,7 +6,7 @@ import { asNewVisitor, checkProgressSeen, recordCheckProgress, verdictOf } from 
 test.describe("home", () => {
   test("renders the promise and the domain box goes to the result page", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Give your customers' AI assistants a valet key.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Let your customers' AI assistants in, on your terms.");
     await expect(page.getByText("Based on Poppy Draft 0.3 (published 2026-11-04, read 2026-11-09)").first()).toBeVisible();
 
     await page.getByLabel("Is a site ready for Poppy?").fill("https://www.Example.com/");

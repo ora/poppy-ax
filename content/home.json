@@ -1,5 +1,5 @@
 {
-  "heading": "Give your customers' AI assistants a valet key.",
+  "heading": "Let your customers' AI assistants in, on your terms.",
   "lede": "Poppy, the Personal Agent Protocol, is a new open standard. It lets a person's AI assistant work with your company, say who it is, and do only what that person allowed.",
   "status": "Draft 0.3, published November 2026",
   "check": {
@@ -57,7 +57,7 @@
   },
   "stands": {
     "heading": "Where it stands",
-    "text": "Brand new, and still a draft. [Meta and Sierra announced Poppy](https://sierra.ai/blog/introducing-personal-agent-protocol) on October 6, 2026, with partners including Shopify, Stripe and Walmart. Almost no company supports it yet.",
+    "text": "Brand new, and still a draft. [Meta and Sierra announced Poppy](https://sierra.ai/blog/introducing-personal-agent-protocol) on October 6, 2026, with partners including Shopify, Stripe and Walmart. Almost no company supports it yet. The authors publish the spec at [personalagentprotocol.org](https://personalagentprotocol.org), with [the docs](https://personalagentprotocol.org/docs) for builders.",
     "links": [
       { "text": "Learn more about Poppy", "href": "/learn" },
       { "text": "Set it up for your site", "href": "/setup" }
