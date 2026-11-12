@@ -19,7 +19,7 @@
       "none": "{count}, none checked yet"
     },
     "checksHeading": "Checks this level turns green",
-    "checksIntro": "These are the checker's rows for this level, by their ids in the check catalog. Building what this level describes, and following the guides it links, is what makes them pass. A row that checks something you do not offer does not apply. The checker still grades Draft 0.4, the latest published version, not the draft 1.0 this guide explains: it grades a file that declares 1.0 as a preview, and suggests listing a 0.4 document in supported_versions so assistants built for 0.4 can use your site too. The checks not run yet were written for Draft 0.2 and link its pages; they will be rewritten before the checker runs them.",
+    "checksIntro": "These are the checker's rows for this level, by their ids in the check catalog. Building what this level describes, and following the guides it links, is what makes them pass. A row that checks something you do not offer does not apply. The checker grades Draft 1.0, as this guide does, by the same rules it uses for Version 0.4 files. It suggests publishing poppy.json as 1.0 and listing a 0.4 copy in supported_versions, so assistants built for either version can use your site. The checks not run yet were written for Draft 0.2 and link its pages; they will be rewritten before the checker runs them.",
     "groups": {
       "today": "Checked today",
       "soon": "Coming soon to the checker",

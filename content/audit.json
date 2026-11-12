@@ -75,7 +75,7 @@
   },
   "notChecked": {
     "question": "What wasn't checked?",
-    "intro": "Today the checker runs the public file and safety checks. These other checks did not run. They were written for Draft 0.2 of the spec, and will be rewritten before the checker runs them. The checks that ran grade Draft 0.4.",
+    "intro": "Today the checker runs the public file and safety checks. These other checks did not run. They were written for Draft 0.2 of the spec, and will be rewritten before the checker runs them. The checks that ran grade Draft 1.0.",
     "unmeasured": {
       "title": "Not measured on this run",
       "intro": "These must-fix and should-fix checks run today, but this run could not measure them.",

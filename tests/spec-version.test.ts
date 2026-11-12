@@ -65,9 +65,9 @@ describe("the draft the checker grades", () => {
   });
 
   it("is the one /setup, the result page, /learn and the README say the checker grades", () => {
-    expect(setup.page.checksIntro).toContain(`The checker still grades Draft ${version},`);
+    expect(setup.page.checksIntro).toContain(`The checker grades Draft ${version},`);
     expect(audit.notChecked.intro).toContain(`The checks that ran grade Draft ${version}.`);
-    expect(read("content/learn.mdx")).toContain(`Ora's checker still grades Draft ${version} for now`);
+    expect(read("content/learn.mdx")).toContain(`Ora's checker grades Draft ${version}`);
     expect(read("README.md")).toContain(`Ora's checks grade Draft ${version}`);
   });
 
