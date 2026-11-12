@@ -184,20 +184,21 @@ A language model usually reads these descriptions to choose and call your operat
 
 An MCP server carries the Session header like any other API. One that accepts the header can take signed-out calls with it alone. One that ignores the header can still work, but its calls do not join the session's cart, conversations or website ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)).
 
-When the server offers account access, it publishes protected resource metadata (RFC 9728), the same kind of file as in level 1, for its own address. Its `resource` must equal the server's `url` in `poppy.json`, and its `authorization_servers` must include your issuer. That is how MCP clients find where to get a token. A token issued for the server works only at the server whose `url` equals its `resource`, not even at other paths on the same host ([spec 4.5](https://personalagentprotocol.org/docs/1.0/spec#access-tokens), [spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)).
+When the server offers account access, it publishes protected resource metadata (RFC 9728), the same kind of file as in level 1, for its own address. Its `resource` must equal the server's `url` in `poppy.json`, and its `authorization_servers` must include your issuer. That is how MCP clients find where to get a token. Assistants find this file from the server's address, as RFC 9728 defines, and treat it as missing if its `resource` is not that address. A token issued for the server works only at the server whose `url` equals its `resource`, not even at other paths on the same host ([spec 4.5](https://personalagentprotocol.org/docs/1.0/spec#access-tokens), [spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)).
 
 When a request needs a token it does not have, the server answers 401 with a challenge for each scheme it accepts, and each challenge includes `resource_metadata` with the address of that metadata ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)). MCP clients that do not use Poppy sign in with MCP's own flow, outside the protocol, and their requests belong to no session ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)).
 
 ### What your APIs answer
 
-Access token problems follow OAuth and go in the `WWW-Authenticate` header. Session problems go in a JSON body ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)):
+Access token problems follow OAuth and go in the `WWW-Authenticate` header. Session, version and extension problems go in a JSON body ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)):
 
 - 401 with no error code: the request needs the person's account and has no access token. Name the scopes needed in the challenge's `scope` attribute.
 - `invalid_token` (401): the access token is expired, revoked or not valid.
 - `insufficient_scope` (403): the access token lacks the scopes the request needs, named in `scope`.
 - `invalid_session` (400, JSON body): the Session header is missing or fails a check, or you refuse this assistant.
 - `session_ended` (400, JSON body): the session has ended. The assistant starts a new one and tries once more.
-- `extension_required` (403): the request needs an extension the assistant does not list, named in the header's `extension` attribute.
+- `version_unsupported` (400, JSON body): `Poppy-Version` is missing, or you do not serve a compatible version. The assistant fetches `poppy.json` again, and if it chooses another version, starts a new session and tries once more.
+- `extension_required` (403, JSON body): the request needs an extension it does not declare in `Poppy-Extensions`, named in `extension`. It is not an access token error, so it does not go in `WWW-Authenticate`. An MCP server returns it only to refuse the assistant entirely, not for one tool ([spec 3.3](https://personalagentprotocol.org/docs/1.0/spec#extensions)).
 
 If you limit request rates, answer HTTP 429 with a `Retry-After` header, on any endpoint ([spec 5.6](https://personalagentprotocol.org/docs/1.0/spec#sending-requests)). The guides suggest letting a signed-out session do whatever a signed-out visitor can do on your website, and limiting abuse by `client_id` rather than turning assistants away ([guides: guest access](https://personalagentprotocol.org/docs/1.0/guides#company-guest)). Keep error text free of account details and other people's data ([guides: error messages](https://personalagentprotocol.org/docs/1.0/guides#company-errors)).
 
