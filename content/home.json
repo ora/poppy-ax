@@ -1,7 +1,7 @@
 {
   "heading": "Let your customers' AI assistants in, on your terms.",
   "lede": "Poppy, the Personal Agent Protocol, is a new open standard. It lets a person's AI assistant work with your company, say who it is, and do only what that person allowed.",
-  "status": "Draft 0.3, published November 2026",
+  "status": "Draft 1.0, November 2026",
   "check": {
     "label": "Is a site ready for Poppy?",
     "hint": "Type its domain, like example.com.",

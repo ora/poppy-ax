@@ -19,7 +19,7 @@
       "none": "{count}, none checked yet"
     },
     "checksHeading": "Checks this level turns green",
-    "checksIntro": "These are the checker's rows for this level, by their ids in the check catalog. Building what this level describes, and following the guides it links, is what makes them pass. A row that checks something you do not offer does not apply. The checks not run yet were written for Draft 0.2 and link its pages; they will be rewritten for Draft 0.3 before the checker runs them.",
+    "checksIntro": "These are the checker's rows for this level, by their ids in the check catalog. Building what this level describes, and following the guides it links, is what makes them pass. A row that checks something you do not offer does not apply. The checker still grades Draft 0.3, not the draft 1.0 this guide explains: it reads a file that declares 1.0 as a preview of Version 0.4, and marks its protocol_version check not tested. The checks not run yet were written for Draft 0.2 and link its pages; they will be rewritten before the checker runs them.",
     "groups": {
       "today": "Checked today",
       "soon": "Coming soon to the checker",

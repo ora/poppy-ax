@@ -8,7 +8,7 @@ PAP is an open standard for how an AI assistant finds a company's front door, pr
 
 An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) and its design partners, at [personalagentprotocol.org](https://personalagentprotocol.org).
 
-poppy.ax is not the official PAP site and does not speak for its authors. Every page is based on [PAP Draft 0.3](https://personalagentprotocol.org/docs/0.3/spec), published 2026-11-04 (read 2026-11-09; Draft 0.1 was published 2026-10-09 and Draft 0.2 2026-10-24), and links the section of the frozen 0.3 pages each claim comes from. Version 0.4 was published on 2026-11-10 as the 1.0 release candidate (frozen at `/docs/0.4/`), and draft 1.0 is in progress at the unversioned `/docs/spec` address. Ora's checks still grade 0.3, so the guide stays on it and links `/docs/0.3/` pages, which do not change. If a sentence is wrong, use the "Report an error" link at the foot of the page.
+poppy.ax is not the official PAP site and does not speak for its authors. Every page is based on [PAP draft 1.0](https://personalagentprotocol.org/docs/1.0/spec) (read 2026-11-12), the version the spec's authors ask builders to use, and links the section of the 1.0 pages each claim comes from. Draft 1.0 starts from Version 0.4, published 2026-11-10 as the 1.0 release candidate and frozen at `/docs/0.4/`, and takes only fixes until 1.0 is published, so its pages can still change: check a claim against the live page before you rely on it. Earlier drafts: 0.1 (2026-10-09), 0.2 (2026-10-24) and 0.3 (2026-11-04). Ora's checks grade Draft 0.3 for now, so the check rows in `content/rows/` describe the 0.3 rules Ora applies and link the frozen `/docs/0.3/` pages; [ORA_CHECKS_1.0.md](ORA_CHECKS_1.0.md) is the guide for moving Ora's checks to 1.0. If a sentence is wrong, use the "Report an error" link at the foot of the page.
 
 ## How it works
 
@@ -91,9 +91,11 @@ We use Vercel Web Analytics with seven custom events, to learn whether the guide
 
 `domain` is the normalised company domain. `referrer_host` is the host the visitor came from, never a path or query, and empty for a direct visit. The package sends nothing unless the page is served by Vercel with Web Analytics on.
 
-## Staying on Ora's draft
+## Two drafts: the guide's and the checker's
 
-poppy.ax explains the draft Ora's checks grade, and the recorded catalog (`fixtures/catalog.json`) says which one in its `profile`. `tests/spec-version.test.ts` fails if the draft line, the home page status, the spec line on /learn or this README names a different draft or read date.
+The guide explains draft 1.0, named in the draft line in `content/site.json`. The checker shows Ora's results, which grade the draft in the recorded catalog's `profile` (`fixtures/catalog.json`). `tests/spec-version.test.ts` fails if the home page status, /learn, the setup levels or this README name a different guide draft or read date than the draft line, or if /setup, the result page, /learn or this README name a different checker draft than the catalog.
+
+The weekly watch below follows Ora's catalog only. It does not watch the 1.0 spec pages, which still take fixes, so re-read the changelog's draft 1.0 section by hand now and then.
 
 Once a week, `.github/workflows/spec-drift-watch.yml` runs `scripts/spec-drift.mjs` (shared with ax.guide and Ora) to compare Ora's live catalog with the pin in `spec-watch.json`. When Ora has moved to a new draft, it opens an issue that lists what to update, and escalates it after 14 days. With an `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` secret, it also starts `.github/workflows/spec-drift-fix.yml`. That workflow records Ora's new catalog, moves the pin and opens a pull request with Claude's review: what changed between the drafts and the edits the guide needs. Claude only writes that review (it reads files, with no shell, web access or GitHub token), so a maintainer makes the edits on the branch; `tests/spec-version.test.ts` fails until they do, and the pull request opens as a draft. Close and reopen it to run CI. A failed run opens its own issue, and so does a copy of `scripts/spec-drift.mjs` that no longer matches ax.guide's.
 
@@ -110,7 +112,7 @@ In order. Each item is done by a person; tick it in a pull request.
 
 Before anyone outside sees it:
 
-- [ ] Every factual line checked against the spec, Draft 0.3 (published 2026-11-04, read 2026-11-09). Each page's content was reviewed against the spec when it was written; before launch, run the spec anchor check again: every `personalagentprotocol.org` link with a `#section` in `content/`, `app/`, `components/` and `lib/` must land on a heading that exists on the live page. Last run 2026-11-12: 112 of 112 distinct links found (42 in the 0.3 spec, 22 in the 0.3 guides, 7 in the 0.3 operations extension, 6 in the 0.3 mediated sign-in extension, 2 in the 0.4 spec for the two preview rows, 28 in the frozen 0.1 and 0.2 pages that the planned checks still link, and 5 on the kit, roadmap, changelog and path to 1.0 pages).
+- [ ] Every factual line checked against the spec, draft 1.0 (read 2026-11-12). Each page's content was reviewed against the spec when it was written; before launch, run the spec anchor check again: every `personalagentprotocol.org` link with a `#section` in `content/`, `app/`, `components/` and `lib/` must land on a heading that exists on the live page. Last run 2026-11-12: 112 of 112 distinct links found (42 in the 0.3 spec, 22 in the 0.3 guides, 7 in the 0.3 operations extension, 6 in the 0.3 mediated sign-in extension, 2 in the 0.4 spec for the two preview rows, 28 in the frozen 0.1 and 0.2 pages that the planned checks still link, and 5 on the kit, roadmap, changelog and path to 1.0 pages).
 - [ ] Owner review of the copy, for voice.
 - [x] The home page's problem copy: the owner chose it on 2026-10-11. It cites Sierra's announcement, and the claim about passwords is gone.
 

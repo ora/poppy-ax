@@ -28,8 +28,8 @@
     "after": "."
   },
   "draft": {
-    "text": "Based on Poppy Draft 0.3 (published 2026-11-04, read 2026-11-09)",
-    "href": "https://personalagentprotocol.org/docs/0.3/spec"
+    "text": "Based on Poppy draft 1.0 (read 2026-11-12)",
+    "href": "https://personalagentprotocol.org/docs/1.0/spec"
   },
   "reportError": {
     "label": "Report an error",
