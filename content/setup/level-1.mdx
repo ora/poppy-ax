@@ -1,20 +1,20 @@
-Building this with a coding agent? The spec's authors publish an implementation kit for companies. Its skill has the agent survey your systems, write a design for you to approve, and build it in milestones. Its validator acts as a test assistant against your deployment and reports which requirements you meet. The kit on its page now follows draft 1.0, which is still being written, so it can ask for things this guide, written for Draft 0.3, does not ([implementation kit](https://personalagentprotocol.org/kit/company#install)).
+Building this with a coding agent? The spec's authors publish an implementation kit for companies. Its skill has the agent survey your systems, write a design for you to approve, and build it in milestones. Its validator acts as a test assistant against your deployment and reports which requirements you meet. The kit follows draft 1.0, as this guide does ([implementation kit](https://personalagentprotocol.org/kit/company#install)).
 
 ### Publish one public file
 
-A person's AI assistant (the spec calls it a Personal Agent) starts at one public file on your domain, at `https://example.com/.well-known/poppy.json`. You must serve it over HTTPS ([spec 3](https://personalagentprotocol.org/docs/0.3/spec#discovery)).
+A person's AI assistant (the spec calls it a Personal Agent) starts at one public file on your domain, at `https://example.com/.well-known/poppy.json`. You must serve it over HTTPS ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery)).
 
-The address may redirect, for example from `www.example.com` to `example.com`, and every redirect must go to an HTTPS address. A redirect may go to another host, but the address it ends at must have the path `/.well-known/poppy.json` exactly, with no query. An assistant does not use a file found anywhere else, so an upload or any other page on your site cannot speak for you ([spec 3](https://personalagentprotocol.org/docs/0.3/spec#discovery)).
+The address may redirect, for example from `www.example.com` to `example.com`, and every redirect must go to an HTTPS address. A redirect may go to another host, but the address it ends at must have the path `/.well-known/poppy.json` exactly, with no query. An assistant does not use a file found anywhere else, so an upload or any other page on your site cannot speak for you ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery)).
 
-The file speaks for the host that finally serves it. If a provider runs Poppy for you, have it serve the file on your own domain. Every other address the protocol uses, in this file, in your OAuth metadata and in your answers, must be HTTPS too ([spec 3](https://personalagentprotocol.org/docs/0.3/spec#discovery)).
+The file speaks for the host that finally serves it. If a provider runs Poppy for you, have it serve the file on your own domain. Every other address the protocol uses, in this file, in your OAuth metadata and in your answers, must be HTTPS too ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery)).
 
-The smallest useful file names your company and your website. This one follows the shape of the spec's example, cut down to what level 1 needs ([spec 3](https://personalagentprotocol.org/docs/0.3/spec#discovery), [spec 3.1](https://personalagentprotocol.org/docs/0.3/spec#fields)):
+The smallest useful file names your company and your website. This one follows the shape of the spec's example, cut down to what level 1 needs ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery), [spec 3.1](https://personalagentprotocol.org/docs/1.0/spec#fields)):
 
 <CodeLabel>poppy.json, the whole file</CodeLabel>
 
 ```json
 {
-  "protocol_version": "0.3",
+  "protocol_version": "1.0",
   "organization": {
     "name": "Example Company",
     "domain": "example.com",
@@ -24,44 +24,91 @@ The smallest useful file names your company and your website. This one follows t
 }
 ```
 
-With only `web`, assistants browse your site as ordinary signed-out visitors ([spec 3.1](https://personalagentprotocol.org/docs/0.3/spec#fields)). That is a real first step: assistants can find you, and the checker can read your file.
+With only `web`, assistants browse your site as ordinary signed-out visitors ([spec 3.1](https://personalagentprotocol.org/docs/1.0/spec#fields)). That is a real first step: assistants can find you, and the checker can read your file.
 
 ### What each field means
 
-All of these come from the spec's field list ([spec 3.1](https://personalagentprotocol.org/docs/0.3/spec#fields)).
+All of these come from the spec's field list ([spec 3.1](https://personalagentprotocol.org/docs/1.0/spec#fields)).
 
-- `protocol_version` is the version of the protocol the file follows, as major.minor. For this draft it is `"0.3"`. Before 1.0 each version can break the one before, so an assistant does not use a file whose version it does not support.
+- `protocol_version` is the version of the protocol the file follows, as major.minor. For this draft it is `"1.0"`. An assistant uses the file only if this version is compatible with one it supports, as the next section explains. From 1.0, a newer minor version, such as 1.1, will not break older assistants: they use the file and ignore fields they do not know.
+- `supported_versions` is optional. It lists the other versions you serve, each with the address of that version's own file, explained in the next section.
 - `organization` holds your display `name`, your `domain`, and optionally `logo_uri`, an HTTPS address of your logo. The `domain` must be the host that serves the file, after any redirects. Hosts are compared ignoring case and nothing else, so `www.example.com` and `example.com` are different hosts. A file redirected to a provider's domain speaks for the provider, not for you.
+- Nothing in the file proves that your domain belongs to the company in `name`. Any domain can claim any name and logo, so a lookalike domain passes the same checks. Your domain is your identity, and assistants may show it next to your name ([spec 10.3](https://personalagentprotocol.org/docs/1.0/spec#trust), [guides: finding a company](https://personalagentprotocol.org/docs/1.0/guides#agent-discovery)).
 - `agent`, `apis` and `web` say what assistants can use, and you need at least one of them. `web` is your website. `apis` lists your APIs, which level 2 covers. `agent` lists ways to talk with your own AI agent, which level 4 covers.
+- `web.disabled` is optional. Set it to `true` to ask assistants not to use a browser on your website, and to use your own agent and APIs instead. A file that sets it must list `agent` or `apis`, and no browser join, which level 4 covers. The protocol cannot enforce it, because you cannot always tell an assistant's browser from a person's, so it says what you prefer rather than promising that no assistant will browse ([spec 6](https://personalagentprotocol.org/docs/1.0/spec#web-browsing)).
+- `web.unscoped` is optional, for websites where assistants browse signed in. Set it to `true` when your website gives a signed-in browser everything the account can do there, rather than only what the person approved. Level 4 covers it ([spec 6](https://personalagentprotocol.org/docs/1.0/spec#web-browsing)).
 - `auth` is optional. It holds your sign-in details: `issuer` when you have more than one sign-in server, `disabled` to turn sign-in off, and the descriptions and hints for your scopes, which level 3 covers.
-- `feedback` is optional. Its `endpoint` is an HTTPS address where assistants report a person's task that your company offers no way to do through the protocol ([spec 9.3](https://personalagentprotocol.org/docs/0.3/spec#feedback)).
-- `excluded_tasks` is optional. Its `url` is the address of a list of tasks you chose not to offer, explained below.
-- `extensions` is optional. It lists extra features you support, such as `operations` (level 4) or `mediated-sign-in` (level 3).
-- `skill_index` is optional. It lists skills, written instructions that help an assistant do a task at your company, such as changing a booking ([spec 9.4](https://personalagentprotocol.org/docs/0.3/spec#agent-context)).
+- `tasks` is optional. Its `endpoint` is an HTTPS address where assistants get, for each session, the tasks you chose not to offer, the skills you publish and where to send feedback, explained below ([spec 9](https://personalagentprotocol.org/docs/1.0/spec#task-coverage)).
+- `extensions` is optional. It lists extra features you support, with an entry for each version you support, such as `operations` (level 4) or `mediated-sign-in` (level 3). The spec's site lists the others ([extensions](https://personalagentprotocol.org/docs/1.0/extensions#list)).
 
 <details>
 <summary>Details for implementers: naming extensions</summary>
 
-Extensions defined with the protocol have plain names, such as `operations` or `mediated-sign-in`. Anyone else must start an extension's name with a domain they control, such as `example.com/gift-wrap`. Each entry has a `version`, the extension's major version. Assistants and companies ignore extensions and fields they do not support ([spec 3.3](https://personalagentprotocol.org/docs/0.3/spec#extensions)).
+Extensions defined with the protocol have plain names, such as `operations` or `mediated-sign-in`. Anyone else must start an extension's name with a domain they control, such as `example.com/gift-wrap`. Each extension's entry is a list, with one item for each major version you support. Each item has a `version`, the extension's major version, and the other fields the extension defines for that version, such as an `endpoint` ([spec 3.3](https://personalagentprotocol.org/docs/1.0/spec#extensions)):
+
+<CodeLabel>Excerpt from poppy.json</CodeLabel>
+
+```json
+"extensions": {
+  "example.com/gift-wrap": [
+    { "version": "2", "endpoint": "https://api.example.com/poppy/gift-wrap/v2" },
+    { "version": "1", "endpoint": "https://api.example.com/poppy/gift-wrap" }
+  ]
+}
+```
+
+An assistant picks one version of each extension it uses with you, and names them in a header on its requests, which level 2 covers. Assistants and companies ignore extensions, versions and fields they do not support ([spec 3.3](https://personalagentprotocol.org/docs/1.0/spec#extensions)).
 
 </details>
 
+### Serve more than one version
+
+You can serve several versions of the protocol at once, so assistants can move to a new one at their own pace. `poppy.json` is then the file for the version you prefer, and `supported_versions` gives, for each other version, the address of that version's file ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions)):
+
+<CodeLabel>Excerpt from poppy.json</CodeLabel>
+
+```json
+"protocol_version": "1.0",
+"supported_versions": {
+  "0.3": "https://example.com/poppy/0.3.json"
+}
+```
+
+Each address must be HTTPS, on the host that served `poppy.json` after any redirects. An assistant does not use a file on another host, and does not follow a redirect from one, so no domain can point at a file someone uploaded to yours. Its path can be anything. The file there has the `protocol_version` it is listed under, or assistants do not use it, and no `supported_versions` of its own ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions)).
+
+Every file you serve at the same time must have the same `organization.domain` and name the same sign-in server, which the next section explains. Otherwise a new version would change how your company is identified, and with it the IDs assistants use for people. Other fields may differ between versions ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions)).
+
+The assistant chooses a version for you. Two versions are compatible when they have the same major version, and before 1.0 the same minor version too: 1.0 and 1.1 are compatible, 0.3 and 0.4 are not. It chooses the newest of your versions that is compatible with one it supports, and uses that version's file. If none is, it uses none of them ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions)).
+
+It then names its version on every request in a session, in a header that level 2 covers. Where you check that header, you also check the version, and answer one you do not serve with an error. The assistant then fetches `poppy.json` again and chooses again. If you serve one version, that check is all you need ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions), [guides: serving several versions](https://personalagentprotocol.org/docs/1.0/guides#company-versions)).
+
+The guides suggest these steps ([guides: serving several versions](https://personalagentprotocol.org/docs/1.0/guides#company-versions)):
+
+- To add a version, publish its file at a path of your own, such as `/poppy/0.4.json`. A static file works. Keep the address the same for as long as you list the version, and accept both versions at your endpoints.
+- To make it your preferred version, in one deploy, serve it at `/.well-known/poppy.json` and add the older file's address to `supported_versions`.
+- To retire a version, send the `Deprecation` and `Sunset` headers on its responses for a while, then remove it from `supported_versions`, then stop accepting it.
+
+A conversation with your agent can outlast a version, which level 4 covers. From 1.0, where `poppy.json` lives, how it is fetched, `protocol_version` and `supported_versions` keep their meaning in every version, so an assistant can always find a version you share, or tell that there is none ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions)).
+
 ### Name your sign-in server
 
-You need a sign-in server only to let people sign in to their accounts, which level 3 covers. It is an OAuth server: OAuth is the standard most sign-in servers already speak, and the spec calls the server's name its issuer. Assistants do not read the issuer from `poppy.json`. They find it the standard OAuth way, from a small public file on your domain called protected resource metadata (RFC 9728) ([spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server)):
+You need a sign-in server only to let people sign in to their accounts, which level 3 covers. It is an OAuth server: OAuth is the standard most sign-in servers already speak, and the spec calls the server's name its issuer. Assistants do not read the issuer from `poppy.json`. They find it the standard OAuth way, from a small public file on your domain called protected resource metadata (RFC 9728) ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)):
 
 <CodeLabel>GET https://example.com/.well-known/oauth-protected-resource</CodeLabel>
 
 ```json
 {
   "resource": "https://example.com",
-  "authorization_servers": ["https://auth.example.com"]
+  "authorization_servers": ["https://auth.example.com"],
+  "scopes_supported": ["orders:read", "orders:write", "addresses", "poppy:browser-sign-in"]
 }
 ```
 
-`resource` must be exactly `https://` followed by your `organization.domain`. When `authorization_servers` lists one server, that server is your issuer. If it lists more than one, for example one for your employees, set `auth.issuer` in `poppy.json` to the one assistants use. It must be in the list ([spec 3.1](https://personalagentprotocol.org/docs/0.3/spec#fields), [spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server)).
+`resource` must be exactly `https://` followed by your `organization.domain`. When `authorization_servers` lists one server, that server is your issuer. If it lists more than one, for example one for your employees, set `auth.issuer` in `poppy.json` to the one assistants use. It must be in the list ([spec 3.1](https://personalagentprotocol.org/docs/1.0/spec#fields), [spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)).
 
-The issuer must publish a second public file, its OAuth metadata (RFC 8414). In the spec's example it lives at `https://auth.example.com/.well-known/oauth-authorization-server` ([spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server)):
+This file may also list, in `scopes_supported`, the scopes an assistant can ask for. Scopes are the kinds of account access a sign-in grants, which level 3 covers. This suits a sign-in server that also serves your other apps, because its own metadata has one list for all of them ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)).
+
+The issuer must publish a second public file, its OAuth metadata (RFC 8414). In the spec's example it lives at `https://auth.example.com/.well-known/oauth-authorization-server` ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)):
 
 <CodeLabel>OAuth metadata (excerpt)</CodeLabel>
 
@@ -72,32 +119,32 @@ The issuer must publish a second public file, its OAuth metadata (RFC 8414). In 
   "revocation_endpoint": "https://auth.example.com/oauth/revoke",
   "authorization_endpoint": "https://auth.example.com/oauth/authorize",
   "grant_types_supported": ["refresh_token", "authorization_code"],
-  "scopes_supported": ["orders:read", "orders:write"],
+  "scopes_supported": ["orders:read", "orders:write", "addresses", "poppy:browser-sign-in"],
   "protected_resources": ["https://example.com"]
 }
 ```
 
-The two sides point at each other. Before an assistant uses your `poppy.json`, it fetches this metadata and checks two things: its `issuer` exactly matches the issuer it found, character for character, and `protected_resources` lists `https://` followed by your `organization.domain`, with no path, port or trailing slash. Without that second check, any domain could claim your sign-in server and receive its tokens ([spec 3](https://personalagentprotocol.org/docs/0.3/spec#discovery), [spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server)).
+The two sides point at each other. Before an assistant uses your `poppy.json`, it fetches this metadata and checks two things: its `issuer` exactly matches the issuer it found, character for character, and `protected_resources` lists `https://` followed by your `organization.domain`, with no path, port or trailing slash. Without that second check, any domain could claim your sign-in server and receive its tokens ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery), [spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)).
 
-The assistant also reads these fields of the metadata ([spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server)):
+The assistant also reads these fields of the metadata ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)):
 
 - `token_endpoint` issues tokens. Required.
 - `revocation_endpoint` is where an assistant signs out. Required. Level 3 uses it.
 - `grant_types_supported` lists the kinds of token request your server accepts. Required, and it must include `refresh_token`. It also says which kinds of sign-in you offer: `authorization_code` for direct sign-in, and `urn:ietf:params:oauth:grant-type:device_code` for device sign-in.
 - `authorization_endpoint` is required when you list `authorization_code`, and `device_authorization_endpoint` when you list the device code grant.
-- `scopes_supported` should list every scope an assistant can ask for.
+- `scopes_supported` should list every scope an assistant can ask for, here, in your protected resource metadata, or in both. If you offer sign-in and let assistants' browsers join their sessions, that includes `poppy:browser-sign-in`, the one scope the protocol defines, which lets an assistant browse your website signed in (level 4) ([spec 4.7](https://personalagentprotocol.org/docs/1.0/spec#scopes)).
 
-If you run a domain for each country, several domains may share one issuer. They then count as one company: the same user IDs, sessions and refresh tokens apply across all of them. List each domain in `protected_resources`, and have each domain point to that same issuer. Give each scope the same meaning on every domain; the files may otherwise differ, for example in their APIs. The other way round, an issuer stands for exactly one company, so a provider that hosts several companies gives each its own issuer ([spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server)).
+If you run a domain for each country, several domains may share one issuer. They then count as one company: the same user IDs, sessions and refresh tokens apply across all of them. List each domain in `protected_resources`, and have each domain point to that same issuer. Give each scope the same meaning on every domain; the files may otherwise differ, for example in their APIs. The other way round, an issuer stands for exactly one company, so a provider that hosts several companies gives each its own issuer ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)).
 
-Assistants cache these files according to their HTTP caching headers, within limits they set, so send caching headers that match how often the files change ([guides: fetching metadata safely](https://personalagentprotocol.org/docs/0.3/guides#both-fetching)).
+Assistants cache these files according to their HTTP caching headers, within limits they set, so send caching headers that match how often the files change ([guides: fetching metadata safely](https://personalagentprotocol.org/docs/1.0/guides#both-fetching)).
 
 ### Without a sign-in server, or not yet
 
-You can offer signed-out visits, with APIs, conversations, feedback and the browser join, without any sign-in server. Answer 404 at the protected resource metadata address, or publish it with no `authorization_servers`, and leave `auth.issuer` out of `poppy.json`. Your company is then identified by `https://` followed by your domain ([spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server), [guides: signed-out support without OAuth](https://personalagentprotocol.org/docs/0.3/guides#company-without-oauth)).
+You can offer signed-out visits, with APIs, conversations, feedback and the browser join, without any sign-in server. Answer 404 at the protected resource metadata address, or publish it with no `authorization_servers`, and leave `auth.issuer` out of `poppy.json`. Your company is then identified by `https://` followed by your domain ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server), [guides: signed-out support without OAuth](https://personalagentprotocol.org/docs/1.0/guides#company-without-oauth)).
 
-Be careful with the answer. A timeout, any other error status or metadata that is not valid does not mean "no sign-in server": an assistant then stops rather than guess ([spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server)). Adding a sign-in server later changes how your company is identified, so assistants start over with new user IDs and sessions ([guides: signed-out support without OAuth](https://personalagentprotocol.org/docs/0.3/guides#company-without-oauth)).
+Be careful with the answer. A timeout, any other error status or metadata that is not valid does not mean "no sign-in server": an assistant then stops rather than guess ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)). Adding a sign-in server later changes how your company is identified, so assistants start over with new user IDs and sessions ([guides: signed-out support without OAuth](https://personalagentprotocol.org/docs/1.0/guides#company-without-oauth)).
 
-If your sign-in server already serves your other apps but you are not ready to let assistants sign in, keep it and set `auth.disabled` to `true` in `poppy.json`. Assistants then do not try to sign in, and nothing changes for your customers when you remove it. A file that sets it must not list the mediated sign-in extension or a conversation entry that needs sign-in ([spec 3.2](https://personalagentprotocol.org/docs/0.3/spec#oauth-server), [guides: offering personal agents less](https://personalagentprotocol.org/docs/0.3/guides#company-agent-issuer)).
+If you have a sign-in server but are not ready to let assistants sign in, keep it and set `auth.disabled` to `true` in `poppy.json`. That suits a server that so far serves only your other apps, or a company that wants to keep one identity while its domain names change, before it offers sign-in. Assistants then do not try to sign in, and still make signed-out visits. Your company is still identified by its issuer, so nothing changes for your customers when you remove it. A file that sets it must not list the mediated sign-in extension or a conversation entry that needs sign-in ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server), [guides: offering personal agents less](https://personalagentprotocol.org/docs/1.0/guides#company-agent-issuer)).
 
 <CodeLabel>Excerpt from poppy.json</CodeLabel>
 
@@ -107,15 +154,17 @@ If your sign-in server already serves your other apps but you are not ready to l
 }
 ```
 
+If you set it and have never given an assistant a refresh token, you have no tokens to protect. Answer every refresh request with the error `invalid_grant`, and every sign-out with success. You may do so without checking the signed statement an assistant sends to prove who it is, its client assertion, which level 3 covers. Once you have given out a refresh token, or turn sign-in on, check those statements as usual ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)).
+
 ### List the tasks you don't offer
 
-Some tasks you may allow only in your own app, for example for security or legal reasons. List them, so assistants know up front and do not spend a long time looking for a way. Set `excluded_tasks.url` in `poppy.json` to the address of a JSON document ([spec 9.1](https://personalagentprotocol.org/docs/0.3/spec#excluded-tasks)):
+Some tasks you may allow only in your own app, for example for security or legal reasons. List them, so assistants know up front and do not spend a long time looking for a way. Set `tasks.endpoint` in `poppy.json` to an HTTPS address. Early in each session, an assistant sends a GET request there, with the Session header that level 2 covers and no access token. You answer with a JSON object ([spec 9](https://personalagentprotocol.org/docs/1.0/spec#task-coverage)):
 
-<CodeLabel>Excluded tasks, published by the company</CodeLabel>
+<CodeLabel>Answer from tasks.endpoint, sent by the company</CodeLabel>
 
 ```json
 {
-  "tasks": [
+  "excluded_tasks": [
     {
       "task": "Send a wire transfer",
       "alternative": {
@@ -124,12 +173,37 @@ Some tasks you may allow only in your own app, for example for security or legal
       }
     },
     { "task": "Close an account" }
-  ]
+  ],
+  "skill_index": {
+    "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+    "skills": [
+      {
+        "name": "manage-bookings",
+        "description": "Manage the User's bookings with this Company.",
+        "type": "skill-md",
+        "url": "https://cdn.example.com/skills/manage-bookings/SKILL.md",
+        "digest": "sha256:1b2a8cde934e632f7e14fa080a627ad7191e29d412d2b8a7aa07d9c9ab2f475e"
+      }
+    ]
+  },
+  "feedback": {
+    "endpoint": "https://api.example.com/poppy/feedback"
+  }
 }
 ```
 
-Each `task` is a short phrase, written the way a customer would ask. An `alternative` says another way to do it, in `instructions`, in `references`, or both. A reference of type `openapi` or `mcp` must name an API your `poppy.json` lists ([spec 9.1](https://personalagentprotocol.org/docs/0.3/spec#excluded-tasks), [spec 9.2](https://personalagentprotocol.org/docs/0.3/spec#alternatives)). The document is the same for everyone, and assistants fetch it with no token. A limit that depends on the person, such as a transfer limit, is not an excluded task: answer it with an error, as for any request you refuse ([spec 9.1](https://personalagentprotocol.org/docs/0.3/spec#excluded-tasks)). The guides suggest caching headers on the document, and updating it when the list changes ([guides: excluded tasks and feedback](https://personalagentprotocol.org/docs/0.3/guides#company-excluded-tasks)).
+All three parts are optional. `excluded_tasks` lists the tasks you chose not to offer. `skill_index` and `feedback` are explained in the next section ([spec 9](https://personalagentprotocol.org/docs/1.0/spec#task-coverage)).
+
+Each `task` is a short phrase, written the way a customer would ask. An `alternative` says another way to do it, in `instructions`, in `references`, or both. A reference of type `openapi` or `mcp` must name an API your `poppy.json` lists ([spec 9.1](https://personalagentprotocol.org/docs/1.0/spec#excluded-tasks), [spec 9.2](https://personalagentprotocol.org/docs/1.0/spec#alternatives)). A listed task is not offered anywhere through the protocol: not by your agent, your APIs or your website. The answer describes what you offer, not the person's account, which is why it carries no access token. A limit that depends on the person, such as a transfer limit, is not an excluded task: answer it with an error, as for any request you refuse ([spec 9.1](https://personalagentprotocol.org/docs/1.0/spec#excluded-tasks)).
+
+The assistant uses your answer only in the session it asked in. If you give every session the same answer, you can serve it without checking the Session header, and cache it at your edge. You may also give different sessions different answers, for example to try a new skill with some people. Check the Session header first, and mark those answers `private` or `no-store` in `Cache-Control`, so a shared cache does not give one session's answer to another. When an assistant gets no answer, it carries on as if you listed nothing ([spec 9](https://personalagentprotocol.org/docs/1.0/spec#task-coverage), [guides: excluded tasks and feedback](https://personalagentprotocol.org/docs/1.0/guides#company-excluded-tasks)).
+
+### Publish skills and take feedback
+
+`skill_index` lists skills: written instructions that help an assistant do a task at your company, such as changing a booking through your APIs. It uses the index format of the Agent Skills discovery proposal, with the schema identifier in the example. Each skill has a `name`, a `description`, a `type` (`skill-md` for one SKILL.md file, or `archive` for a skill with other files), a `url`, and a `digest`, the SHA-256 of the file written after `sha256:`. A `url` may be relative: assistants read it starting from your `tasks.endpoint` address. A skill gives no account access and no approval. Publishing skills is optional ([spec 9.4](https://personalagentprotocol.org/docs/1.0/spec#agent-context)). If different sessions can get different versions of a skill, give each version its own address, because an assistant rejects a file whose digest does not match ([guides: excluded tasks and feedback](https://personalagentprotocol.org/docs/1.0/guides#company-excluded-tasks)).
+
+`feedback.endpoint` is an HTTPS address where assistants report a person's task that your company offers no way to do through the protocol ([spec 9.3](https://personalagentprotocol.org/docs/1.0/spec#feedback)). If your APIs also serve other apps that do not read `poppy.json`, and you keep a way to send feedback there for them, say in its description that assistants use `feedback.endpoint` instead ([guides: excluded tasks and feedback](https://personalagentprotocol.org/docs/1.0/guides#company-excluded-tasks)).
 
 ### Tools that help
 
-Datalayer publishes an open source SDK for Python and TypeScript ([on GitHub](https://github.com/datalayer/personal-agent-protocol)). It was pre-beta when this guide first listed it, and it now follows Draft 0.4, not the Draft 0.3 this guide explains. It is written mainly for assistants, so check what it covers before you build on it.
+Datalayer publishes an open source SDK for Python and TypeScript ([on GitHub](https://github.com/datalayer/personal-agent-protocol)). It was pre-beta when this guide first listed it, and it was built against a pre-release text of Version 0.4, the draft before 1.0, so it can differ from the draft 1.0 this guide explains. It is written mainly for assistants, so check what it covers before you build on it.

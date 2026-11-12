@@ -61,18 +61,36 @@ Opened on another device, such as from a link sent to the person's phone, direct
 
 Device sign-in is the OAuth device authorization grant (RFC 8628). The assistant asks your `device_authorization_endpoint` for a code, with the scopes it needs and its client assertion, then shows the person your link and the short code. The person opens it on any device, such as their phone, signs in, and approves or declines. Opening the link must not approve anything by itself. Meanwhile the assistant asks your `token_endpoint` every `interval` seconds until the person finishes ([spec 4.3](https://personalagentprotocol.org/docs/1.0/spec#device-sign-in)).
 
-Assistants show the link only if its host is your issuer's host, or the host of an address in your issuer's `protected_resources`, or a subdomain of either, so serve your device page there ([spec 4.3](https://personalagentprotocol.org/docs/1.0/spec#device-sign-in)).
+Assistants show the link only if its host is your issuer's host or your `organization.domain`, or a subdomain of either, so serve your device page there. Other addresses in your issuer's `protected_resources` don't count. If one issuer serves several domains, a page on the issuer's host works for all of them ([spec 4.3](https://personalagentprotocol.org/docs/1.0/spec#device-sign-in), [guides: device sign-in](https://personalagentprotocol.org/docs/1.0/guides#company-device)).
 
-Device sign-in is easier to abuse for phishing than direct sign-in, because whoever holds the device code gets the tokens. So companies that offer it must follow the best practices in RFC 10027 ([spec 4.3](https://personalagentprotocol.org/docs/1.0/spec#device-sign-in)). The guides suggest short-lived codes, rate limits, asking the person to confirm that the code on your page matches the one the assistant shows, and keeping `expires_in` short, such as 10 minutes ([guides: device sign-in](https://personalagentprotocol.org/docs/1.0/guides#company-device)).
+Device sign-in is always a cross-device flow, and it is easier to abuse for phishing than direct sign-in on the person's own device, because whoever holds the device code gets the tokens. So companies that offer it must follow the best practices in RFC 10027 §2 ([spec 4.3](https://personalagentprotocol.org/docs/1.0/spec#device-sign-in)). The guides suggest: offer direct sign-in too; assess the risk before you offer device sign-in; use short-lived, single-use codes, rate limits and limited scopes; ask the person to confirm that the code on your page matches the one the assistant shows; answer `slow_down` to an assistant that asks faster than `interval`; and keep `expires_in` short, such as 10 minutes ([guides: device sign-in](https://personalagentprotocol.org/docs/1.0/guides#company-device)).
+
+### Sign-ins someone else started
+
+Nothing in a direct or device sign-in says who approved it. The tokens go to whoever started it. So someone can start a sign-in with an assistant they use, send the link to another person, and get tokens for that person's account if they sign in and approve. You see a genuine request from the assistant, and the assistant sees a valid answer, so neither of you can tell ([spec 10.8](https://personalagentprotocol.org/docs/1.0/spec#attacker-started-sign-in)).
+
+The protocol accepts this risk, as OAuth does for cross-device flows, and limits it in three ways ([spec 10.8](https://personalagentprotocol.org/docs/1.0/spec#attacker-started-sign-in)):
+
+- Assistants that can receive the redirect only on the device that opened your page do so, so a forwarded link fails.
+- Your sign-in and consent pages name the assistant that wants to connect, and tell the person to continue only if they just asked it to (see the next step). A person who doesn't use that assistant, or didn't ask, can decline.
+- Both kinds of sign-in follow RFC 10027 §2, such as short-lived requests and limited scopes.
+
+The last two are yours to do. The wording on your pages doesn't help when the person tricked uses the same assistant.
 
 ### The consent page
 
 The page where the person approves access, in direct and device sign-in. The guides suggest ([guides: consent pages](https://personalagentprotocol.org/docs/1.0/guides#company-consent)):
 
+- Start with a heading that names the assistant and says it wants to connect to the person's account, such as "Muse wants to connect to your Example account". Show it on your sign-in page too, before the person signs in, since that's where they decide whether to go on. Word it as connecting, not as "Sign in with Muse", which reads as signing in with a Muse account.
+- Tell the person to continue only if they just asked that assistant to connect, such as "Only continue if you asked Muse to do this just now." Anyone can start a sign-in and send someone the link.
+- Let the person sign in with a passkey or another phishing-resistant method, as on your website. A passkey protects against fake sign-in pages, but not against approving a sign-in someone else started.
 - Show the assistant's name and logo from its metadata, and the domain of its `client_id`. The assistant chooses its own name, so the domain is what the person can trust.
-- Show the account being connected, each scope in plain language, and how long access lasts. Point out the scopes your hints mark `irreversible` or with personal data.
+- Show the account being connected, each scope in plain language, and how long access lasts. Group related scopes rather than listing their names. Point out the scopes your hints mark `irreversible` or with personal data.
+- When `poppy:browser-sign-in` allows everything the account can do on your website, say so in plain words, such as "Use the website as you, with full access to your account", and let the person leave it out while approving the rest. If your issuer serves several domains, name each website it signs in to, such as "Use example.com and example.co.uk as you".
 - When the person already granted some of the scopes, show which ones are new.
 - Protect the page against forged requests, and stop other sites from framing it with `Content-Security-Policy: frame-ancestors`.
+
+Part of the browser advice is a requirement. When `poppy:browser-sign-in` gives full access on your website, you must describe the scope that way, and in direct and device sign-in you must ask the person to approve it like any other scope (level 4) ([spec 6](https://personalagentprotocol.org/docs/1.0/spec#web-browsing)).
 
 ### What sign-in returns
 
@@ -96,11 +114,11 @@ Sign-in does not belong to a session. One sign-in can serve several of the perso
 
 ### Access tokens
 
-A signed-in request carries the access token in the `Authorization` header, with the scheme `token_type` names, and the Session header next to it, whose `ath` covers the token. Whether you bind access tokens to a key with DPoP (RFC 9449) is your choice, as in plain OAuth. Assistants that support DPoP send a proof with their token requests when your metadata lists `dpop_signing_alg_values_supported`. You then decide for each token whether to bind it, and return `token_type` `Bearer` for one you don't ([spec 4.5](https://personalagentprotocol.org/docs/1.0/spec#access-tokens)).
+A signed-in request carries the access token in the `Authorization` header, with the scheme `token_type` names, and the Session header next to it, whose `ath` covers the token. Whether you bind access tokens to a key with DPoP (RFC 9449) is your choice, as in plain OAuth. Assistants that support DPoP send a proof with their token requests when your metadata lists `dpop_signing_alg_values_supported`. You then decide for each token whether to bind it, and return `token_type` `Bearer` for one you don't. Assistants use each DPoP key for one user ID only, as they do each delegated key (level 2), so a key never links two user IDs ([spec 4.5](https://personalagentprotocol.org/docs/1.0/spec#access-tokens)).
 
 Without DPoP, a copied token is still of little use: the Session header ties it to the `client_id` it was issued to, and only the assistant can sign that header ([spec 5.2](https://personalagentprotocol.org/docs/1.0/spec#session-header), [guides: verifying the Session header](https://personalagentprotocol.org/docs/1.0/guides#company-session-header)).
 
-By default, one access token works at all of your services. A service that accepts only tokens issued for it, as MCP servers do, says so in its own protected resource metadata, with a `resource` other than your domain. The assistant then asks for a token with `resource` set to it, and uses that token only there. Accept such a token only at that service, and answer `invalid_target` for a `resource` you do not serve ([spec 4.5](https://personalagentprotocol.org/docs/1.0/spec#access-tokens)). The guides suggest access tokens that last hours, not days ([guides: token lifetimes and sign-out](https://personalagentprotocol.org/docs/1.0/guides#company-lifetimes)).
+By default, one access token works at all of your services. A service that accepts only tokens issued for it, as MCP servers do, says so in its own protected resource metadata, with a `resource` other than your domain. That `resource` must be the service's own address, the one the assistant built the metadata address from, as RFC 9728 §3.3 requires; otherwise the assistant treats the metadata as absent. The assistant then asks for a token with `resource` set to it, and uses that token only there. Accept such a token only at that service, and answer `invalid_target` for a `resource` you do not serve ([spec 4.5](https://personalagentprotocol.org/docs/1.0/spec#access-tokens)). The guides suggest access tokens that last hours, not days ([guides: token lifetimes and sign-out](https://personalagentprotocol.org/docs/1.0/guides#company-lifetimes)).
 
 ### Refresh tokens
 
@@ -116,7 +134,11 @@ grant_type=refresh_token
 &client_assertion=eyJhbGciOiJFUzI1NiIs…
 ```
 
-Using a refresh token does not extend its lifetime. You may return a new one, and the assistant then uses the new one. A refresh token is not tied to a session, so any of the person's sessions can use the access tokens it gets ([spec 4.4](https://personalagentprotocol.org/docs/1.0/spec#refresh-tokens)). When a task needs more than the refresh token allows, the person signs in again and the new refresh token replaces the old one ([spec 4.7](https://personalagentprotocol.org/docs/1.0/spec#scopes)). Answer `invalid_grant` for an expired or revoked refresh token; the assistant then carries on signed out ([spec 5.5](https://personalagentprotocol.org/docs/1.0/spec#ending-sessions)). The guides suggest a lifetime that fits the account, such as 90 days ([guides: token lifetimes and sign-out](https://personalagentprotocol.org/docs/1.0/guides#company-lifetimes)).
+You may return a new refresh token with a refresh, and the assistant then uses the new one; otherwise it keeps the old one. A refresh token is not tied to a session, so any of the person's sessions can use the access tokens it gets ([spec 4.4](https://personalagentprotocol.org/docs/1.0/spec#refresh-tokens)). When a task needs more than the refresh token allows, the person signs in again and the new refresh token replaces the old one ([spec 4.7](https://personalagentprotocol.org/docs/1.0/spec#scopes)). Answer `invalid_grant` for an expired or revoked refresh token; the assistant then carries on signed out ([spec 5.5](https://personalagentprotocol.org/docs/1.0/spec#ending-sessions)). How long a refresh token lasts is up to you, and using one may extend it: Poppy no longer fixes a lifetime ([spec 4.4](https://personalagentprotocol.org/docs/1.0/spec#refresh-tokens), [changelog: 0.4 minor changes](https://personalagentprotocol.org/docs/changelog#v0-4-minor)). The guides suggest a lifetime that fits the account, such as 90 days, long enough that people don't have to sign in again often, and expiring ones that go unused sooner. They also suggest ([guides: token lifetimes and sign-out](https://personalagentprotocol.org/docs/1.0/guides#company-lifetimes)):
+
+- Issue a new refresh token on each refresh, and end the whole grant when an old one is used again (RFC 9700 §4.14.2). A copied refresh token then stops working as soon as both copies have been used.
+- If an assistant's signing key may have leaked, revoke every refresh token issued to its `client_id`. Refresh tokens are tied to the `client_id`, not to a DPoP key.
+- Revoke a person's refresh tokens when they reset their password, or when you suspect the account is compromised.
 
 ### Signing out and disconnecting
 
