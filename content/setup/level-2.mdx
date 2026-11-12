@@ -1,14 +1,14 @@
 ### Everything happens in a session
 
-Everything an assistant does at your company happens in a session: one person's activity, at your company, through one assistant, across your APIs, conversations and website. A session starts signed out. You know which assistant is asking and you can recognise the same person over time, but you do not know who they are ([spec 5](https://personalagentprotocol.org/docs/0.3/spec#sessions)).
+Everything an assistant does at your company happens in a session: one person's activity, at your company, through one assistant, across your APIs, conversations and website. A session starts signed out. You know which assistant is asking and you can recognise the same person over time, but you do not know who they are ([spec 5](https://personalagentprotocol.org/docs/1.0/spec#sessions)).
 
-There is no step to start a session and no token to hand out. The assistant names the session itself and signs every request it sends you with a `Poppy-Session` header; the first request with a new session ID starts the session. A signed-out request carries only that header. Signing in, in level 3, adds an ordinary OAuth access token next to it, and stays separate ([spec 5](https://personalagentprotocol.org/docs/0.3/spec#sessions), [spec 5.4](https://personalagentprotocol.org/docs/0.3/spec#sign-in)). So this level needs no sign-in server at all.
+There is no step to start a session and no token to hand out. The assistant names the session itself and signs every request it sends you with a `Poppy-Session` header; the first request with a new session ID starts the session. A signed-out request carries that header and no access token. Signing in, in level 3, adds an ordinary OAuth access token next to it, and stays separate ([spec 5](https://personalagentprotocol.org/docs/1.0/spec#sessions), [spec 5.4](https://personalagentprotocol.org/docs/1.0/spec#sign-in)). So this level needs no sign-in server at all.
 
-You choose how much of this to use. An endpoint that uses nothing from the session, such as a product catalog, can answer without checking the header. To recognise a person, keep a cart, or connect a conversation with the website, you must check the header first ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification), [guides: choosing capabilities](https://personalagentprotocol.org/docs/0.3/guides#company-adoption)).
+You choose how much of this to use. An endpoint that uses nothing from the session, such as a product catalog, can answer without checking the header. To recognise a person, keep a cart, or connect a conversation with the website, you must check the header first ([spec 5.3](https://personalagentprotocol.org/docs/1.0/spec#session-verification), [guides: choosing capabilities](https://personalagentprotocol.org/docs/1.0/guides#company-adoption)).
 
 ### The assistant publishes who it is
 
-Each assistant publishes its own metadata at an HTTPS address, and that address is its `client_id`. You fetch it to learn the assistant's name and logo, the public keys it signs with, and where sign-in may send people back ([spec 4.1](https://personalagentprotocol.org/docs/0.3/spec#agent-identity)). From the spec's example, for an assistant at `agent.example`:
+Each assistant publishes its own metadata at an HTTPS address, and that address is its `client_id`. You fetch it to learn the assistant's name and logo, the public keys it signs with, and where sign-in may send people back ([spec 4.1](https://personalagentprotocol.org/docs/1.0/spec#agent-identity)). From the spec's example, for an assistant at `agent.example`:
 
 <CodeLabel>Client metadata, published by the assistant</CodeLabel>
 
@@ -23,28 +23,28 @@ Each assistant publishes its own metadata at an HTTPS address, and that address 
 }
 ```
 
-The `client_id` inside must equal the address you fetched it from. The `jwks_uri`, the assistant's list of public keys, must be an HTTPS address on the same domain as the `client_id` ([spec 4.1](https://personalagentprotocol.org/docs/0.3/spec#agent-identity)).
+The `client_id` inside must equal the address you fetched it from. The `jwks_uri`, the assistant's list of public keys, must be an HTTPS address on the same domain as the `client_id` ([spec 4.1](https://personalagentprotocol.org/docs/1.0/spec#agent-identity)).
 
 <details>
 <summary>Details for implementers: fetching and limiting assistants</summary>
 
-- Fetch the `client_id` address without following redirects, and cache the metadata and keys within limits ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification), [guides: verifying personal agents](https://personalagentprotocol.org/docs/0.3/guides#company-agents)).
-- You decide which assistants you accept. You may keep lists of assistants you allow or block, and limit how fast new sessions and new `client_id` values arrive. A refused assistant gets `invalid_session` at your APIs ([spec 4.1](https://personalagentprotocol.org/docs/0.3/spec#agent-identity), [guides: verifying personal agents](https://personalagentprotocol.org/docs/0.3/guides#company-agents)).
+- Fetch the `client_id` address without following redirects, and cache the metadata and keys within limits ([spec 5.3](https://personalagentprotocol.org/docs/1.0/spec#session-verification), [guides: verifying personal agents](https://personalagentprotocol.org/docs/1.0/guides#company-agents)).
+- You decide which assistants you accept. You may keep lists of assistants you allow or block, and limit how fast new sessions and new `client_id` values arrive. A refused assistant gets `invalid_session` at your APIs ([spec 4.1](https://personalagentprotocol.org/docs/1.0/spec#agent-identity), [guides: verifying personal agents](https://personalagentprotocol.org/docs/1.0/guides#company-agents)).
 
 </details>
 
 ### Every request carries a Session header
 
-On every request to your APIs, conversations and other protocol endpoints, the assistant sends a `Poppy-Session` header. It holds a JWT, a small piece of JSON with a signature, that the assistant signs for that one request ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#session-header)):
+On every request to your APIs, conversations and other protocol endpoints, such as your `tasks.endpoint` (level 1), the assistant sends a `Poppy-Session` header. It holds a JWT, a small piece of JSON with a signature, that the assistant signs for that one request. Next to it go `Poppy-Version`, and `Poppy-Extensions` when the assistant uses extensions with you, both explained below ([spec 5.2](https://personalagentprotocol.org/docs/1.0/spec#session-header), [spec 9](https://personalagentprotocol.org/docs/1.0/spec#task-coverage)):
 
-<CodeLabel>Session JWT, from the spec's example (header, then claims)</CodeLabel>
+<CodeLabel>Session JWT for a signed-out request, from the spec's example (header, then claims)</CodeLabel>
 
 ```json
 {
   "typ": "poppy-session+jwt",
   "alg": "ES256",
   "kid": "9E421cSqd5UfAq5slDKYxXQd8Zmm8B3CIsT9cDxRHx8",
-  "poppy_dlg": "eyJhbGciOiJFUzI1NiIsInR5cCI6InBhcC1kZWxlZ2F0aW9uK2p3dCIs…"
+  "poppy_dlg": "eyJhbGciOiJFUzI1NiIsInR5cCI6InBvcHB5LWRlbGVnYXRpb24rand0Iiw…"
 }
 .
 {
@@ -59,51 +59,52 @@ On every request to your APIs, conversations and other protocol endpoints, the a
 }
 ```
 
-The claims, all from the spec ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#session-header)):
+The claims, all from the spec ([spec 5.2](https://personalagentprotocol.org/docs/1.0/spec#session-header)):
 
 - `iss` is the assistant's `client_id`.
 - `aud` is your company's identifier: your issuer, or `https://` and your domain if you have none (level 1).
 - `sid` is the session ID, chosen at random by the assistant and never reused.
-- `sub` is a user ID the assistant makes for this person at your company. It stays the same across sessions, it is different at every company, and it is never made from personal details such as an email address ([spec 5.1](https://personalagentprotocol.org/docs/0.3/spec#user-ids)).
+- `sub` is a user ID the assistant makes for this person at your company. It stays the same across sessions, it is different at every company, and it is never made from personal details such as an email address ([spec 5.1](https://personalagentprotocol.org/docs/1.0/spec#user-ids)).
 - `htm` and `htu` are the request's method and address, so a copied JWT works only for the same request.
 - `iat` is when it was signed, and `jti` is unique.
 - `ath` is a hash of the access token, present only on signed-in requests (level 3).
 
-The JWT is not signed with a key from the assistant's `jwks_uri`. It is signed with a short-lived delegated key, and its header carries, in `poppy_dlg`, a delegation: another JWT, signed with a key from `jwks_uri`, that vouches for the delegated key for at most 24 hours. Each delegated key signs for one user ID only, so a leaked key exposes one person at one company ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#delegated-keys)).
+The JWT is not signed with a key from the assistant's `jwks_uri`. It is signed with a short-lived delegated key, and its header carries, in `poppy_dlg`, a delegation: another JWT, signed with a key from `jwks_uri`, that vouches for the delegated key for at most 24 hours. Each delegated key signs for one user ID only, so a leaked key exposes one person at one company ([spec 5.2](https://personalagentprotocol.org/docs/1.0/spec#delegated-keys)).
 
 ### Check the Session header
 
-Before you rely on anything in the header, such as who the assistant is, which person this is, or which session or cart the request belongs to, check it in this order ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#delegated-keys), [spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification)):
+Before you rely on anything in the header, such as who the assistant is, which person this is, or which session or cart the request belongs to, check it in this order ([spec 5.2](https://personalagentprotocol.org/docs/1.0/spec#delegated-keys), [spec 5.3](https://personalagentprotocol.org/docs/1.0/spec#session-verification)):
 
 1. Fetch the client metadata from `iss`, without following redirects, and the keys from its `jwks_uri`.
 2. Verify the delegation with the key its `kid` names: `typ` is `poppy-delegation+jwt`, its `iss` is the JWT's `iss`, it has not expired, and its `exp` is at most 24 hours after its `iat`.
 3. Verify the Session JWT with the key in the delegation's `cnf.jwk`, and check that the JWT's `kid` is that key's thumbprint. Reject a JWT with no delegation, including one signed directly with a key from `jwks_uri`.
 4. Check `typ` is `poppy-session+jwt`, `aud` is your identifier character for character, `htm` and `htu` match the request, and `iat` is recent, for example within the last minute.
 5. If the request has an access token, check that `ath` matches it and that the token was issued to the same `client_id`. Without one, `ath` must be absent.
-6. Look up the session by `client_id` and `sid`. A new `sid` starts a signed-out session. A known one continues it, and must have the same user ID.
+6. Look up the session by `client_id`, `sid` and user ID together. A combination you have not seen starts a signed-out session, and a known one continues its session. So a known `sid` with a different user ID names a different session; it is not an error.
+7. Check `Poppy-Version`, as the next step describes.
 
-You must accept ES256 delegations, and should accept PS384 ones too ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#delegated-keys)). Reject `alg: none` and symmetric algorithms such as HS256 ([guides: signing and verifying JWTs](https://personalagentprotocol.org/docs/0.3/guides#both-signing)). Do not expect a person's delegated key to stay the same between requests, and store nothing by it ([spec 5.2](https://personalagentprotocol.org/docs/0.3/spec#delegated-keys)).
+You must accept ES256 delegations, and should accept PS384 ones too ([spec 5.2](https://personalagentprotocol.org/docs/1.0/spec#delegated-keys)). Reject `alg: none` and symmetric algorithms such as HS256 ([guides: signing and verifying JWTs](https://personalagentprotocol.org/docs/1.0/guides#both-signing)). Do not expect a person's delegated key to stay the same between requests or sessions, or treat a new one as a reason to reject a request. You may reject, with `invalid_session`, a Session JWT whose delegated key has already signed for a different user ID while a delegation for that key lasts. That limits a leaked key to one person ([spec 5.2](https://personalagentprotocol.org/docs/1.0/spec#delegated-keys), [guides: sessions](https://personalagentprotocol.org/docs/1.0/guides#company-sessions)).
 
-If a check fails, answer HTTP 400 with `{"error": "invalid_session"}`. When a session you ended comes back, answer 400 with `{"error": "session_ended"}`, and the assistant starts a new one. These use 400, not 401, so OAuth libraries do not throw away a valid access token. A request with no header at all also gets `invalid_session` when handling it depends on the session ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification), [spec 5.5](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions)).
+If a check fails, answer HTTP 400 with `{"error": "invalid_session"}`. When a session you ended comes back, answer 400 with `{"error": "session_ended"}`, and the assistant starts a new one. These use 400, not 401, so OAuth libraries do not throw away a valid access token. A request with no header at all also gets `invalid_session` when handling it depends on the session ([spec 5.3](https://personalagentprotocol.org/docs/1.0/spec#session-verification), [spec 5.5](https://personalagentprotocol.org/docs/1.0/spec#ending-sessions)).
 
 <details>
 <summary>Details for implementers: where and how to check</summary>
 
-The guides suggest checking the header in one place, such as a gateway in front of your APIs, your conversation endpoint and your browser join, and passing the verified `client_id`, `sid` and user ID to the services behind it. Cache verified delegations by a hash of the whole delegation until they expire, so most requests need one signature check. Behind proxies, compare `htu` with the public address the assistant used, not the `Host` header your server receives ([guides: verifying the Session header](https://personalagentprotocol.org/docs/0.3/guides#company-session-header)).
+The guides suggest checking the header in one place, such as a gateway in front of your APIs, your conversation endpoint and your browser join, and passing the verified `client_id`, `sid` and user ID to the services behind it. Cache verified delegations by a hash of the whole delegation until they expire, so most requests need one signature check. Behind proxies, compare `htu` with the public address the assistant used, not the `Host` header your server receives ([guides: verifying the Session header](https://personalagentprotocol.org/docs/1.0/guides#company-session-header)).
 
-Rejecting a reused `jti` is optional. If you keep a list of seen `jti` values, share it across every server ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#session-verification), [guides: verifying the Session header](https://personalagentprotocol.org/docs/0.3/guides#company-session-header)).
+Rejecting a reused `jti` is optional. If you keep a list of seen `jti` values, share it across every server ([spec 5.3](https://personalagentprotocol.org/docs/1.0/spec#session-verification), [guides: verifying the Session header](https://personalagentprotocol.org/docs/1.0/guides#company-session-header)).
 
-Keep a session record only as long as the session lasts, with the user ID it started with. Remember the `sid` of each session you end for a while, so it gets `session_ended` instead of silently starting again ([spec 5.5](https://personalagentprotocol.org/docs/0.3/spec#ending-sessions), [guides: sessions](https://personalagentprotocol.org/docs/0.3/guides#company-sessions)).
+Keep a session record only as long as the session lasts, with the user ID it started with. Remember the `sid` of each session you end for a while, so it gets `session_ended` instead of silently starting again ([spec 5.5](https://personalagentprotocol.org/docs/1.0/spec#ending-sessions), [guides: sessions](https://personalagentprotocol.org/docs/1.0/guides#company-sessions)).
 
-Accept the header and any access token without asking for cookies, and never accept either from a URL ([spec 5.6](https://personalagentprotocol.org/docs/0.3/spec#sending-requests)). Serve each endpoint at the address you publish: if an API or protocol endpoint answers with a redirect, the assistant must not send a token, Session JWT or credentials to the new address ([spec 3](https://personalagentprotocol.org/docs/0.3/spec#discovery)).
+Accept the header and any access token without asking for cookies, and never accept either from a URL ([spec 5.6](https://personalagentprotocol.org/docs/1.0/spec#sending-requests)). Serve each endpoint at the address you publish: if an API or protocol endpoint answers with a redirect, the assistant must not send a token, Session JWT or credentials to the new address ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery)).
 
-The spec also recommends that assistants sign their requests with Web Bot Auth, so bot defenses at your edge can recognise the assistant's operator before the request reaches your application. That signature does not replace the Session header ([spec 5.3](https://personalagentprotocol.org/docs/0.3/spec#operator-signatures), [guides: operator signatures and bot defenses](https://personalagentprotocol.org/docs/0.3/guides#both-operator-signatures)).
+The spec also recommends that assistants sign their requests with Web Bot Auth, so bot defenses at your edge can recognise the assistant's operator before the request reaches your application. That signature does not replace the Session header ([spec 5.3](https://personalagentprotocol.org/docs/1.0/spec#operator-signatures), [guides: operator signatures and bot defenses](https://personalagentprotocol.org/docs/1.0/guides#both-operator-signatures)).
 
 </details>
 
 ### List your APIs
 
-Now you can add `apis` to `poppy.json`. Every API you list must accept the Session header and, once you offer sign-in, your access tokens, and enforce their scopes ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)). Each entry has a `type`, a `url`, and a short `description` that helps the assistant pick the right API ([spec 3.1](https://personalagentprotocol.org/docs/0.3/spec#fields)):
+Now you can add `apis` to `poppy.json`. Every API you list must accept the Session header and, once you offer sign-in, your access tokens, and enforce their scopes ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)). Each entry has a `type`, a `url`, and a short `description` that helps the assistant pick the right API ([spec 3.1](https://personalagentprotocol.org/docs/1.0/spec#fields)):
 
 <CodeLabel>Excerpt from poppy.json</CodeLabel>
 
@@ -122,24 +123,24 @@ Now you can add `apis` to `poppy.json`. Every API you list must accept the Sessi
 ]
 ```
 
-The spec defines two types, and assistants skip types they do not know, so later versions can add more ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)):
+The spec defines two types, and assistants skip types they do not know, so later versions can add more ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)):
 
 - `openapi`: the `url` points to an OpenAPI 3.0 or 3.1 description. OpenAPI is a standard file that describes a web API's requests and responses.
 - `mcp`: the `url` points to a remote MCP server using the Streamable HTTP transport and MCP version 2025-06-18 or later. MCP, the Model Context Protocol, is a common way to offer tools to AI assistants.
 
-A language model usually reads these descriptions to choose and call your operations, so say what each one does in terms of the person's task, and keep them short ([guides: describing APIs](https://personalagentprotocol.org/docs/0.3/guides#company-api-descriptions)).
+A language model usually reads these descriptions to choose and call your operations, so say what each one does in terms of the person's task, and keep them short ([guides: describing APIs](https://personalagentprotocol.org/docs/1.0/guides#company-api-descriptions)).
 
 ### MCP servers
 
-An MCP server carries the Session header like any other API. One that accepts the header can take signed-out calls with it alone. One that ignores the header can still work, but its calls do not join the session's cart, conversations or website ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)).
+An MCP server carries the Session header like any other API. One that accepts the header can take signed-out calls with it alone. One that ignores the header can still work, but its calls do not join the session's cart, conversations or website ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)).
 
-When the server offers account access, it publishes protected resource metadata (RFC 9728), the same kind of file as in level 1, for its own address. Its `resource` must equal the server's `url` in `poppy.json`, and its `authorization_servers` must include your issuer. That is how MCP clients find where to get a token. A token issued for the server works only at the server whose `url` equals its `resource`, not even at other paths on the same host ([spec 4.5](https://personalagentprotocol.org/docs/0.3/spec#access-tokens), [spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)).
+When the server offers account access, it publishes protected resource metadata (RFC 9728), the same kind of file as in level 1, for its own address. Its `resource` must equal the server's `url` in `poppy.json`, and its `authorization_servers` must include your issuer. That is how MCP clients find where to get a token. A token issued for the server works only at the server whose `url` equals its `resource`, not even at other paths on the same host ([spec 4.5](https://personalagentprotocol.org/docs/1.0/spec#access-tokens), [spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)).
 
-When a request needs a token it does not have, the server answers 401 with a challenge for each scheme it accepts, and each challenge includes `resource_metadata` with the address of that metadata ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)). MCP clients that do not use Poppy sign in with MCP's own flow, outside the protocol, and their requests belong to no session ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)).
+When a request needs a token it does not have, the server answers 401 with a challenge for each scheme it accepts, and each challenge includes `resource_metadata` with the address of that metadata ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)). MCP clients that do not use Poppy sign in with MCP's own flow, outside the protocol, and their requests belong to no session ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)).
 
 ### What your APIs answer
 
-Access token problems follow OAuth and go in the `WWW-Authenticate` header. Session problems go in a JSON body ([spec 7](https://personalagentprotocol.org/docs/0.3/spec#apis)):
+Access token problems follow OAuth and go in the `WWW-Authenticate` header. Session problems go in a JSON body ([spec 7](https://personalagentprotocol.org/docs/1.0/spec#apis)):
 
 - 401 with no error code: the request needs the person's account and has no access token. Name the scopes needed in the challenge's `scope` attribute.
 - `invalid_token` (401): the access token is expired, revoked or not valid.
@@ -148,7 +149,7 @@ Access token problems follow OAuth and go in the `WWW-Authenticate` header. Sess
 - `session_ended` (400, JSON body): the session has ended. The assistant starts a new one and tries once more.
 - `extension_required` (403): the request needs an extension the assistant does not list, named in the header's `extension` attribute.
 
-If you limit request rates, answer HTTP 429 with a `Retry-After` header, on any endpoint ([spec 5.6](https://personalagentprotocol.org/docs/0.3/spec#sending-requests)). The guides suggest letting a signed-out session do whatever a signed-out visitor can do on your website, and limiting abuse by `client_id` rather than turning assistants away ([guides: guest access](https://personalagentprotocol.org/docs/0.3/guides#company-guest)). Keep error text free of account details and other people's data ([guides: error messages](https://personalagentprotocol.org/docs/0.3/guides#company-errors)).
+If you limit request rates, answer HTTP 429 with a `Retry-After` header, on any endpoint ([spec 5.6](https://personalagentprotocol.org/docs/1.0/spec#sending-requests)). The guides suggest letting a signed-out session do whatever a signed-out visitor can do on your website, and limiting abuse by `client_id` rather than turning assistants away ([guides: guest access](https://personalagentprotocol.org/docs/1.0/guides#company-guest)). Keep error text free of account details and other people's data ([guides: error messages](https://personalagentprotocol.org/docs/1.0/guides#company-errors)).
 
 ### Tools that help
 
