@@ -12,6 +12,12 @@
   --ink-muted-light: #4b5750;
   --rule-light: #cdd3c8;
   --poppy-light: #c42118;
+  --card-light: #fbfcf8;
+  --poppy-soft-light: #fbe8e3;
+  --leaf-light: #1b6a41;
+  --leaf-soft-light: #e2efe4;
+  --glow-light: rgb(196 33 24 / 0.08);
+  --shade-light: 22 33 27;
 
   /* Raw palette, dark */
   --paper-dark: #111a15;
@@ -20,6 +26,12 @@
   --ink-muted-dark: #a6b0a8;
   --rule-dark: #2c3832;
   --poppy-dark: #ff6b57;
+  --card-dark: #1a2620;
+  --poppy-soft-dark: #2f1d19;
+  --leaf-dark: #74d4a0;
+  --leaf-soft-dark: #15301f;
+  --glow-dark: rgb(255 107 87 / 0.09);
+  --shade-dark: 0 0 0;
 
   /* Semantic tokens (light by default) */
   --color-paper: var(--paper-light);
@@ -30,6 +42,12 @@
   --color-poppy: var(--poppy-light);
   --color-on-poppy: var(--paper-light);
   --color-focus: var(--poppy-light);
+  --color-card: var(--card-light);
+  --color-poppy-soft: var(--poppy-soft-light);
+  --color-leaf: var(--leaf-light);
+  --color-leaf-soft: var(--leaf-soft-light);
+  --color-glow: var(--glow-light);
+  --shade: var(--shade-light);
 
   /* Type */
   --font-serif: var(--font-display), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
@@ -58,6 +76,14 @@
   --page-max: 72rem;
   --measure: 38rem;
 
+  /* Shape and depth: soft corners, and shadows tinted with the ink */
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --shadow-sm: 0 1px 2px rgb(var(--shade) / 0.06), 0 2px 6px -2px rgb(var(--shade) / 0.08);
+  --shadow-md: 0 1px 2px rgb(var(--shade) / 0.05), 0 12px 32px -12px rgb(var(--shade) / 0.22);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+
   color-scheme: light dark;
 }
 
@@ -71,6 +97,12 @@
     --color-poppy: var(--poppy-dark);
     --color-on-poppy: var(--paper-dark);
     --color-focus: var(--poppy-dark);
+    --color-card: var(--card-dark);
+    --color-poppy-soft: var(--poppy-soft-dark);
+    --color-leaf: var(--leaf-dark);
+    --color-leaf-soft: var(--leaf-soft-dark);
+    --color-glow: var(--glow-dark);
+    --shade: var(--shade-dark);
     color-scheme: dark;
   }
 }
@@ -84,6 +116,12 @@
   --color-poppy: var(--poppy-dark);
   --color-on-poppy: var(--paper-dark);
   --color-focus: var(--poppy-dark);
+  --color-card: var(--card-dark);
+  --color-poppy-soft: var(--poppy-soft-dark);
+  --color-leaf: var(--leaf-dark);
+  --color-leaf-soft: var(--leaf-soft-dark);
+  --color-glow: var(--glow-dark);
+  --shade: var(--shade-dark);
   color-scheme: dark;
 }
 
@@ -108,6 +146,11 @@ html {
 body {
   margin: 0;
   background-color: var(--color-paper);
+  /* A warm glow behind the header and hero, fading into the paper. */
+  background-image:
+    radial-gradient(56rem 30rem at 88% -6rem, var(--color-glow), transparent 70%),
+    radial-gradient(40rem 24rem at -10% 0, var(--color-leaf-soft), transparent 70%);
+  background-repeat: no-repeat;
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -215,6 +258,7 @@ main {
 
 .site-header {
   padding-block-start: var(--space-4);
+  padding-block-end: var(--space-2);
 }
 
 .site-header__bar {
@@ -272,7 +316,7 @@ main {
    and inherited colour never land on the red fill. */
 .main-nav .main-nav__check {
   min-height: 2.75rem;
-  padding-inline: var(--space-4);
+  padding-inline: var(--space-6);
 }
 
 .main-nav .main-nav__check:hover {
@@ -388,10 +432,12 @@ main {
   display: grid;
   gap: var(--space-1);
   margin: 0;
-  padding: 0;
+  padding: var(--space-3) var(--space-4);
   list-style: none;
-  border-block: 1px solid var(--color-rule);
-  padding-block: var(--space-3);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .level-nav a {
@@ -573,8 +619,8 @@ main {
 
 .prose :not(pre) > code,
 .level-checks code {
-  padding: 0.05em 0.3em;
-  border-radius: 3px;
+  padding: 0.05em 0.35em;
+  border-radius: var(--radius-sm);
   background-color: var(--color-surface);
   overflow-wrap: anywhere;
 }
@@ -586,9 +632,10 @@ main {
   margin-block: var(--space-6);
   padding: var(--space-4);
   border: 1px solid var(--color-rule);
-  border-inline-start: 3px solid var(--color-poppy);
-  border-radius: 4px;
-  background-color: var(--color-surface);
+  border-inline-start: 4px solid var(--color-poppy);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
   font-size: var(--text-sm);
   line-height: 1.55;
   tab-size: 2;
@@ -619,11 +666,22 @@ main {
 }
 
 .level-checks details {
-  border-block-start: 1px solid var(--color-rule);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-rule);
+  border-block-end-width: 0;
+  background-color: var(--color-card);
+}
+
+.level-checks details:first-of-type {
+  border-start-start-radius: var(--radius-md);
+  border-start-end-radius: var(--radius-md);
 }
 
 .level-checks details:last-of-type {
-  border-block-end: 1px solid var(--color-rule);
+  border-block-end-width: 1px;
+  border-end-start-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .level-checks summary {
@@ -631,6 +689,10 @@ main {
   padding-block: var(--space-3);
   font-weight: 700;
   cursor: pointer;
+}
+
+.level-checks summary:hover {
+  color: var(--color-poppy);
 }
 
 .level-checks__count {
@@ -653,7 +715,9 @@ main {
   margin-block-start: var(--space-8);
   padding: var(--space-6);
   border: 1px solid var(--color-rule);
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
   color: var(--color-ink-muted);
 }
 
@@ -669,25 +733,37 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   min-height: 3rem;
   padding: var(--space-2) var(--space-6);
   border: 2px solid transparent;
-  border-radius: 4px;
+  border-radius: 999px;
   font: inherit;
   font-weight: 700;
   line-height: 1.2;
   text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.button:active {
+  transform: translateY(1px);
 }
 
 .button--primary {
   background-color: var(--color-poppy);
   color: var(--color-on-poppy);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 6px 16px -8px var(--color-poppy);
 }
 
 .button--primary:hover {
   background-color: var(--color-ink);
   color: var(--color-paper);
+  box-shadow: var(--shadow-md);
 }
 
 /* Transparent, so a <button> drops the browser's own grey (ButtonFace) and matches a link styled as one. */
@@ -699,7 +775,9 @@ main {
 
 .button--secondary:hover {
   border-color: var(--color-poppy);
+  background-color: var(--color-card);
   color: var(--color-ink);
+  box-shadow: var(--shadow-sm);
 }
 
 /* The domain box */
@@ -713,7 +791,7 @@ main {
 
 .domain-form__label {
   font-family: var(--font-serif);
-  font-size: 1.375rem;
+  font-size: clamp(1.375rem, 1.25rem + 0.5vw, 1.625rem);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -726,10 +804,14 @@ main {
 
 .domain-form__row {
   display: flex;
+  gap: var(--space-1);
   min-width: 0;
+  padding: 5px;
   border: 2px solid var(--color-ink);
-  border-radius: 6px;
-  background-color: var(--color-surface);
+  border-radius: 999px;
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 160ms var(--ease-out);
 }
 
 .domain-form__row:focus-within {
@@ -740,9 +822,9 @@ main {
 .domain-form__input {
   flex: 1 1 auto;
   min-width: 0;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
   border: 0;
-  border-radius: 4px 0 0 4px;
+  border-radius: 999px;
   background: transparent;
   color: var(--color-ink);
   font-family: var(--font-sans);
@@ -760,12 +842,11 @@ main {
 
 .domain-form__row .button {
   flex: none;
-  border-radius: 0 3px 3px 0;
-  margin: -2px -2px -2px 0;
+  padding-inline: var(--space-8);
 }
 
 .domain-form__row .button:focus-visible {
-  outline-offset: -6px;
+  outline-offset: -5px;
   outline-color: var(--color-on-poppy);
 }
 

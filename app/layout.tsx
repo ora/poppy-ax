@@ -1,6 +1,6 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
-import { Atkinson_Hyperlegible, Besley } from "next/font/google";
+import { Besley, Inter } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { content } from "@/lib/content";
@@ -14,12 +14,11 @@ const display = Besley({
   display: "swap",
 });
 
-// Body: Atkinson Hyperlegible, drawn by the Braille Institute for readers
-// with low vision. The original family has fallback metrics in next/font,
-// so the swap from the fallback face causes no layout shift.
-const body = Atkinson_Hyperlegible({
+// Body: Inter, a screen face with open shapes, plain zeros and tabular
+// figures for the counts on a result. next/font ships fallback metrics for
+// it, so the swap from the fallback face causes no layout shift.
+const body = Inter({
   subsets: ["latin"],
-  weight: ["400", "700"],
   style: ["normal", "italic"],
   variable: "--font-body",
   display: "swap",

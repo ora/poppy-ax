@@ -2,11 +2,11 @@
   "siteName": "poppy.ax",
   "metadata": {
     "title": "poppy.ax: Poppy, the Personal Agent Protocol, in plain words",
-    "description": "Poppy, the Personal Agent Protocol (also called PAP), gives your customers' AI assistants a valet key: they can help, but only within what each customer allows. Check whether a site is ready. An independent guide by Ora.",
+    "description": "Poppy, the Personal Agent Protocol (also called PAP), lets your customers' AI assistants in on your terms: they can help, but only within what you and each customer allow. Check whether a site is ready. An independent guide by Ora.",
     "keywords": ["Poppy", "Personal Agent Protocol", "PAP", "poppy.json", "AI assistants", "personal agents", "agent readiness"],
     "image": {
-      "alt": "poppy.ax: give your customers' AI assistants a valet key. Poppy, the Personal Agent Protocol, in plain words, with a checker for any site",
-      "heading": "Give your customers' AI assistants a valet key.",
+      "alt": "poppy.ax: let your customers' AI assistants in, on your terms. Poppy, the Personal Agent Protocol, in plain words, with a checker for any site",
+      "heading": "Let your customers' AI assistants in, on your terms.",
       "line": "Poppy, the Personal Agent Protocol, in plain words.",
       "byline": "An independent guide by Ora"
     }
@@ -28,8 +28,8 @@
     "after": "."
   },
   "draft": {
-    "text": "Based on Poppy Draft 0.3 (published 2026-11-04, read 2026-11-09)",
-    "href": "https://personalagentprotocol.org/docs/0.3/spec"
+    "text": "Based on Poppy draft 1.0 (read 2026-11-12)",
+    "href": "https://personalagentprotocol.org/docs/1.0/spec"
   },
   "reportError": {
     "label": "Report an error",
@@ -54,7 +54,7 @@
     "setup": {
       "title": "Set it up",
       "heading": "Set it up, one level at a time",
-      "lede": "Supporting Poppy gives your customers' AI assistants a front door to your site, with only the access each customer approves. Build it in four levels and stop at any of them: each says what to build, roughly how big it is, and which checks it turns green, with links to the spec."
+      "lede": "Supporting Poppy gives your customers' AI assistants a front door to your site, with only the access each customer approves. This guide suggests four levels, and you can stop at any of them. The order is ours, not the spec's, which says its layers are not a sequence of adoption levels. Each says what to build, roughly how big it is, and which checks it turns green, with links to the spec."
     },
     "sites": {
       "title": "Sites",

@@ -55,12 +55,50 @@
 }
 
 .home__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--color-rule);
   border-radius: 999px;
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
   color: var(--color-ink-muted);
   font-size: var(--text-sm);
   font-weight: 700;
+}
+
+/* A small live dot: the draft is moving. Decorative. */
+.home__status::before {
+  content: "";
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--color-poppy);
+  box-shadow: 0 0 0 3px var(--color-poppy-soft);
+}
+
+/* The domain box sits on its own card, the one raised thing in the hero. */
+.home__hero .domain-form {
+  max-width: none;
+  padding: var(--space-6) var(--space-6) var(--space-3);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-md);
+}
+
+.home__hero .domain-form__row {
+  background-color: var(--color-paper);
+  box-shadow: none;
+}
+
+@media (max-width: 40rem) {
+  .home__hero .domain-form {
+    padding: var(--space-4) var(--space-4) var(--space-2);
+    border-radius: var(--radius-md);
+  }
 }
 
 /* On a wide screen the promise runs in two lines, and the sentence and the
@@ -88,7 +126,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
-  padding-block-start: var(--space-8);
+  padding-block-start: var(--space-12);
   border-block-start: 1px solid var(--color-rule);
 }
 
@@ -115,21 +153,59 @@
 
 .compare__column {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   align-content: start;
-  padding: var(--space-6);
+  padding: var(--space-6) var(--space-8) var(--space-8);
   border: 1px solid var(--color-rule);
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.compare__column[data-column="today"] {
+  color: var(--color-ink-muted);
 }
 
 .compare__column[data-column="with-poppy"] {
   border: 2px solid var(--color-poppy);
-  background-color: var(--color-surface);
+  background-color: var(--color-poppy-soft);
+  box-shadow: var(--shadow-md);
 }
 
 .compare__title {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-ink);
+  font-size: 1.375rem;
   font-weight: 700;
+}
+
+/* A mark before each title: a cross for today, a tick with Poppy. Decorative. */
+.compare__title::before {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.compare__column[data-column="today"] .compare__title::before {
+  content: "\2715";
+  content: "\2715" / "";
+  border: 1.5px solid var(--color-rule);
+  color: var(--color-ink-muted);
+}
+
+.compare__column[data-column="with-poppy"] .compare__title::before {
+  content: "\2713";
+  content: "\2713" / "";
+  background-color: var(--color-poppy);
+  color: var(--color-on-poppy);
 }
 
 @media (min-width: 40rem) {
@@ -139,6 +215,29 @@
 }
 
 /* Think of a valet key: the key from the picture, then one sentence */
+
+/* A band of its own: the one idea to remember. */
+.home__section.valet-key {
+  padding: var(--space-8);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-card);
+  background-image: radial-gradient(28rem 14rem at 100% 0, var(--color-glow), transparent 70%);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 40rem) {
+  .home__section.valet-key {
+    padding: var(--space-6);
+    border-radius: var(--radius-md);
+  }
+}
+
+/* No rule above the section after the band: the band already separates them. */
+.home__section.valet-key + .home__section {
+  border-block-start: 0;
+  padding-block-start: 0;
+}
 
 .valet-key__icon {
   display: block;
@@ -150,6 +249,20 @@
   max-width: var(--measure);
   font-size: var(--text-lede);
   line-height: 1.5;
+}
+
+@media (min-width: 48rem) {
+  .home__section.valet-key {
+    grid-template-columns: 8rem minmax(0, 1fr);
+    column-gap: var(--space-8);
+    padding: var(--space-12);
+  }
+
+  .valet-key__icon {
+    grid-row: 1 / span 2;
+    align-self: center;
+    width: 8rem;
+  }
 }
 
 /* The three steps */
@@ -194,6 +307,34 @@
   margin-block-start: var(--space-2);
   font-size: 1rem;
   line-height: 1.55;
+}
+
+/* Each step on a small card under the picture */
+.three-steps__item {
+  padding: var(--space-6);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.three-steps__caption {
+  color: var(--color-ink-muted);
+}
+
+.three-steps__number {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  align-self: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: var(--color-poppy);
+  color: var(--color-on-poppy);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1;
 }
 
 @media (min-width: 40rem) {
@@ -273,6 +414,8 @@
 
 .fig-label--start {
   text-anchor: start;
+  font-size: 25px;
+  letter-spacing: -0.01em;
 }
 
 .fig-label--muted {

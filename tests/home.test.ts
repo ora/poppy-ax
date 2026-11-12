@@ -24,8 +24,8 @@ const sections: Record<string, string> = {
 };
 
 describe("content/home.json", () => {
-  it("leads with the valet key, for the business that owns the site", () => {
-    expect(heading).toBe("Give your customers' AI assistants a valet key.");
+  it("leads with letting assistants in on the company's terms, for the business that owns the site", () => {
+    expect(heading).toBe("Let your customers' AI assistants in, on your terms.");
     expect(lede).toMatch(/^Poppy, the Personal Agent Protocol, is a new open standard\./);
   });
 
