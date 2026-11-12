@@ -15,6 +15,30 @@
 .audit__head {
   display: grid;
   gap: var(--space-3);
+  padding: var(--space-8);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-md);
+}
+
+/* The verdict card takes the verdict's colour: green when ready, the warm
+   accent when something needs fixing, plain otherwise. */
+.audit__head:has(.audit__verdict[data-state="ready"]) {
+  border-color: color-mix(in srgb, var(--color-leaf) 35%, var(--color-rule));
+  background-color: var(--color-leaf-soft);
+}
+
+.audit__head:has(.audit__verdict[data-state="partly"]) {
+  border-color: color-mix(in srgb, var(--color-poppy) 35%, var(--color-rule));
+  background-color: var(--color-poppy-soft);
+}
+
+@media (max-width: 40rem) {
+  .audit__head {
+    padding: var(--space-6);
+    border-radius: var(--radius-md);
+  }
 }
 
 .audit__question {
@@ -38,10 +62,17 @@
 }
 
 .audit__verdict {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
   font-size: var(--text-title);
   font-weight: 800;
   letter-spacing: -0.02em;
   max-width: 16ch;
+}
+
+.audit__verdict[data-kind="working"] {
+  color: var(--color-leaf);
 }
 
 /* The one warm accent marks a result with problems. */
@@ -61,10 +92,34 @@
  * ("Ready", "Not yet") is what screen readers and copied text get.
  */
 .audit__verdict[data-state]::before {
-  display: inline-block;
-  margin-inline-end: 0.3em;
-  font-size: 0.8em;
-  vertical-align: 0.05em;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 0.9em;
+  height: 0.9em;
+  border: 0.06em solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-sans);
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.audit__verdict[data-state="ready"]::before,
+.audit__verdict[data-state="partly"]::before {
+  border: 0;
+  background-color: currentColor;
+}
+
+/* The mark itself is drawn in the card's colour, cut out of the filled disc. */
+.audit__verdict[data-state="ready"]::before {
+  color: var(--color-leaf);
+  -webkit-text-fill-color: var(--color-leaf-soft);
+}
+
+.audit__verdict[data-state="partly"]::before {
+  color: var(--color-poppy);
+  -webkit-text-fill-color: var(--color-poppy-soft);
 }
 
 .audit__verdict[data-state="ready"]::before {
@@ -79,8 +134,8 @@
 
 .audit__verdict[data-state="not_yet"]::before,
 .audit__verdict[data-state="couldnt_check"]::before {
-  content: "\25CB";
-  content: "\25CB" / "";
+  content: "\2013";
+  content: "\2013" / "";
 }
 
 /* Not a verdict: Ora's own check failed (not_checked). No verdict size or colour. */
@@ -100,14 +155,19 @@
   display: grid;
   gap: var(--space-3);
   margin: 0;
-  padding-block: var(--space-4);
-  border-block: 1px solid var(--color-rule);
+  padding: var(--space-6);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
   font-size: var(--text-sm);
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
 }
 
 .audit__facts dt {
   font-weight: 700;
+  color: var(--color-ink-muted);
 }
 
 .audit__facts dd {
@@ -115,8 +175,8 @@
 }
 
 .audit__facts code {
-  padding: 0.05em 0.3em;
-  border-radius: 3px;
+  padding: 0.05em 0.35em;
+  border-radius: var(--radius-sm);
   background-color: var(--color-surface);
   overflow-wrap: anywhere;
 }
@@ -138,8 +198,11 @@
 
 .audit__passing {
   max-width: var(--measure);
-  padding-inline-start: var(--space-4);
-  border-inline-start: 3px solid var(--color-ink);
+  padding: var(--space-4) var(--space-6);
+  border: 1px solid var(--color-rule);
+  border-inline-start: 4px solid var(--color-leaf);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
 }
 
 /* Check again, and a check in progress */
@@ -171,7 +234,7 @@
 .check progress {
   width: 100%;
   height: 0.75rem;
-  border: 1px solid var(--color-ink);
+  border: 1px solid var(--color-rule);
   border-radius: 999px;
   background-color: var(--color-surface);
   color: var(--color-poppy);
@@ -245,9 +308,9 @@
 
 .tag {
   display: inline-block;
-  padding: 0 0.4em;
+  padding: 0.05em 0.6em;
   border: 1px solid currentColor;
-  border-radius: 3px;
+  border-radius: 999px;
   font-family: var(--font-sans);
   font-size: 0.75em;
   font-weight: 700;
@@ -275,8 +338,12 @@
   display: grid;
   gap: var(--space-2);
   max-width: var(--measure);
-  padding-inline-start: var(--space-4);
-  border-inline-start: 3px solid var(--color-poppy);
+  padding: var(--space-6) var(--space-6) var(--space-2);
+  border: 1px solid var(--color-rule);
+  border-inline-start: 4px solid var(--color-poppy);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .fix__title {
@@ -346,20 +413,29 @@
 
 .unchecked {
   max-width: var(--measure);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .unchecked__group {
-  border-block-start: 1px solid var(--color-rule);
+  padding-inline: var(--space-4);
 }
 
-.unchecked__group:last-child {
-  border-block-end: 1px solid var(--color-rule);
+.unchecked__group + .unchecked__group {
+  border-block-start: 1px solid var(--color-rule);
 }
 
 .unchecked__group summary {
   min-height: 2.75rem;
   padding-block: var(--space-3);
   cursor: pointer;
+}
+
+.unchecked__group summary:hover .unchecked__name {
+  color: var(--color-poppy);
 }
 
 .unchecked__name {
@@ -429,8 +505,8 @@
 }
 
 .technical code {
-  padding: 0.05em 0.3em;
-  border-radius: 3px;
+  padding: 0.05em 0.35em;
+  border-radius: var(--radius-sm);
   background-color: var(--color-surface);
   overflow-wrap: anywhere;
 }
@@ -438,9 +514,10 @@
 /* Owner checks: not turned on is a neutral state, never a failure. */
 .unchecked__status {
   margin-inline-start: var(--space-2);
-  padding: 0 0.5em;
+  padding: 0 0.6em;
   border: 1px solid var(--color-rule);
   border-radius: 999px;
+  background-color: var(--color-paper);
   color: var(--color-ink-muted);
   font-size: 0.85em;
   font-weight: 700;
