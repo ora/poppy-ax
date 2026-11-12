@@ -93,6 +93,7 @@ describe("content/rows", () => {
       "T0-18": "level-2: MCP protected resource metadata is taught under MCP servers",
       "T0-20": "level-4: extensions.operations is taught with operations",
       "T0-22": "level-3: client assertion signing algorithms are taught with choosing how people sign in",
+      "T0-34": "level-3: the signing algorithm list is taught with choosing how people sign in, like T0-22",
       "T1-13": "level-1: feedback.endpoint is taught with the poppy.json fields",
       "X-01": "level-2: the MCP server's url is taught under MCP servers",
       "X-12": "level-2: MCP protected resource metadata is taught under MCP servers",
@@ -209,7 +210,7 @@ describe("rowContent", () => {
     expect(content.what_failed.length).toBeGreaterThan(0);
     expect(content.why_it_matters?.length).toBeGreaterThan(0);
     expect(content.setup_step).toBe("/setup#level-1-publish-one-public-file");
-    expect(content.spec_section).toBe("https://personalagentprotocol.org/docs/0.3/spec#discovery");
+    expect(content.spec_section).toBe("https://personalagentprotocol.org/docs/0.4/spec#discovery");
   });
 
   it("falls back to the catalog title when a row has no file", () => {
@@ -222,7 +223,7 @@ describe("rowContent", () => {
       what_failed: "Document exists",
       why_it_matters: null,
       setup_step: "/setup#level-1",
-      spec_section: "https://personalagentprotocol.org/docs/0.3/spec#discovery",
+      spec_section: "https://personalagentprotocol.org/docs/0.4/spec#discovery",
       body: "",
       source: "fallback",
     });
