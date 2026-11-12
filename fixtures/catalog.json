@@ -1,8 +1,8 @@
 {
-  "profile": "pap-0.4@2026-11-12",
-  "spec_version": "0.4",
+  "profile": "pap-1.0@2026-11-12",
+  "spec_version": "1.0",
   "draft": true,
-  "spec_url": "https://personalagentprotocol.org/docs/0.4/spec",
+  "spec_url": "https://personalagentprotocol.org/docs/1.0/spec",
   "generated_from": "ora",
   "tier1_policy": "Tier 1 requests are sent only on a scan that asks for active probes, at most once per target domain every 6 hours, and never to a domain whose verified owner turned active probes off.",
   "rows": [
@@ -13,8 +13,8 @@
       "severity": "P0",
       "title": "Document exists",
       "spec_ref": "§3",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#discovery",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#discovery",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -32,8 +32,8 @@
       "severity": "P0",
       "title": "Redirects safe",
       "spec_ref": "§3",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#discovery",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#discovery",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -47,8 +47,8 @@
       "severity": "P0",
       "title": "Valid JSON object",
       "spec_ref": "§3",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#discovery",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#discovery",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -62,12 +62,12 @@
       "severity": "P0",
       "title": "Supported protocol_version",
       "spec_ref": "§3.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#fields",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#fields",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1, 0.2, 0.3, 0.4 or 1.0), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested. Draft 1.0 is still in progress, so a file declaring it is graded by its rules as a preview; from 1.0 a later minor of the same major is compatible (spec 3.4), so a 1.x file is graded by the 1.0 rules, and any later version reads not tested with the rest graded as a preview of Draft 1.0. Before 1.0 neither a 0.4 agent nor a 1.0 agent uses the other's file, so each file is advised to reach both through supported_versions: a 0.4 file passes with an advisory unless it lists a 1.0 document, a preview file unless it lists a 0.4 document, and a file declaring an older draft with an advisory to move to 0.4, the latest published one",
+      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1, 0.2, 0.3, 0.4 or 1.0), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested. From 1.0 a later minor of the same major is compatible (spec 3.4), so a 1.x file is graded by the 1.0 rules, and a later major reads not tested with the rest graded by the Draft 1.0 rules. Ora follows Draft 1.0, still in progress, which the spec's authors ask builders to use; 0.4 is the latest published version. Before 1.0 neither a 1.0 agent nor a 0.4 agent uses the other's file, so each file is advised to reach both through supported_versions: a 1.0 file passes with an advisory unless it lists a 0.4 document, a 0.4 file unless it lists a 1.0 document (or moves to 1.0), and a file declaring an older draft with an advisory to move to 1.0 (or, when it already links a 1.0 document, to link a 0.4 one too)",
       "replaces": null
     },
     {
@@ -77,8 +77,8 @@
       "severity": "P0",
       "title": "Organization names its own host",
       "spec_ref": "§3.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#fields",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#fields",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -92,8 +92,8 @@
       "severity": "P0",
       "title": "Has an interface",
       "spec_ref": "§3.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#fields",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#fields",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -107,8 +107,8 @@
       "severity": "P0",
       "title": "Issuer identified",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -126,8 +126,8 @@
       "severity": "P0",
       "title": "All URLs HTTPS",
       "spec_ref": "§3",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#discovery",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#discovery",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -141,8 +141,8 @@
       "severity": "P2",
       "title": "Published on the requested host",
       "spec_ref": "§3.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#fields",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#fields",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -160,8 +160,8 @@
       "severity": "P1",
       "title": "Other version documents consistent",
       "spec_ref": "§3.4",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#versions",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#versions",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -179,8 +179,8 @@
       "severity": "P0",
       "title": "Issuer metadata reachable",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -198,8 +198,8 @@
       "severity": "P0",
       "title": "Issuer match",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -213,8 +213,8 @@
       "severity": "P0",
       "title": "Domain binding",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -228,8 +228,8 @@
       "severity": "P0",
       "title": "Required endpoints",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -244,7 +244,7 @@
       "title": "Cache headers",
       "spec_ref": "Draft 0.2 §3.2",
       "spec_url": "https://personalagentprotocol.org/docs/0.2/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -258,8 +258,8 @@
       "severity": "P1",
       "title": "Signing algorithms valid",
       "spec_ref": "§4.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#agent-identity",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#agent-identity",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -273,12 +273,12 @@
       "severity": "P2",
       "title": "Signing algorithm list advertised",
       "spec_ref": "§4.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#agent-identity",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#agent-identity",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "From Draft 0.3, when token_endpoint_auth_methods_supported lists private_key_jwt or client_secret_jwt, the issuer metadata also lists token_endpoint_auth_signing_alg_values_supported, as RFC 8414 section 2 requires. Agents sign with ES256 whatever the list says, since every Company accepts it (spec 4.1), so a missing list warns and never fails the check. N/A when neither method is listed, or the file declares 0.1 or 0.2",
+      "pass_when": "From Draft 0.3, when token_endpoint_auth_methods_supported lists private_key_jwt or client_secret_jwt, the issuer metadata also lists token_endpoint_auth_signing_alg_values_supported, as RFC 8414 section 2 requires. Without it an agent can still sign with ES256, which every Company must accept (spec 4.1), but an agent that signs blindly uses PS384 (spec 4.1, 10.7) and cannot tell whether it is accepted. Ora grades the gap as a warning, never failing the check. N/A when neither method is listed, or the file declares 0.1 or 0.2",
       "replaces": null
     },
     {
@@ -288,8 +288,8 @@
       "severity": "P1",
       "title": "Same sign-in on every domain",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -307,8 +307,8 @@
       "severity": "Adv",
       "title": "No plain PKCE",
       "spec_ref": "guides#company-consent",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/guides#company-consent",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/guides#company-consent",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -322,8 +322,8 @@
       "severity": "P1",
       "title": "Scopes defined",
       "spec_ref": "§3.1, §4.7",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#fields",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#fields",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -337,8 +337,8 @@
       "severity": "P1",
       "title": "Mediated sign-in well formed",
       "spec_ref": "Mediated Sign-In §2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/extensions/mediated-sign-in#support",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#support",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -352,8 +352,8 @@
       "severity": "P1",
       "title": "Extensions named correctly",
       "spec_ref": "§3.3",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#extensions",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#extensions",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -367,8 +367,8 @@
       "severity": "P1",
       "title": "Extensions advertised fully",
       "spec_ref": "Ops §2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/extensions/operations#support",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/extensions/operations#support",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -382,8 +382,8 @@
       "severity": "P1",
       "title": "Switched off consistently",
       "spec_ref": "§3.2, §6",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -397,8 +397,8 @@
       "severity": "P2",
       "title": "Offered scopes described",
       "spec_ref": "§4.7",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#scopes",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#scopes",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -412,8 +412,8 @@
       "severity": "P2",
       "title": "Browser sign-in scope listed",
       "spec_ref": "§6",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#web-browsing",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#web-browsing",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -427,8 +427,8 @@
       "severity": "P1",
       "title": "Conversation entries",
       "spec_ref": "§3.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#fields",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#fields",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -442,8 +442,8 @@
       "severity": "P1",
       "title": "API entries",
       "spec_ref": "§3.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#fields",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#fields",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -457,8 +457,8 @@
       "severity": "P1",
       "title": "OpenAPI parses",
       "spec_ref": "§7",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#apis",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#apis",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -476,8 +476,8 @@
       "severity": "P1",
       "title": "MCP resource metadata",
       "spec_ref": "§7",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#apis",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#apis",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -496,7 +496,7 @@
       "title": "Excluded tasks document",
       "spec_ref": "Draft 0.3 §9.1",
       "spec_url": "https://personalagentprotocol.org/docs/0.3/spec#excluded-tasks",
-      "profile": "pap-0.4@2026-11-12",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -514,8 +514,8 @@
       "severity": "P2",
       "title": "Same MCP server everywhere",
       "spec_ref": "§7",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#apis",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#apis",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -529,8 +529,8 @@
       "severity": "P2",
       "title": "Same organization",
       "spec_ref": "§3.1",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#fields",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#fields",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -544,8 +544,8 @@
       "severity": "P2",
       "title": "Domains covered",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -563,8 +563,8 @@
       "severity": "P2",
       "title": "One issuer",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -578,8 +578,8 @@
       "severity": "Adv",
       "title": "One metadata document",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -593,8 +593,8 @@
       "severity": "P2",
       "title": "Shared token endpoint lists both protocols' grants",
       "spec_ref": "§3.2",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#oauth-server",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#oauth-server",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -608,8 +608,8 @@
       "severity": "P2",
       "title": "Consistent 401s",
       "spec_ref": "§7",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#apis",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#apis",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -623,8 +623,8 @@
       "severity": "P1",
       "title": "Token endpoint rejects a junk grant",
       "spec_ref": "§4.4",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#refresh-tokens",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#refresh-tokens",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -642,8 +642,8 @@
       "severity": "Adv",
       "title": "Error bodies leak nothing",
       "spec_ref": "guides#company-errors",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/guides#company-errors",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/guides#company-errors",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -657,8 +657,8 @@
       "severity": "P0",
       "title": "Conversation endpoint refuses a request with no credentials",
       "spec_ref": "§5.3",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#session-verification",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#session-verification",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -676,8 +676,8 @@
       "severity": "P1",
       "title": "MCP server challenges unauthenticated initialize",
       "spec_ref": "§7",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#apis",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#apis",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -695,8 +695,8 @@
       "severity": "P1",
       "title": "Browser join page is safe to load",
       "spec_ref": "§6",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#web-browsing",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#web-browsing",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -714,8 +714,8 @@
       "severity": "P0",
       "title": "Browser endpoint rejects a junk join",
       "spec_ref": "§6",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#web-browsing",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#web-browsing",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -733,8 +733,8 @@
       "severity": "P1",
       "title": "Browser join authorization requires a Session",
       "spec_ref": "§6",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#web-browsing",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#web-browsing",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -753,7 +753,7 @@
       "title": "Operations endpoint requires a token",
       "spec_ref": "Draft 0.2 Ops §2",
       "spec_url": "https://personalagentprotocol.org/docs/0.2/extensions/operations#support",
-      "profile": "pap-0.4@2026-11-12",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -772,7 +772,7 @@
       "title": "Feedback endpoint requires a token",
       "spec_ref": "Draft 0.2 §8",
       "spec_url": "https://personalagentprotocol.org/docs/0.2/spec#feedback",
-      "profile": "pap-0.4@2026-11-12",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": {
@@ -790,8 +790,8 @@
       "severity": "P1",
       "title": "Protocol endpoints answer without a redirect",
       "spec_ref": "§3",
-      "spec_url": "https://personalagentprotocol.org/docs/0.4/spec#discovery",
-      "profile": "pap-0.4@2026-11-12",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#discovery",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -806,7 +806,7 @@
       "title": "Endpoint answers without a redirect",
       "spec_ref": "Draft 0.1 guides#agent-dpop",
       "spec_url": "https://personalagentprotocol.org/docs/0.1/guides#agent-dpop",
-      "profile": "pap-0.4@2026-11-12",
+      "profile": "pap-1.0@2026-11-12",
       "implemented": true,
       "provisional": false,
       "request": null,
@@ -825,7 +825,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Protected operations return 401 invalid_token without one; public ones behave the same either way",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Protected operations return 401 invalid_token without one; public ones behave the same either way",
       "replaces": "T1-04"
     },
     {
@@ -840,7 +840,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: frame-ancestors CSP present",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: frame-ancestors CSP present",
       "replaces": "T1-11"
     },
     {
@@ -855,7 +855,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: 200 with access_token, token_type: DPoP, expires_in > 0, session_id, signed_in: false, empty scope; Cache-Control: no-store",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: 200 with access_token, token_type: DPoP, expires_in > 0, session_id, signed_in: false, empty scope; Cache-Control: no-store",
       "replaces": null
     },
     {
@@ -870,7 +870,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: expires_in is hours, not days (≤ 24 h)",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: expires_in is hours, not days (≤ 24 h)",
       "replaces": null
     },
     {
@@ -885,7 +885,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: New token, same session_id",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: New token, same session_id",
       "replaces": null
     },
     {
@@ -900,7 +900,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: If use_dpop_nonce is returned, a retry with the DPoP-Nonce value succeeds",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: If use_dpop_nonce is returned, a retry with the DPoP-Nonce value succeeds",
       "replaces": null
     },
     {
@@ -915,7 +915,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: token_type: Bearer, accepted at that MCP server, when its protected resource metadata lists no DPoP algorithms; invalid_dpop_proof when it does",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: token_type: Bearer, accepted at that MCP server, when its protected resource metadata lists no DPoP algorithms; invalid_dpop_proof when it does",
       "replaces": null
     },
     {
@@ -930,7 +930,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Requests with only Authorization + DPoP succeed",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Requests with only Authorization + DPoP succeed",
       "replaces": null
     },
     {
@@ -945,7 +945,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: 303 to return_to; cookie Secure, HttpOnly, SameSite Lax or None",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: 303 to return_to; cookie Secure, HttpOnly, SameSite Lax or None",
       "replaces": null
     },
     {
@@ -960,7 +960,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Cookie limited to needed hosts, not the whole domain",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Cookie limited to needed hosts, not the whole domain",
       "replaces": null
     },
     {
@@ -975,7 +975,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected; the same token in the header succeeds",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected; the same token in the header succeeds",
       "replaces": "T1-06"
     },
     {
@@ -990,7 +990,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected with no cookie; the body form succeeds (T2-19)",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected with no cookie; the body form succeeds (T2-19)",
       "replaces": "T1-08"
     },
     {
@@ -1005,7 +1005,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected at the authorization endpoint",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected at the authorization endpoint",
       "replaces": "T1-10"
     },
     {
@@ -1020,7 +1020,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Same failed response for unknown account and wrong password; eventually 429 with Retry-After",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Same failed response for unknown account and wrong password; eventually 429 with Retry-After",
       "replaces": null
     },
     {
@@ -1035,7 +1035,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: invalid_grant 400",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: invalid_grant 400",
       "replaces": null
     },
     {
@@ -1050,7 +1050,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1065,7 +1065,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: invalid_session 400",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: invalid_session 400",
       "replaces": null
     },
     {
@@ -1080,7 +1080,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: invalid_client 401",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: invalid_client 401",
       "replaces": null
     },
     {
@@ -1095,7 +1095,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1110,7 +1110,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected invalid_dpop_proof",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected invalid_dpop_proof",
       "replaces": null
     },
     {
@@ -1125,7 +1125,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1140,7 +1140,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1155,7 +1155,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1170,7 +1170,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1185,7 +1185,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1200,7 +1200,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1215,7 +1215,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: 400, no cookie",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: 400, no cookie",
       "replaces": null
     },
     {
@@ -1230,7 +1230,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: 400",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: 400",
       "replaces": null
     },
     {
@@ -1245,7 +1245,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: 400",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: 400",
       "replaces": null
     },
     {
@@ -1260,7 +1260,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: 400",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: 400",
       "replaces": null
     },
     {
@@ -1275,7 +1275,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1290,7 +1290,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: 201 with conversation_id, status, responder",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: 201 with conversation_id, status, responder",
       "replaces": null
     },
     {
@@ -1305,7 +1305,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Same response, no duplicate message",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Same response, no duplicate message",
       "replaces": null
     },
     {
@@ -1320,7 +1320,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: message_id_conflict 409",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: message_id_conflict 409",
       "replaces": null
     },
     {
@@ -1335,7 +1335,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Every read has conversation_id, events, cursor, has_more, status, responder; messages carry role and sender",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Every read has conversation_id, events, cursor, has_more, status, responder; messages carry role and sender",
       "replaces": null
     },
     {
@@ -1350,7 +1350,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Events returned in the POST response",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Events returned in the POST response",
       "replaces": null
     },
     {
@@ -1365,7 +1365,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: invalid_cursor 400",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: invalid_cursor 400",
       "replaces": null
     },
     {
@@ -1380,7 +1380,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: conversation_not_found 404, same as a nonexistent ID",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: conversation_not_found 404, same as a nonexistent ID",
       "replaces": null
     },
     {
@@ -1395,7 +1395,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: SSE with event ids, or plain JSON if unsupported; reconnect via Last-Event-ID works",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: SSE with event ids, or plain JSON if unsupported; reconnect via Last-Event-ID works",
       "replaces": null
     },
     {
@@ -1410,7 +1410,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: authorization event with sign_in_required, plus a message (P2)",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: authorization event with sign_in_required, plus a message (P2)",
       "replaces": null
     },
     {
@@ -1425,7 +1425,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Accepted; no reply required",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Accepted; no reply required",
       "replaces": null
     },
     {
@@ -1440,7 +1440,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Close returns 200; then conversation_closed 409",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Close returns 200; then conversation_closed 409",
       "replaces": null
     },
     {
@@ -1455,7 +1455,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: 202 with status: queued, then responder: human or back to idle with an explanation",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: 202 with status: queued, then responder: human or back to idle with an explanation",
       "replaces": null
     },
     {
@@ -1470,7 +1470,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: No operation returned; either acts normally or extension_required 403 with extension",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: No operation returned; either acts normally or extension_required 403 with extension",
       "replaces": null
     },
     {
@@ -1485,7 +1485,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: operation_not_found 404",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: operation_not_found 404",
       "replaces": null
     },
     {
@@ -1500,7 +1500,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: terms_changed 409 with current operation",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: terms_changed 409 with current operation",
       "replaces": null
     },
     {
@@ -1515,7 +1515,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Consent page shows agent name, logo, client_id domain, scopes; redirect carries code, state, iss; code exchange with session_id returns Account Token + signed-in Session Token",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Consent page shows agent name, logo, client_id domain, scopes; redirect carries code, state, iss; code exchange with session_id returns Account Token + signed-in Session Token",
       "replaces": null
     },
     {
@@ -1530,7 +1530,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1545,7 +1545,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Redirect with error=access_denied and iss",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Redirect with error=access_denied and iss",
       "replaces": null
     },
     {
@@ -1560,7 +1560,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Opening the link alone doesn't approve; authorization_pending then tokens; slow_down when polling too fast",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Opening the link alone doesn't approve; authorization_pending then tokens; slow_down when polling too fast",
       "replaces": null
     },
     {
@@ -1575,7 +1575,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: complete or code_required flow works; code submitted alone; credentials never echoed",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: complete or code_required flow works; code submitted alone; credentials never echoed",
       "replaces": null
     },
     {
@@ -1590,7 +1590,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Response scope reflects what was approved",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Response scope reflects what was approved",
       "replaces": null
     },
     {
@@ -1605,7 +1605,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: invalid_scope",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: invalid_scope",
       "replaces": null
     },
     {
@@ -1620,7 +1620,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: poppy:read-only token: write via API, conversation and website all refused (insufficient_scope); write-only token can't read",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: poppy:read-only token: write via API, conversation and website all refused (insufficient_scope); write-only token can't read",
       "replaces": null
     },
     {
@@ -1635,7 +1635,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Rejected",
       "replaces": null
     },
     {
@@ -1650,7 +1650,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Narrower works; wider rejected",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Narrower works; wider rejected",
       "replaces": null
     },
     {
@@ -1665,7 +1665,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: account_mismatch",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: account_mismatch",
       "replaces": null
     },
     {
@@ -1680,7 +1680,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Later refresh_token use → invalid_grant; existing Session Tokens stop working for account actions promptly, or tokens are only minutes long",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Later refresh_token use → invalid_grant; existing Session Tokens stop working for account actions promptly, or tokens are only minutes long",
       "replaces": null
     },
     {
@@ -1695,7 +1695,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: sign_in_required",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: sign_in_required",
       "replaces": null
     },
     {
@@ -1710,7 +1710,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Opens with parent_conversation_id; parent rejects messages with direct_conversation_open; direct_opened/direct_closed events appear",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Opens with parent_conversation_id; parent rejects messages with direct_conversation_open; direct_opened/direct_closed events appear",
       "replaces": null
     },
     {
@@ -1725,7 +1725,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Proposed without side effects; confirm executes once; repeated confirm returns same result; result.summary describes every change",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Proposed without side effects; confirm executes once; repeated confirm returns same result; result.summary describes every change",
       "replaces": null
     },
     {
@@ -1740,7 +1740,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: user_approval_required 403",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: user_approval_required 403",
       "replaces": null
     },
     {
@@ -1755,7 +1755,7 @@
       "implemented": false,
       "provisional": true,
       "request": null,
-      "pass_when": "Draft 0.2 plan, being rewritten for 0.4: Connected agents listed with name, domain, scopes, last use; disconnect works",
+      "pass_when": "Draft 0.2 plan, being rewritten for 1.0: Connected agents listed with name, domain, scopes, last use; disconnect works",
       "replaces": null
     }
   ]

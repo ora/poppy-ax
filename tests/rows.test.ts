@@ -210,7 +210,7 @@ describe("rowContent", () => {
     expect(content.what_failed.length).toBeGreaterThan(0);
     expect(content.why_it_matters?.length).toBeGreaterThan(0);
     expect(content.setup_step).toBe("/setup#level-1-publish-one-public-file");
-    expect(content.spec_section).toBe("https://personalagentprotocol.org/docs/0.4/spec#discovery");
+    expect(content.spec_section).toBe("https://personalagentprotocol.org/docs/1.0/spec#discovery");
   });
 
   it("falls back to the catalog title when a row has no file", () => {
@@ -223,7 +223,7 @@ describe("rowContent", () => {
       what_failed: "Document exists",
       why_it_matters: null,
       setup_step: "/setup#level-1",
-      spec_section: "https://personalagentprotocol.org/docs/0.4/spec#discovery",
+      spec_section: "https://personalagentprotocol.org/docs/1.0/spec#discovery",
       body: "",
       source: "fallback",
     });
