@@ -70,7 +70,7 @@ You can serve several versions of the protocol at once, so assistants can move t
 ```json
 "protocol_version": "1.0",
 "supported_versions": {
-  "0.3": "https://example.com/poppy/0.3.json"
+  "0.4": "https://example.com/poppy/0.4.json"
 }
 ```
 
@@ -78,7 +78,7 @@ Each address must be HTTPS, on the host that served `poppy.json` after any redir
 
 Every file you serve at the same time must have the same `organization.domain` and name the same sign-in server, which the next section explains. Otherwise a new version would change how your company is identified, and with it the IDs assistants use for people. Other fields may differ between versions ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions)).
 
-The assistant chooses a version for you. Two versions are compatible when they have the same major version, and before 1.0 the same minor version too: 1.0 and 1.1 are compatible, 0.3 and 0.4 are not. It chooses the newest of your versions that is compatible with one it supports, and uses that version's file. If none is, it uses none of them ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions)).
+The assistant chooses a version for you. Two versions are compatible when they have the same major version, and before 1.0 the same minor version too: 1.0 and 1.1 are compatible, 0.3 and 0.4 are not. It chooses the newest of your versions that is compatible with one it supports, and uses that version's file. If none is, it uses none of them ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions)). So until 1.0 is published, an assistant built for Version 0.4 and one built for draft 1.0 each use only a file of their own version. To reach both, serve one as `poppy.json` and list the other in `supported_versions`, as in the example above.
 
 It then names its version on every request in a session, in a header that level 2 covers. Where you check that header, you also check the version, and answer one you do not serve with an error. The assistant then fetches `poppy.json` again and chooses again. If you serve one version, that check is all you need ([spec 3.4](https://personalagentprotocol.org/docs/1.0/spec#versions), [guides: serving several versions](https://personalagentprotocol.org/docs/1.0/guides#company-versions)).
 
