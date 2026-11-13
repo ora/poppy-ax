@@ -10,7 +10,7 @@
       "id": "ora-pap-catalog",
       "name": "Ora's Poppy check catalog",
       "page": "https://poppy.ax",
-      "sources": [{ "kind": "json-field", "url": "https://ora.ai/pap/catalog.json", "field": "profile", "pin": "pap-1.0@2026-11-12" }]
+      "sources": [{ "kind": "json-field", "url": "https://ora.ai/pap/catalog.json", "field": "profile", "pin": "pap-1.0@2026-11-13" }]
     }
   ]
 }
