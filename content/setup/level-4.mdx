@@ -50,7 +50,7 @@ For full access, the guides suggest giving the scope hints that match your websi
 
 ### Let assistants talk with your own agent
 
-If you run your own AI agent, list it in `poppy.json` under `agent.protocols`. The protocol defined so far has the type `poppy`. If your agent can do nothing useful until the person signs in, add `"access": "signed_in"`, so the assistant can sign in first ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server), [spec 8.1](https://personalagentprotocol.org/docs/1.0/spec#conversation-protocols)):
+If you run your own AI agent, list it in `poppy.json` under `agent.protocols`. The protocol defined so far has the type `poppy`. Each entry must have a `description` that says in plain words what your agent can help with, such as orders and returns, or anything at all. Assistants read it to decide whether a conversation can serve the task, and to choose between your entries and your APIs. If your agent can do nothing useful until the person signs in, add `"access": "signed_in"`, so the assistant can sign in first ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server), [spec 8.1](https://personalagentprotocol.org/docs/1.0/spec#conversation-protocols)):
 
 <CodeLabel>Excerpt from poppy.json</CodeLabel>
 
@@ -59,7 +59,8 @@ If you run your own AI agent, list it in `poppy.json` under `agent.protocols`. T
   "protocols": [
     {
       "type": "poppy",
-      "endpoint": "https://api.example.com/poppy/conversations"
+      "endpoint": "https://api.example.com/poppy/conversations",
+      "description": "Anything about your orders, returns, account, and our products"
     }
   ]
 }
@@ -122,7 +123,7 @@ To offer one, list it in `extensions` in `poppy.json`, such as `"links": [{ "ver
 }
 ```
 
-**UCP.** If you speak the Universal Commerce Protocol (UCP), an open protocol for shopping by agents, the UCP extension tells assistants so. List `"ucp": [{ "version": "1" }]` in `extensions`: Poppy finds you and signs the person in, and the shopping happens through UCP ([UCP 1](https://personalagentprotocol.org/docs/1.0/extensions/ucp#intro), [UCP 2](https://personalagentprotocol.org/docs/1.0/extensions/ucp#support)). UCP's Ask, for questions in plain language, is a conversation protocol of its own. To offer it, add an `agent.protocols` entry with the type `ucp` and your UCP profile's URL as its `endpoint`, and offer Ask in that profile. Its requests follow UCP, not spec 8.2 to 8.13 ([UCP 5](https://personalagentprotocol.org/docs/1.0/extensions/ucp#conversations)). A UCP checkout carries its own approval, so don't also return an operation for it ([UCP 6](https://personalagentprotocol.org/docs/1.0/extensions/ucp#commerce)).
+**UCP.** If you speak the Universal Commerce Protocol (UCP), an open protocol for shopping by agents, the UCP extension tells assistants so. List `"ucp": [{ "version": "1" }]` in `extensions`: Poppy finds you and signs the person in, and the shopping happens through UCP ([UCP 1](https://personalagentprotocol.org/docs/1.0/extensions/ucp#intro), [UCP 2](https://personalagentprotocol.org/docs/1.0/extensions/ucp#support)). UCP's Ask, for questions in plain language, is a conversation protocol of its own. To offer it, add an `agent.protocols` entry with the type `ucp`, your UCP profile's URL as its `endpoint` and a `description` of what Ask can answer, such as questions about your products and orders, and offer Ask in that profile. Its requests follow UCP, not spec 8.2 to 8.13 ([UCP 5](https://personalagentprotocol.org/docs/1.0/extensions/ucp#conversations)). A UCP checkout carries its own approval, so don't also return an operation for it ([UCP 6](https://personalagentprotocol.org/docs/1.0/extensions/ucp#commerce)). When a UCP call answers `insufficient_scope`, the assistant signs in again for every scope it still needs, the ones it has included, and you grant only the scopes that request names, even if the person granted others before. Many UCP scopes, such as personalized search or member pricing at checkout, aren't needed for the call to work, so say in each one's description what it adds and that the task works without it ([UCP 4](https://personalagentprotocol.org/docs/1.0/extensions/ucp#authorization)).
 
 Session and version errors are the ones in level 2, and conversations have their own error codes too, such as `conversation_closed`, `request_id_conflict` and `version_mismatch` ([spec 8.13](https://personalagentprotocol.org/docs/1.0/spec#conversation-errors)).
 

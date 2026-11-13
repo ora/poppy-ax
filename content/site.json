@@ -8,7 +8,17 @@
       "alt": "poppy.ax: let your customers' AI assistants in, on your terms. Poppy, the Personal Agent Protocol, in plain words, with a checker for any site",
       "heading": "Let your customers' AI assistants in, on your terms.",
       "line": "Poppy, the Personal Agent Protocol, in plain words.",
-      "byline": "An independent guide by Ora"
+      "byline": "An independent guide by Ora",
+      "card": {
+        "title": "Your assistant wants to connect to your Example account",
+        "scopes": [
+          { "text": "See your orders and returns", "allowed": true },
+          { "text": "Start a return", "allowed": true },
+          { "text": "Change your payment details", "allowed": false }
+        ],
+        "allow": "Allow",
+        "decline": "Not now"
+      }
     }
   },
   "skipLink": "Skip to main content",
@@ -28,7 +38,7 @@
     "after": "."
   },
   "draft": {
-    "text": "Based on Poppy draft 1.0 (read 2026-11-12)",
+    "text": "Based on Poppy draft 1.0 (read 2026-11-13)",
     "href": "https://personalagentprotocol.org/docs/1.0/spec"
   },
   "reportError": {

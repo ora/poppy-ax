@@ -1,4 +1,4 @@
-// Heading anchors on the pages of Poppy draft 1.0, which the guide follows (in progress, read 2026-11-12); on the frozen
+// Heading anchors on the pages of Poppy draft 1.0, which the guide follows (in progress, read 2026-11-12, anchors re-checked 2026-11-13); on the frozen
 // pages of Draft 0.3 (published 2026-11-04, read 2026-11-09, re-checked 2026-11-12), which the checker grades; and on
 // the unversioned pages the guide links (the path to 1.0, the roadmap, the changelog and the company kit).
 // A link to any other anchor lands at the top of the page instead of the section.
