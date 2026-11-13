@@ -1,58 +1,166 @@
 import { ImageResponse } from "next/og";
 import { content } from "@/lib/content";
+import { OG_DISPLAY, OG_SIZE, OgFrame, OgPill, ogColor as c, ogFonts } from "@/lib/og";
 
 // The preview image for every page without its own (the home page, /learn,
 // /setup, /sites). Result pages draw theirs in app/audit/[domain]/opengraph-image.tsx.
 // Nothing in it changes between builds, so Next makes it once at build time.
+// The card on the right is the idea in one picture: the person approves some
+// kinds of access for their assistant and leaves others out.
 export const alt = content.metadata.image.alt;
-export const size = { width: 1200, height: 630 };
+export const size = OG_SIZE;
 export const contentType = "image/png";
 
-// next/og cannot read CSS variables, so the light palette of app/globals.css
-// is copied here, as in the result image. Keep them in step.
-const c = {
-  /** --paper-light */
-  paper: "#f4f6f0",
-  /** --ink-light */
-  ink: "#16211b",
-  /** --ink-muted-light */
-  muted: "#4b5750",
-  /** --poppy-light */
-  poppy: "#c42118",
-} as const;
+function Toggle({ on }: { on: boolean }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        width: 52,
+        height: 30,
+        borderRadius: 15,
+        padding: 3,
+        justifyContent: on ? "flex-end" : "flex-start",
+        backgroundColor: on ? c.leaf : c.rule,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          width: 24,
+          height: 24,
+          borderRadius: 12,
+          backgroundColor: c.card,
+        }}
+      />
+    </div>
+  );
+}
+
+function ConsentCard() {
+  const card = content.metadata.image.card;
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: 470,
+        padding: "30px 32px",
+        borderRadius: 24,
+        backgroundColor: c.card,
+        border: `1.5px solid ${c.rule}`,
+        boxShadow: "0 24px 60px rgba(22, 33, 27, 0.16), 0 4px 12px rgba(22, 33, 27, 0.06)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          fontSize: 24,
+          fontWeight: 600,
+          lineHeight: 1.3,
+        }}
+      >
+        {card.title}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", marginTop: 18 }}>
+        {card.scopes.map((scope) => (
+          <div
+            key={scope.text}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "13px 0",
+              borderTop: `1.5px solid ${c.surface}`,
+              fontSize: 22,
+              color: scope.allowed ? c.ink : c.muted,
+            }}
+          >
+            <div style={{ display: "flex", maxWidth: 330 }}>{scope.text}</div>
+            <Toggle on={scope.allowed} />
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", marginTop: 18 }}>
+        <div
+          style={{
+            display: "flex",
+            flexGrow: 1,
+            justifyContent: "center",
+            padding: "14px 0",
+            borderRadius: 12,
+            backgroundColor: c.poppy,
+            color: c.paper,
+            fontSize: 22,
+            fontWeight: 600,
+          }}
+        >
+          {card.allow}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            padding: "14px 24px",
+            marginLeft: 12,
+            borderRadius: 12,
+            border: `1.5px solid ${c.rule}`,
+            color: c.muted,
+            fontSize: 22,
+            fontWeight: 600,
+          }}
+        >
+          {card.decline}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Image() {
   const image = content.metadata.image;
   return new ImageResponse(
-    (
+    <OgFrame byline={image.byline}>
       <div
         style={{
-          width: "100%",
-          height: "100%",
           display: "flex",
-          flexDirection: "column",
+          flexGrow: 1,
+          alignItems: "center",
           justifyContent: "space-between",
-          padding: "64px 72px",
-          backgroundColor: c.paper,
-          color: c.ink,
-          borderTop: `16px solid ${c.poppy}`,
+          paddingTop: 20,
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <div style={{ display: "flex", fontSize: 36, fontWeight: 700, letterSpacing: "-0.02em" }}>
-            poppy<span style={{ color: c.poppy }}>.</span>ax
-          </div>
-          <div style={{ display: "flex", fontSize: 26, color: c.muted }}>{content.metadata.image.byline}</div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", fontSize: 80, fontWeight: 700, lineHeight: 1.05, letterSpacing: "-0.02em", maxWidth: 1000 }}>
+        <div style={{ display: "flex", flexDirection: "column", width: 540 }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: OG_DISPLAY,
+              fontSize: 58,
+              fontWeight: 700,
+              lineHeight: 1.08,
+              letterSpacing: "-0.015em",
+            }}
+          >
             {image.heading}
           </div>
-          <div style={{ display: "flex", fontSize: 40, color: c.muted, marginTop: 24 }}>{image.line}</div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 28,
+              lineHeight: 1.35,
+              color: c.muted,
+              marginTop: 22,
+            }}
+          >
+            {image.line}
+          </div>
+          <div style={{ display: "flex", marginTop: 34 }}>
+            <OgPill>{content.draft.text}</OgPill>
+          </div>
         </div>
-        <div style={{ display: "flex", fontSize: 30, color: c.muted }}>{content.draft.text}</div>
+        <ConsentCard />
       </div>
-    ),
-    size,
+    </OgFrame>,
+    { ...OG_SIZE, fonts: ogFonts() },
   );
 }

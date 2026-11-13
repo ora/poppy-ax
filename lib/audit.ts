@@ -302,7 +302,7 @@ export function auditMeta(
 
 /**
  * The accent token for each verdict. The hex values live in
- * app/audit/[domain]/opengraph-image.tsx, because next/og cannot read CSS
+ * lib/og.tsx, because next/og cannot read CSS
  * variables.
  */
 export type ImageAccent = "poppy" | "ink" | "muted";
