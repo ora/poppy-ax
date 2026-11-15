@@ -1,7 +1,7 @@
 {
   "profile": "pap-1.0@2026-11-13",
   "spec_version": "1.0",
-  "draft": true,
+  "draft": false,
   "spec_url": "https://personalagentprotocol.org/docs/1.0/spec",
   "generated_from": "ora",
   "tier1_policy": "Tier 1 requests are sent only on a scan that asks for active probes, at most once per target domain every 6 hours, and never to a domain whose verified owner turned active probes off.",
@@ -67,7 +67,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1, 0.2, 0.3, 0.4 or 1.0), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested. From 1.0 a later minor of the same major is compatible (spec 3.4), so a 1.x file is graded by the 1.0 rules, and a later major reads not tested with the rest graded by the Draft 1.0 rules. Ora follows Draft 1.0, still in progress, which the spec's authors ask builders to use; 0.4 is the latest published version. Before 1.0 neither a 1.0 agent nor a 0.4 agent uses the other's file, so each file is advised to reach both through supported_versions: a 1.0 file passes with an advisory unless it lists a 0.4 document, a 0.4 file unless it lists a 1.0 document (or moves to 1.0), and a file declaring an older draft with an advisory to move to 1.0 (or, when it already links a 1.0 document, to link a 0.4 one too)",
+      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1, 0.2, 0.3, 0.4 or 1.0), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested. From 1.0 a later minor of the same major is compatible (spec 3.4), so a 1.x file is graded by the 1.0 rules, and a later major reads not tested with the rest graded by the Draft 1.0 rules. A file declaring an older draft passes with an advisory to move to 1.0, unless it declares 0.3 or later and links a 1.0 document in supported_versions; versions with different majors are never compatible (spec 3.4), so a 1.0 agent uses no 0.x file",
       "replaces": null
     },
     {

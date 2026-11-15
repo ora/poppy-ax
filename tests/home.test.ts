@@ -43,8 +43,8 @@ describe("content/home.json", () => {
     expect(compare.columns.map((column) => column.title)).toEqual(["Today", "With Poppy"]);
   });
 
-  it("says where the draft stands, cites the announcement, and links on", () => {
-    expect(plain(stands.text)).toContain("still a draft");
+  it("says where Poppy stands, cites the announcement, and links on", () => {
+    expect(plain(stands.text)).toContain("version 1.0 came out");
     expect(textParts(stands.text)).toContainEqual({
       text: "Meta and Sierra announced Poppy",
       href: "https://sierra.ai/blog/introducing-personal-agent-protocol",

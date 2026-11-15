@@ -1,5 +1,5 @@
-// Heading anchors on the pages of Poppy draft 1.0, which the guide follows (in progress, read 2026-11-12, anchors re-checked 2026-11-13); on the frozen
-// pages of Draft 0.3 (published 2026-11-04, read 2026-11-09, re-checked 2026-11-12), which the checker grades; and on
+// Heading anchors on the pages of Poppy version 1.0, which the guide follows (published and frozen 2026-11-14, anchors re-checked 2026-11-15); on the frozen
+// pages of Draft 0.3 (published 2026-11-04, read 2026-11-09, re-checked 2026-11-12), which a check row links; and on
 // the unversioned pages the guide links (the path to 1.0, the roadmap, the changelog and the company kit).
 // A link to any other anchor lands at the top of the page instead of the section.
 export const SPEC_ANCHORS: Record<string, string[]> = {
@@ -19,8 +19,11 @@ export const SPEC_ANCHORS: Record<string, string[]> = {
     "about", "how", "list",
   ],
   "/docs/1.0/extensions/operations": [
-    "intro", "support", "operation-object", "approval-required", "approval", "sending-approval", "at-most-once",
-    "security", "approval-proof", "website-security", "references",
+    "intro", "support", "operation-object", "approval-required", "approval-required-apis", "approval-required-mcp",
+    "approval-required-conversations", "approval-required-websites", "approval", "sending-approval",
+    "sending-approval-apis", "sending-approval-mcp", "sending-approval-conversations", "sending-approval-websites",
+    "approval-checks", "declining-approval", "at-most-once", "security", "approval-proof", "website-security",
+    "references",
   ],
   "/docs/1.0/extensions/mediated-sign-in": [
     "intro", "support", "signing-in", "one-time-codes", "errors", "security",
