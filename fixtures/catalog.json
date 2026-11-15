@@ -131,7 +131,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "Every URL field the spec defines, and every string in the file that carries a URL scheme, is an absolute https URL. A block that exists to carry its URL (feedback in 0.2 and 0.3, excluded_tasks in 0.3, tasks from 0.4) fails without it, and for a file declaring 0.4 or later (0.3 defines no supported_versions) every supported_versions URL is on the host that served poppy.json",
+      "pass_when": "Every URL field the spec defines, and every string in the file that carries a URL scheme, is an absolute https URL. A block that exists to carry its URL (feedback in 0.2 and 0.3, excluded_tasks in 0.3) fails without it; from 0.4 a tasks block with no endpoint is an advisory note, since spec 3.1 states no MUST that it carry one, while an endpoint that is there must be https. For a file declaring 0.4 or later (0.3 defines no supported_versions) every supported_versions URL is on the host that served poppy.json",
       "replaces": null
     },
     {
@@ -249,6 +249,21 @@
       "provisional": false,
       "request": null,
       "pass_when": "From Draft 0.3, the metadata has https token_endpoint and revocation_endpoint, a grant_types_supported that includes refresh_token, plus authorization_endpoint when that list has authorization_code and device_authorization_endpoint when it has the device_code grant. For a file declaring 0.1 or 0.2: https token_endpoint and revocation_endpoint, plus authorization_endpoint when auth.direct is set and device_authorization_endpoint when auth.device is set",
+      "replaces": null
+    },
+    {
+      "id": "T0-38",
+      "tier": 0,
+      "level": "0",
+      "severity": "P2",
+      "title": "Pushed authorization requests usable",
+      "spec_ref": "§4.2, §3.2",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/spec#direct-sign-in",
+      "profile": "pap-1.0@2026-11-15",
+      "implemented": true,
+      "provisional": false,
+      "request": null,
+      "pass_when": "From Draft 1.0, a pushed_authorization_request_endpoint the issuer metadata lists is an https URL (spec 3), and when grant_types_supported has authorization_code, require_pushed_authorization_requests set to true comes with that endpoint, since an agent must then push its Direct Sign-In request there (spec 4.2, RFC 9126 section 5). Each gap warns and never fails the check (P2, product owner decision): requiring Pushed Authorization Requests is a choice the Company may make, and a non-https endpoint breaks spec 3 only for agents that push. N/A when the metadata neither lists the endpoint nor requires them, when it requires them but offers no Direct Sign-In, or for a file declaring 0.4 or earlier",
       "replaces": null
     },
     {
@@ -549,7 +564,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "From Draft 0.4, tasks.endpoint is on a host that is not a loopback, private or link-local IP address (spec 3); a missing or non-https endpoint is T0-08's, so it reads N/A here. Ora does not request it: spec 9 lets a Company that gives every Session the same response serve it without checking the Session header, so a request without one proves nothing. N/A without a tasks block, without an https endpoint (see T0-08), or for a file declaring 0.3 or earlier",
+      "pass_when": "From Draft 0.4, tasks.endpoint is on a host that is not a loopback, private or link-local IP address (spec 3); a missing endpoint is an advisory on T0-08 and a non-https one fails T0-08, so either reads N/A here. Ora does not request it: spec 9 lets a Company that gives every Session the same response serve it without checking the Session header, so a request without one proves nothing. N/A without a tasks block, without an https endpoint (see T0-08), or for a file declaring 0.3 or earlier",
       "replaces": null
     },
     {
