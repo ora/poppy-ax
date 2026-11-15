@@ -487,7 +487,7 @@ describe("network mode", () => {
     it("keeps the spec version, draft flag and Tier 1 policy", async () => {
       fetchMock.mockResolvedValue(json(200, fixture("catalog.json")));
       const catalog = await getCatalog();
-      expect(catalog).toMatchObject({ profile: "pap-1.0@2026-11-13", spec_version: "1.0", draft: true });
+      expect(catalog).toMatchObject({ profile: "pap-1.0@2026-11-13", spec_version: "1.0", draft: false });
       expect(catalog?.tier1_policy).toMatch(/^Tier 1 requests are sent only on a scan that asks for active probes/);
       expect(catalog?.rows.every((row) => typeof row.pass_when === "string" && row.pass_when.length > 0)).toBe(true);
     });
