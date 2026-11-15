@@ -124,7 +124,7 @@ The issuer must publish a second public file, its OAuth metadata (RFC 8414). In 
 }
 ```
 
-The two sides point at each other. Before an assistant uses your `poppy.json`, it fetches this metadata and checks two things: its `issuer` exactly matches the issuer it found, character for character, and `protected_resources` lists `https://` followed by your `organization.domain`, with no path or trailing slash. Without that second check, any domain could claim your sign-in server and receive its tokens ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery), [spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)).
+The two sides point at each other. Before an assistant uses your `poppy.json`, it fetches this metadata and checks two things: its `issuer` exactly matches the issuer it found, character for character, and `protected_resources` lists `https://` followed by your `organization.domain`, with no path or trailing slash. Without that second check, any domain could claim your sign-in server and receive its tokens ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery), [spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)). Every entry in `protected_resources` must be an HTTPS address, and none may carry a fragment, the part after a `#`, because an address that names a resource has none (RFC 9728).
 
 The assistant also reads these fields of the metadata ([spec 3.2](https://personalagentprotocol.org/docs/1.0/spec#oauth-server)):
 
@@ -158,7 +158,7 @@ If you set it and have never given an assistant a refresh token, you have no tok
 
 ### List the tasks you don't offer
 
-Some tasks you may allow only in your own app, for example for security or legal reasons. List them, so assistants know up front and do not spend a long time looking for a way. Set `tasks.endpoint` in `poppy.json` to an HTTPS address. Early in each session, an assistant sends a GET request there, with the Session header that level 2 covers and no access token. You answer with a JSON object ([spec 9](https://personalagentprotocol.org/docs/1.0/spec#task-coverage)):
+Some tasks you may allow only in your own app, for example for security or legal reasons. List them, so assistants know up front and do not spend a long time looking for a way. Set `tasks.endpoint` in `poppy.json` to an HTTPS address on a public host: assistants must not connect to a loopback, private or link-local address a company gives them, such as `127.0.0.1` or `10.0.0.5` ([spec 3](https://personalagentprotocol.org/docs/1.0/spec#discovery)). Early in each session, an assistant sends a GET request there, with the Session header that level 2 covers and no access token. You answer with a JSON object ([spec 9](https://personalagentprotocol.org/docs/1.0/spec#task-coverage)):
 
 <CodeLabel>Answer from tasks.endpoint, sent by the company</CodeLabel>
 
