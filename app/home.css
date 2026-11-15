@@ -47,7 +47,7 @@
   }
 }
 
-/* The status line: a small pill above the sentence, so the draft is clear from the start. */
+/* The status line: a small pill above the sentence, so the version is clear from the start. */
 .home__intro {
   display: grid;
   gap: var(--space-4);
@@ -68,7 +68,8 @@
   font-weight: 700;
 }
 
-/* A small live dot: the draft is moving. Decorative. */
+/* A small solid dot marking the version. Version 1.0 is published and frozen,
+   so the dot has no halo: nothing about it suggests a moving draft. Decorative. */
 .home__status::before {
   content: "";
   flex: none;
@@ -76,7 +77,6 @@
   height: 0.5rem;
   border-radius: 50%;
   background-color: var(--color-poppy);
-  box-shadow: 0 0 0 3px var(--color-poppy-soft);
 }
 
 /* The domain box sits on its own card, the one raised thing in the hero. */
