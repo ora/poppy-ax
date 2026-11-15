@@ -28,16 +28,16 @@ Some assistants reach a company's tools through MCP (Model Context Protocol), a 
 
 ## What changes
 
-**For customers.** When customers sign in on the company's own page, the assistant never sees their password. A company may also allow mediated sign-in, for now. There, the customer gives their sign-in details to the assistant, and it signs in for them ([mediated sign-in](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#intro)). The authors treat this as a stopgap and plan to retire it ([roadmap](https://personalagentprotocol.org/docs/roadmap#mediated-sign-in)). Either way, customers can disconnect an assistant from their account settings ([spec](https://personalagentprotocol.org/docs/1.0/spec#ending-sessions)).
+**For customers.** When customers sign in on the company's own page, the assistant never sees their password. A company may also allow mediated sign-in, for now. There, the customer gives their sign-in details to the assistant, and it signs in for them ([mediated sign-in](https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in#intro)). The authors treat this as a stopgap and plan to retire it on March 17, 2027 ([roadmap](https://personalagentprotocol.org/docs/roadmap#mediated-sign-in)). Either way, customers can disconnect an assistant from their account settings ([spec](https://personalagentprotocol.org/docs/1.0/spec#ending-sessions)).
 
 **For companies.** You keep your own login, your own rules, and a record of what each assistant may do. Assistants get one way in that works the same at every company that supports Poppy. You still decide which assistants you let in ([spec](https://personalagentprotocol.org/docs/1.0/spec#agent-identity)).
 
 ## Where it stands
 
-- Meta and Sierra announced Poppy on October 6, 2026 ([Sierra](https://sierra.ai/blog/introducing-personal-agent-protocol)). They published Draft 0.1 of the spec on October 9 ([Sierra](https://sierra.ai/blog/poppy)), and Draft 0.2 on October 24. Draft 0.3 followed on November 4, and Version 0.4 on November 10, as the release candidate for 1.0 ([changelog](https://personalagentprotocol.org/docs/changelog#v0-4)). The authors now make only fixes, in draft 1.0, and add no new features until 1.0 is published ([path to 1.0](https://personalagentprotocol.org/docs/path-to-1#process)). Draft 1.0 is the version the authors ask builders to use, and this guide follows it. Ora's checker grades Draft 1.0 too, and grades 0.4 files by the same rules.
-- It is a draft. Any part of it can still change, including in ways that break what came before ([spec](https://personalagentprotocol.org/docs/1.0/spec#intro)).
+- Meta and Sierra announced Poppy on October 6, 2026 ([Sierra](https://sierra.ai/blog/introducing-personal-agent-protocol)). They published Draft 0.1 of the spec on October 9 ([Sierra](https://sierra.ai/blog/poppy)), and Draft 0.2 on October 24. Draft 0.3 followed on November 4, and Version 0.4 on November 10, as the release candidate for 1.0 ([changelog](https://personalagentprotocol.org/docs/changelog#v0-4)). After that the authors made only fixes ([path to 1.0](https://personalagentprotocol.org/docs/path-to-1#process)), and published Version 1.0 on November 14, 2026: Version 0.4 with the fixes implementers needed ([changelog](https://personalagentprotocol.org/docs/changelog#v1-0)). Version 1.0 is the version the authors ask builders to use, and this guide follows it. Ora's checker grades Version 1.0 too, and grades 0.4 files by the same rules.
+- Version 1.0 is frozen at its own address, so its text no longer changes. Later 1.x versions can add features, which a company offers only to assistants that ask for that version, so they don't break what works with 1.0 ([spec](https://personalagentprotocol.org/docs/1.0/spec#versions)).
 - They are building it with partners including Shopify, Stripe and Walmart. More design partners, such as OpenAI, Visa and PayPal, give feedback on the design ([Sierra](https://sierra.ai/blog/poppy)), and the spec's site lists every partner that agreed to be named ([path to 1.0](https://personalagentprotocol.org/docs/path-to-1#partners)).
-- The authors publish an implementation kit for companies: instructions a coding agent follows to build it, and a test tool that checks a company's setup. The kit follows draft 1.0 too ([implementation kit](https://personalagentprotocol.org/kit/company#install)).
+- The authors publish an implementation kit for companies: instructions a coding agent follows to build it, and a test tool that checks a company's setup. The kit follows version 1.0 too ([implementation kit](https://personalagentprotocol.org/kit/company#install)).
 - Some topics are still open, including payments, push notifications and attachments ([roadmap](https://personalagentprotocol.org/docs/roadmap)).
 - Almost no company supports it yet. [The sites list](/sites) shows every site Ora has seen publishing the file.
 
@@ -61,7 +61,7 @@ Some assistants reach a company's tools through MCP (Model Context Protocol), a 
 
 ## For developers
 
-- [Read the official docs](https://personalagentprotocol.org/docs), starting with an introduction. They follow draft 1.0, as this guide does.
-- [Read the official spec](https://personalagentprotocol.org/docs/1.0/spec), draft 1.0, which builds on Version 0.4, the release candidate published on November 10, 2026.
+- [Read the official docs](https://personalagentprotocol.org/docs), starting with an introduction. They follow version 1.0, as this guide does.
+- [Read the official spec](https://personalagentprotocol.org/docs/1.0/spec), version 1.0, published on November 14, 2026. It is Version 0.4, the release candidate, with the fixes implementers needed.
 - [See the roadmap](https://personalagentprotocol.org/docs/roadmap) of topics the authors haven't settled yet.
 - [Set it up on your site](/setup), one level at a time, from one public file to signed-in flows.
