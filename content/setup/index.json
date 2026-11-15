@@ -19,7 +19,7 @@
       "none": "{count}, none checked yet"
     },
     "checksHeading": "Checks this level turns green",
-    "checksIntro": "These are the checker's rows for this level, by their ids in the check catalog. Building what this level describes, and following the guides it links, is what makes them pass. A row that checks something you do not offer does not apply. The checker grades Draft 1.0, as this guide does, by the same rules it uses for Version 0.4 files. It suggests publishing poppy.json as 1.0 and listing a 0.4 copy in supported_versions, so assistants built for either version can use your site. The checks not run yet were written for Draft 0.2 and link its pages; they will be rewritten before the checker runs them.",
+    "checksIntro": "These are the checker's rows for this level, by their ids in the check catalog. Building what this level describes, and following the guides it links, is what makes them pass. A row that checks something you do not offer does not apply. The checker grades Version 1.0, as this guide does, by the same rules it uses for Version 0.4 files. It suggests moving a file from 0.4 or earlier to 1.0, because assistants built for 1.0 do not use older files. The checks not run yet were written for Draft 0.2 and link its pages; they will be rewritten before the checker runs them.",
     "groups": {
       "today": "Checked today",
       "soon": "Coming soon to the checker",
@@ -54,6 +54,7 @@
         "T0-09",
         "T0-10",
         "T0-11",
+        "T0-36",
         "T0-12",
         "T0-21",
         "T0-22",
@@ -70,6 +71,7 @@
         "T0-17",
         "T0-18",
         "T0-25",
+        "T0-37",
         "X-01",
         "X-02",
         "X-04",
@@ -90,6 +92,7 @@
         "T1-05",
         "T1-13",
         "T1-14",
+        "T1-18",
         "ADV-REDIRECT",
         "T2-M1",
         "T2-01",
@@ -114,6 +117,7 @@
       "size": "Large. Sign-in and consent pages, scope descriptions, refresh tokens, sign out, and an account settings page. Weeks, less if your OAuth server already does most of it.",
       "rows": [
         "T0-26",
+        "T0-35",
         "T1-01",
         "T2-M5",
         "T2-M4",
@@ -153,6 +157,7 @@
         "T1-16",
         "T0-28",
         "T1-09",
+        "T1-17",
         "T2-19",
         "T2-25",
         "T2-M3",

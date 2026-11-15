@@ -10,8 +10,8 @@ describe("content/site.json", () => {
     expect(content.independentLabel.href).toBe("https://personalagentprotocol.org");
   });
 
-  it("carries the draft line and links the spec", () => {
-    expect(content.draft.text).toBe("Based on Poppy draft 1.0 (read 2026-11-13)");
+  it("carries the version line and links the spec", () => {
+    expect(content.draft.text).toBe("Based on Poppy version 1.0 (read 2026-11-15)");
     expect(content.draft.href).toBe("https://personalagentprotocol.org/docs/1.0/spec");
   });
 
