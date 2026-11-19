@@ -83,7 +83,7 @@ export const SPEC_ANCHORS: Record<string, string[]> = {
     "company-internal", "company-hosting", "company-conversation-provider", "company-agent-issuer",
     "company-guest", "company-conversations", "company-excluded-tasks", "company-operations", "company-errors",
   ],
-  "/docs/path-to-1": ["process", "feedback", "open-topics", "partners"],
+  "/docs/path-to-1": ["feedback", "open-topics", "partners"],
   "/docs/roadmap": ["payments", "push-notifications", "attachments", "signed-approvals", "self-hosted", "mediated-sign-in"],
   "/docs/changelog": ["v1-0", "v1-0-minor", "v1-0-guides", "v0-4", "v0-4-major", "v0-4-minor", "v0-4-guides", "v0-3", "v0-3-major", "v0-3-minor", "v0-3-guides"],
   "/kit/company": ["requirements", "install", "usage", "architecture", "before", "after", "validator", "feedback"],

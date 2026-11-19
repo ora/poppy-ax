@@ -68,7 +68,7 @@ If you run your own AI agent, list it in `poppy.json` under `agent.protocols`. T
 }
 ```
 
-Conversations are JSON over HTTPS. Every request carries the Session header, and an access token when signed in, as in levels 2 and 3. A conversation belongs to the assistant and the user ID that started it, and to the account once it uses one, so any matching session can continue it. Refuse anyone else with `conversation_not_found` ([spec 8.2](https://personalagentprotocol.org/docs/1.0/spec#conversation-requests)). The endpoint takes six requests ([spec 8.2](https://personalagentprotocol.org/docs/1.0/spec#conversation-requests)):
+Conversations are JSON over HTTPS. Every request carries the Session header, and an access token when signed in, as in levels 2 and 3. A conversation belongs to the assistant and the user ID that started it, and to the account once it uses one, so any matching session can continue it. Refuse anyone else with `conversation_not_found` ([spec 8.2](https://personalagentprotocol.org/docs/1.0/spec#conversation-requests)). The one exception is the same assistant and user signed out after the conversation used an account: answer them with a sign-in challenge instead ([spec 8.11](https://personalagentprotocol.org/docs/1.0/spec#conversation-sign-in)). The endpoint takes six requests ([spec 8.2](https://personalagentprotocol.org/docs/1.0/spec#conversation-requests)):
 
 - `POST` to the endpoint starts a conversation with its first message ([spec 8.3](https://personalagentprotocol.org/docs/1.0/spec#sending-messages)).
 - `POST` to `/messages` under a conversation sends another message ([spec 8.3](https://personalagentprotocol.org/docs/1.0/spec#sending-messages)).
