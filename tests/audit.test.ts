@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { NotChecked } from "@/components/audit/result";
 import auditJson from "@/content/audit.json";
 import {
   auditContent,
@@ -251,6 +254,52 @@ function auditJsonReason(reason: "timeout" | "owner_opt_out"): string {
   // The reason words live in content/verdict.json, used through lib/verdict.ts.
   return JSON.parse(readFileSync(join(process.cwd(), "content", "verdict.json"), "utf8")).reasons[reason] as string;
 }
+
+/**
+ * A summary as Ora sends it once the planned Tier 2 and Tier 3 rows leave its
+ * catalog: those rows are gone and their three count keys stay, at zero.
+ */
+function withoutPlannedRows(fixture: Summary): Summary {
+  const copy = structuredClone(fixture);
+  const zero = { pass: 0, fail: 0, na: 0, blocked: 0, not_tested: 0 };
+  copy.rows = copy.rows.filter((row) => row.level === "0" || row.level === "1");
+  copy.counts.tier2a = { ...zero };
+  copy.counts.tier2b = { ...zero };
+  copy.counts.tier3 = { ...zero };
+  return copy;
+}
+
+describe("What wasn't checked?", () => {
+  const render = (fixture: Summary) =>
+    renderToStaticMarkup(createElement(NotChecked, { view: buildResultView(fixture, fixtureCatalog, LATER) }));
+  const intro = auditContent.notChecked.intro.replace(/'/g, "&#x27;");
+
+  it("renders nothing when it has nothing to list", () => {
+    const view = buildResultView(withoutPlannedRows(receiver), fixtureCatalog, LATER);
+    expect(view.unmeasured).toEqual([]);
+    expect(view.unchecked).toEqual([]);
+    expect(render(withoutPlannedRows(receiver))).toBe("");
+  });
+
+  it("lists the checks that did not run, under its intro", () => {
+    const html = render(receiver);
+    expect(html).toContain('id="not-checked"');
+    expect(html).toContain(intro);
+    expect(html).toContain('class="unchecked__group"');
+  });
+
+  it("keeps the unmeasured checks when nothing else is left, without the intro for the list that is gone", () => {
+    const html = render(withoutPlannedRows(timeout));
+    expect(html).toContain('id="not-checked"');
+    expect(html).toContain('class="unmeasured"');
+    expect(html).not.toContain(intro);
+    expect(html).not.toContain('class="unchecked"');
+  });
+
+  it("no longer says its checks were written for an older draft", () => {
+    expect(auditContent.notChecked.intro).not.toMatch(/Draft 0\.\d/);
+  });
+});
 
 describe("checkAgain", () => {
   const lastRun = "2026-10-10T23:13:29.316Z";

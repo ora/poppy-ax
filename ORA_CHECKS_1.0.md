@@ -6,6 +6,13 @@ A guide for Ora's team, and for the coding agents that maintain Ora's Personal A
 - **Sources.** Every requirement cites the draft 1.0 text at `https://personalagentprotocol.org/docs/1.0/...`, read on 2026-11-12, while it was still a draft. Version 1.0 has been frozen since 2026-11-14, so its text no longer changes; the changelog's 1.0 section lists the fixes made before the freeze. An external research note was cross-checked for the pitfalls, test agent, probe safety and fixture sections. Its claims were checked against the 1.0 text and corrected where they were wrong.
 - **What poppy.ax needs from Ora.** The API shape stays the same. Row ids stay stable, or new and retired ids are announced, because poppy.ax keeps a page per row id (`content/rows/<id>.md`) and its tests fail when the catalog and the pages disagree. When the catalog's `profile` changes, poppy.ax's weekly drift watch opens an issue.
 
+> **Status, 2026-11-21, ids leaving the catalog.** Ora now grades every `poppy.json` by version 1.0, whatever version the file declares, so it is removing the rows that grade nothing under 1.0. With Ora's next catalog change, 70 ids leave its catalog, which goes from 120 rows to 50, and every remaining row runs today. No id is renamed and no new id is added.
+>
+> - **The 63 planned ids:** T2-M1 to T2-M5, T1-12, T2-01 to T2-40 and T3-01 to T3-17. None of them ran, and they were still written for Draft 0.2. The planned rewrite described in this guide is no longer ahead; any new Tier 2 or Tier 3 check will be announced with its own id when it is built.
+> - **The seven retired ids:** T0-21, T0-25, T1-09, T1-13, ADV-REDIRECT, X-07 and X-08. Each checks a rule that only an older draft states, so it has nothing to grade in a 1.0 file.
+>
+> Ora's summaries keep their five `counts` keys, and `tier2a`, `tier2b` and `tier3` read zero once the planned rows are gone. poppy.ax removes its pages for these 70 ids when it records the new catalog.
+
 > **Status, 2026-11-15, new rows.** Ora now grades 1.0 requirements it did not check before, in `pap-1.0@2026-11-15` (eralabs-ai/ora#1723, 117 rows; poppy.ax recorded it the same day). Each new rule applies from the draft that states it, so files that declare older drafts keep their grades:
 >
 > - **T0-35** (P2, from 0.3) warns when a Company that offers sign-in lists `scopes_supported` in neither its issuer metadata nor its domain's protected resource metadata (spec 3.2, 4.7).
