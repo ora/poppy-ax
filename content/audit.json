@@ -75,7 +75,7 @@
   },
   "notChecked": {
     "question": "What wasn't checked?",
-    "intro": "Today the checker runs the public file and safety checks. These other checks did not run. They were written for Draft 0.2 of the spec, and will be rewritten before the checker runs them. The checks that ran grade Version 1.0.",
+    "intro": "Today the checker runs the public file and safety checks. These other checks did not run: they are planned, not built, and Ora is taking them off its list. The checks that ran grade Version 1.0.",
     "unmeasured": {
       "title": "Not measured on this run",
       "intro": "These must-fix and should-fix checks run today, but this run could not measure them.",
@@ -83,8 +83,8 @@
     },
     "groups": {
       "2a": {
-        "title": "Coming soon",
-        "intro": "The checker doesn't run these yet."
+        "title": "Planned",
+        "intro": "Planned, not built: the checker does not run these."
       },
       "2b": {
         "title": "Owner checks (optional)",
@@ -95,7 +95,7 @@
       },
       "3": {
         "title": "Signed-in flows",
-        "intro": "What an assistant can do once a person signs in. The checker doesn't run these yet."
+        "intro": "What an assistant can do once a person signs in. Planned, not built: the checker does not run these."
       }
     },
     "count": "{n} checks"
