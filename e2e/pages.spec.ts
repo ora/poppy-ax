@@ -200,7 +200,7 @@ test.describe("result pages", () => {
     await page.goto("/audit/poppy-receiver.roundtrip.workers.dev");
     const groups = page.locator(".unchecked__group summary");
     await expect(groups).toHaveCount(3);
-    await expect(groups.nth(0)).toContainText("Coming soon");
+    await expect(groups.nth(0)).toContainText("Planned");
     await expect(groups.nth(1)).toContainText("Owner checks (optional)");
     await expect(groups.nth(1).locator(".unchecked__status")).toHaveText("Not turned on");
     await expect(groups.nth(2)).toContainText("Signed-in flows");

@@ -83,8 +83,8 @@
     },
     "groups": {
       "2a": {
-        "title": "Coming soon",
-        "intro": "The checker doesn't run these yet."
+        "title": "Planned",
+        "intro": "Planned, not built: the checker does not run these."
       },
       "2b": {
         "title": "Owner checks (optional)",
@@ -95,7 +95,7 @@
       },
       "3": {
         "title": "Signed-in flows",
-        "intro": "What an assistant can do once a person signs in. The checker doesn't run these yet."
+        "intro": "What an assistant can do once a person signs in. Planned, not built: the checker does not run these."
       }
     },
     "count": "{n} checks"
