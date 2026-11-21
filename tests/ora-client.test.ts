@@ -24,7 +24,7 @@ function fixture(name: string): Record<string, unknown> {
 
 const SUMMARY_FIXTURES = [
   ["summary-not-set-up.json", "example.com", "not_set_up"],
-  ["summary-demo-receiver.json", "poppy-receiver.roundtrip.workers.dev", "working"],
+  ["summary-demo-receiver.json", "poppy-receiver.roundtrip.workers.dev", "problems"],
   ["summary-failing-p0.json", "failing-p0.example.com", "problems"],
   ["summary-timeout.json", "timeout.example.com", "working"],
   ["summary-unreachable.json", "unreachable.example.com", "unreachable"],
@@ -139,8 +139,8 @@ describe("fixture mode", () => {
   it("serves the sites list and the catalog", async () => {
     expect(await getSites()).toEqual(fixture("sites.json").sites);
     const catalog = await getCatalog();
-    expect(catalog?.rows).toHaveLength(120);
-    expect(catalog?.profile).toBe("pap-1.0@2026-11-15");
+    expect(catalog?.rows).toHaveLength(50);
+    expect(catalog?.profile).toBe("pap-1.0@2026-11-21");
   });
 
   it("replays the recorded scan for the requested domain and ends with scan_complete", async () => {
@@ -478,7 +478,7 @@ describe("network mode", () => {
     it("returns the catalog without sending the token, cached for an hour", async () => {
       fetchMock.mockResolvedValue(json(200, fixture("catalog.json")));
       const catalog = await getCatalog();
-      expect(catalog?.rows).toHaveLength(120);
+      expect(catalog?.rows).toHaveLength(50);
       expect(calledUrl().pathname).toBe("/pap/catalog.json");
       expect(new Headers(calledInit().headers).has("authorization")).toBe(false);
       expect(calledInit().next).toEqual({ revalidate: 3600 });
@@ -487,7 +487,7 @@ describe("network mode", () => {
     it("keeps the spec version, draft flag and Tier 1 policy", async () => {
       fetchMock.mockResolvedValue(json(200, fixture("catalog.json")));
       const catalog = await getCatalog();
-      expect(catalog).toMatchObject({ profile: "pap-1.0@2026-11-15", spec_version: "1.0", draft: false });
+      expect(catalog).toMatchObject({ profile: "pap-1.0@2026-11-21", spec_version: "1.0", draft: false });
       expect(catalog?.tier1_policy).toMatch(/^Tier 1 requests are sent only on a scan that asks for active probes/);
       expect(catalog?.rows.every((row) => typeof row.pass_when === "string" && row.pass_when.length > 0)).toBe(true);
     });

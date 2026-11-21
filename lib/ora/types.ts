@@ -16,7 +16,7 @@ export type Severity = "P0" | "P1" | "P2" | "Adv";
 
 export type Tier = 0 | 1 | 2 | 3;
 
-/** The catalog's finer split of tiers. Tier 2 is 2a (coming soon) and 2b (opt-in). */
+/** The catalog's finer split of tiers. Ora's schema still allows 2a, 2b and 3; its catalog has only 0 and 1 rows. */
 export type Level = "0" | "1" | "2a" | "2b" | "3";
 
 /**
@@ -90,7 +90,7 @@ export interface CatalogRow {
   profile?: string;
   /** True when the checker runs this check today. */
   implemented: boolean;
-  /** True for a planned check whose details may still change. */
+  /** Ora's schema field for a check whose details may still change. No row in the current catalog sets it. */
   provisional: boolean;
   request: CatalogRequest | null;
   /** One line saying what passes. Every row has one. */

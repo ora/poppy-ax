@@ -37,15 +37,14 @@ test("example.com: no poppy.json, so an invitation into the setup guide", async 
   );
 });
 
-test("the demo receiver: a passing verdict, browser rows not counted as failures", async ({ page }) => {
+test("the demo receiver: partly ready, the version row first, browser rows not counted as failures", async ({ page }) => {
   await page.goto(`/audit/${RECEIVER}`);
-  // "Working" and "No problems found" (Ruling R31) both read "Ready".
-  await expect(verdictOf(page)).toHaveText("Ready");
-  await expect(page.getByText(/pap-0\.1@/)).toBeAttached();
-  // The receiver has no browser endpoint, so T1-07 is N/A: not a failure.
-  await expect(page.locator(".fix-list")).toHaveCount(0);
-  await expect(page.locator(".fix-list, .unmeasured").getByText("Browser endpoint rejects a junk assertion")).toHaveCount(0);
-  await expect(page.getByRole("definition").nth(1)).toContainText("didn't apply");
+  // Its file declares 0.1, which Ora grades by 1.0: T0-04 fails, and so does T0-07.
+  await expect(verdictOf(page)).toHaveText("Partly ready");
+  await expect(page.getByText(/pap-1\.0@/)).toBeAttached();
+  await expect(page.locator(".fix-list > li").first().getByRole("heading")).toContainText("Version a 1.0 agent can use");
+  // T1-07 (the browser endpoint) is never listed as a failure or as unmeasured.
+  await expect(page.locator(".fix-list, .unmeasured").getByText("Browser endpoint rejects a junk join")).toHaveCount(0);
 });
 
 test("a check runs through poppy.ax's route and ends with a saved result", async ({ request }) => {

@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createElement } from "react";
+import { Children, createElement, isValidElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { NotChecked } from "@/components/audit/result";
+import { TrackedLink, type TrackedLinkProps } from "@/components/analytics/tracked-link";
+import { NotChecked, PassingLine } from "@/components/audit/result";
 import auditJson from "@/content/audit.json";
 import {
   auditContent,
@@ -58,8 +59,31 @@ const notChecked: Summary = (() => {
   return parsed;
 })();
 
+/**
+ * A Working summary. No capture reads Working with every check measured under
+ * 1.0 grading: the demo receiver stops at T0-07, and the opt-out capture
+ * leaves six Tier 1 rows unmeasured because the owner turned active checks
+ * off. This is the opt-out capture with those six rows read as passing, as a
+ * run with active checks on would grade a site that answers them, counts kept
+ * in step. Their notes, which say the row was not probed, go with the reason.
+ */
+const working: Summary = (() => {
+  const copy = structuredClone(optOut);
+  copy.domain = "working.example.com";
+  copy.report_url = "https://ora.ai/pap/working.example.com";
+  for (const row of copy.rows) {
+    if (row.reason !== "owner_opt_out") continue;
+    row.outcome = "pass";
+    row.reason = null;
+    row.note = null;
+    copy.counts.tier1.not_tested -= 1;
+    copy.counts.tier1.pass += 1;
+  }
+  return copy;
+})();
+
 /** A time well past every fixture's 6 hour window. */
-const LATER = Date.parse("2026-10-12T12:00:00Z");
+const LATER = Date.parse("2026-12-12T12:00:00Z");
 
 describe("resolveAuditParam", () => {
   it("renders a canonical domain as it is", () => {
@@ -95,31 +119,33 @@ describe("buildResultView with the six fixtures", () => {
     const [row] = view.fixFirst;
     expect(row?.setupStep).toMatch(/^\/setup#/);
     expect(row?.specUrl).toMatch(/^https:\/\/personalagentprotocol\.org\/docs\/1\.0\/spec/);
-    expect(row?.note).toBe("the metadata has no poppy_domains");
+    expect(row?.note).toMatch(/^protected_resources does not include https:\/\/failing-p0\.example\.com /);
     expect(row?.whatFailed.length).toBeGreaterThan(0);
     expect(view.passingLine).toBe(false);
     expect(view.invitation).toBe(false);
     expect(view.unmeasured).toEqual([]);
-    expect(view.tiers.map((tier) => tier.text)).toEqual(["19 passed, 1 failed, 10 didn't apply", "7 not measured"]);
-    expect(view.profile).toBe("pap-0.1@2026-10-09");
+    expect(view.tiers.map((tier) => tier.text)).toEqual(["24 passed, 2 failed, 14 didn't apply", "10 not measured"]);
+    expect(view.profile).toBe("pap-1.0@2026-11-21");
     expect(view.reportUrl).toBe("https://ora.ai/pap/failing-p0.example.com");
   });
 
   it("working with only lower priority failures says so, never a bare 'Nothing'", () => {
-    // The demo receiver with two of its passing P2 and advisory rows failed, counts kept in step.
-    const minor = structuredClone(receiver);
-    for (const row of minor.rows) if (row.id === "T0-SIB" || row.id === "ADV-PKCE") row.outcome = "fail";
-    minor.counts.tier0.pass -= 2;
-    minor.counts.tier0.fail += 2;
-    const view = buildResultView(minor, fixtureCatalog, LATER);
-    expect(view.headline.kind).toBe("working");
+    // The opt-out capture reads working, and its one failure (T0-34) is a P2.
+    const view = buildResultView(optOut, fixtureCatalog, LATER);
+    expect(view.headline.verdict).toBe("working");
     expect(view.fixFirst).toEqual([]);
-    expect(view.fixFirstEmpty).toBe(fill(auditContent.fixFirst.noneMinorMany, { n: 2 }));
+    expect(view.fixFirstEmpty).toBe(auditContent.fixFirst.noneMinorOne);
 
-    minor.counts.tier0.pass += 1;
-    minor.counts.tier0.fail -= 1;
-    expect(buildResultView(minor, fixtureCatalog, LATER).fixFirstEmpty).toBe(auditContent.fixFirst.noneMinorOne);
-    expect(buildResultView(receiver, fixtureCatalog, LATER).fixFirstEmpty).toBe(auditContent.fixFirst.none);
+    // The same capture with one more of its passing P2 and advisory rows failed, counts kept in step.
+    const minor = structuredClone(optOut);
+    for (const row of minor.rows) if (row.id === "T0-SIB") row.outcome = "fail";
+    minor.counts.tier0.pass -= 1;
+    minor.counts.tier0.fail += 1;
+    expect(buildResultView(minor, fixtureCatalog, LATER).fixFirstEmpty).toBe(
+      fill(auditContent.fixFirst.noneMinorMany, { n: 2 }),
+    );
+    // The timeout capture reads working with no failure at all.
+    expect(buildResultView(timeout, fixtureCatalog, LATER).fixFirstEmpty).toBe(auditContent.fixFirst.none);
   });
 
   it("timeout: 'No problems found' lists the unmeasured P0 and P1 rows with their reason (R31)", () => {
@@ -136,10 +162,10 @@ describe("buildResultView with the six fixtures", () => {
     expect(view.unmeasured.every((row) => row.severity === "P0" || row.severity === "P1")).toBe(true);
   });
 
-  it("owner opt-out: the two unprobed rows carry the opt-out reason", () => {
+  it("owner opt-out: the six unprobed rows carry the opt-out reason", () => {
     const view = buildResultView(optOut, fixtureCatalog, LATER);
     expect(view.headline.kind).toBe("no_problems_found");
-    expect(view.unmeasured.map((row) => row.id).sort()).toEqual(["T1-01", "T1-03"]);
+    expect(view.unmeasured.map((row) => row.id).sort()).toEqual(["T1-01", "T1-03", "T1-05", "T1-07", "T1-15", "T1-16"]);
     expect(view.unmeasured.every((row) => row.reasonText === auditJsonReason("owner_opt_out"))).toBe(true);
   });
 
@@ -192,13 +218,23 @@ describe("buildResultView with the six fixtures", () => {
     }
   });
 
-  it("demo receiver: 'Working' gets the one passing line and nothing else", () => {
+  it("demo receiver: partly ready, with the version row first among the rows to fix", () => {
     const view = buildResultView(receiver, fixtureCatalog, LATER);
+    expect(view.headline.text).toBe("Partly ready");
+    expect(view.fixFirst.map((row) => row.id)).toEqual(["T0-04", "T0-07"]);
+    expect(view.passingLine).toBe(false);
+    expect(view.unmeasured).toEqual([]);
+    expect(view.tiers.map((tier) => tier.text)).toEqual(["7 passed, 2 failed, 31 didn't apply", "10 not measured"]);
+  });
+
+  it("'Working' gets the one passing line and nothing else", () => {
+    const view = buildResultView(working, fixtureCatalog, LATER);
+    expect(view.headline.kind).toBe("working");
     expect(view.headline.text).toBe("Ready");
     expect(view.passingLine).toBe(true);
     expect(view.fixFirst).toEqual([]);
     expect(view.unmeasured).toEqual([]);
-    expect(view.tiers.map((tier) => tier.text)).toEqual(["20 passed, 10 didn't apply", "4 passed, 3 didn't apply"]);
+    expect(view.tiers.map((tier) => tier.text)).toEqual(["25 passed, 1 failed, 14 didn't apply", "6 passed, 4 didn't apply"]);
   });
 
   it("not set up: an invitation into /setup, not a failure", () => {
@@ -211,42 +247,54 @@ describe("buildResultView with the six fixtures", () => {
     expect(view.passingLine).toBe(false);
   });
 
-  it.each([failing, timeout, unreachable, optOut, receiver, notSetUp])(
-    "$domain lists Tier 2a, 2b and 3 by name",
-    (fixture) => {
-      const view = buildResultView(fixture, fixtureCatalog, LATER);
-      expect(view.unchecked.map((group) => group.level)).toEqual(["2a", "2b", "3"]);
-      const counts = view.unchecked.map((group) => group.rows.length);
-      expect(counts).toEqual([10, 36, 17]);
-      for (const group of view.unchecked) {
-        for (const row of group.rows) {
-          expect(row.title).not.toBe(row.id);
-          expect(row.title.length).toBeGreaterThan(0);
-        }
-      }
-    },
-  );
-
   it("only 'Working' ever gets the passing line", () => {
-    const passing = [failing, timeout, unreachable, optOut, receiver, notSetUp, notChecked].filter(
-      (fixture) => buildResultView(fixture, fixtureCatalog, LATER).passingLine,
-    );
-    expect(passing.map((fixture) => fixture.domain)).toEqual(["poppy-receiver.roundtrip.workers.dev"]);
+    const all = { failing, timeout, unreachable, optOut, receiver, notSetUp, notChecked, working };
+    const passing = Object.entries(all).filter(([, fixture]) => buildResultView(fixture, fixtureCatalog, LATER).passingLine);
+    expect(passing.map(([name]) => name)).toEqual(["working"]);
   });
 
   it("links to Ora only where the page is allowed to", () => {
-    // The page's Ora links: the report (from the summary), owner verification,
-    // and the one line after "Working" to the domain's agent-readiness audit (R63).
+    // The page's Ora links: the report (from the summary) and the one line
+    // after "Working" to the domain's agent-readiness audit (R63).
     expect(fill(auditContent.passing.href, { domain: receiver.domain })).toBe(
       "https://ora.ai/score/poppy-receiver.roundtrip.workers.dev",
     );
-    // Owner verification (Ruling R72): Ora's verify page, with the domain filled in per result.
-    expect(fill(auditContent.notChecked.groups["2b"].href, { domain: failing.domain })).toBe(
-      "https://app.ora.ai/verify?domain=failing-p0.example.com",
-    );
     const text = JSON.stringify(auditJson);
     const oraLinks = text.match(/https:\/\/[a-z.]*ora\.ai[^"]*/g) ?? [];
-    expect(oraLinks.sort()).toEqual(["https://app.ora.ai/verify?domain={domain}", "https://ora.ai/score/{domain}"]);
+    expect(oraLinks.sort()).toEqual(["https://ora.ai/score/{domain}"]);
+  });
+});
+
+describe("the passing line", () => {
+  const view = buildResultView(working, fixtureCatalog, LATER);
+
+  it("renders after Working, linking to the domain's agent-readiness audit", () => {
+    const html = renderToStaticMarkup(createElement(PassingLine, { view }));
+    expect(html).toBe(
+      '<p class="audit__passing">Agents can sign in. ' +
+        '<a href="https://ora.ai/score/working.example.com">' +
+        auditContent.passing.linkText +
+        "</a></p>",
+    );
+  });
+
+  it("records ora_audit_clicked with the domain on its link", () => {
+    const line = PassingLine({ view }) as ReactElement<{ children: ReactNode }>;
+    const link = Children.toArray(line.props.children).find(
+      (child): child is ReactElement<TrackedLinkProps> => isValidElement(child) && child.type === TrackedLink,
+    );
+    expect(link?.props.href).toBe("https://ora.ai/score/working.example.com");
+    expect(link?.props.event).toBe("ora_audit_clicked");
+    expect(link?.props.eventProps).toEqual({ domain: "working.example.com" });
+  });
+
+  it("renders nothing for a result that is not Working", () => {
+    for (const fixture of [failing, timeout, unreachable, optOut, receiver, notSetUp, notChecked]) {
+      const html = renderToStaticMarkup(
+        createElement(PassingLine, { view: buildResultView(fixture, fixtureCatalog, LATER) }),
+      );
+      expect(html, fixture.domain).toBe("");
+    }
   });
 });
 
@@ -255,49 +303,29 @@ function auditJsonReason(reason: "timeout" | "owner_opt_out"): string {
   return JSON.parse(readFileSync(join(process.cwd(), "content", "verdict.json"), "utf8")).reasons[reason] as string;
 }
 
-/**
- * A summary as Ora sends it once the planned Tier 2 and Tier 3 rows leave its
- * catalog: those rows are gone and their three count keys stay, at zero.
- */
-function withoutPlannedRows(fixture: Summary): Summary {
-  const copy = structuredClone(fixture);
-  const zero = { pass: 0, fail: 0, na: 0, blocked: 0, not_tested: 0 };
-  copy.rows = copy.rows.filter((row) => row.level === "0" || row.level === "1");
-  copy.counts.tier2a = { ...zero };
-  copy.counts.tier2b = { ...zero };
-  copy.counts.tier3 = { ...zero };
-  return copy;
-}
-
 describe("What wasn't checked?", () => {
   const render = (fixture: Summary) =>
     renderToStaticMarkup(createElement(NotChecked, { view: buildResultView(fixture, fixtureCatalog, LATER) }));
-  const intro = auditContent.notChecked.intro.replace(/'/g, "&#x27;");
 
   it("renders nothing when it has nothing to list", () => {
-    const view = buildResultView(withoutPlannedRows(receiver), fixtureCatalog, LATER);
-    expect(view.unmeasured).toEqual([]);
-    expect(view.unchecked).toEqual([]);
-    expect(render(withoutPlannedRows(receiver))).toBe("");
+    for (const fixture of [failing, receiver, unreachable, notSetUp, working]) {
+      expect(buildResultView(fixture, fixtureCatalog, LATER).unmeasured, fixture.domain).toEqual([]);
+      expect(render(fixture), fixture.domain).toBe("");
+    }
   });
 
-  it("lists the checks that did not run, under its intro", () => {
-    const html = render(receiver);
-    expect(html).toContain('id="not-checked"');
-    expect(html).toContain(intro);
-    expect(html).toContain('class="unchecked__group"');
-  });
-
-  it("keeps the unmeasured checks when nothing else is left, without the intro for the list that is gone", () => {
-    const html = render(withoutPlannedRows(timeout));
+  it("lists the must-fix and should-fix checks this run could not measure", () => {
+    const html = render(timeout);
     expect(html).toContain('id="not-checked"');
     expect(html).toContain('class="unmeasured"');
-    expect(html).not.toContain(intro);
+    expect(html).toContain(auditContent.notChecked.unmeasured.intro);
     expect(html).not.toContain('class="unchecked"');
   });
 
-  it("no longer says its checks were written for an older draft", () => {
-    expect(auditContent.notChecked.intro).not.toMatch(/Draft 0\.\d/);
+  it("no longer describes planned checks or an older draft", () => {
+    const words = JSON.stringify(auditContent.notChecked);
+    expect(words).not.toMatch(/Draft 0\.\d/);
+    expect(words).not.toMatch(/\b[Pp]lanned\b/);
   });
 });
 
@@ -389,13 +417,13 @@ describe("imageCard", () => {
       headline: "Partly ready",
       accent: "poppy",
       tiers: [
-        { label: "Public file", text: "19 passed, 1 failed, 10 didn't apply" },
-        { label: "Safety checks", text: "7 not measured" },
+        { label: "Public file", text: "24 passed, 2 failed, 14 didn't apply" },
+        { label: "Safety checks", text: "10 not measured" },
       ],
-      profile: "pap-0.1@2026-10-09",
+      profile: "pap-1.0@2026-11-21",
     });
-    const working = imageCard({ kind: "ok", domain: receiver.domain }, { kind: "ok", summary: receiver }, fixtureCatalog);
-    expect(working.kind === "result" && working.accent).toBe("ink");
+    const ready = imageCard({ kind: "ok", domain: timeout.domain }, { kind: "ok", summary: timeout }, fixtureCatalog);
+    expect(ready.kind === "result" && ready.accent).toBe("ink");
     const notSet = imageCard({ kind: "ok", domain: notSetUp.domain }, { kind: "ok", summary: notSetUp }, fixtureCatalog);
     expect(notSet.kind === "result" && notSet.accent).toBe("muted");
   });

@@ -8,7 +8,7 @@ PAP is an open standard for how an AI assistant finds a company's front door, pr
 
 An independent guide by Ora. PAP is developed by its authors (Meta and Sierra, with Genesys, Instinct, Rocket, Shopify, Stripe and Walmart) and its design partners, at [personalagentprotocol.org](https://personalagentprotocol.org).
 
-poppy.ax is not the official PAP site and does not speak for its authors. Every page is based on [PAP version 1.0](https://personalagentprotocol.org/docs/1.0/spec) (read 2026-11-15), the version the spec's authors ask builders to use, and links the section of the 1.0 pages each claim comes from. Version 1.0 was published on 2026-11-14 and is frozen at `/docs/1.0/`. It is Version 0.4, published 2026-11-10 as the 1.0 release candidate and frozen at `/docs/0.4/`, with the fixes implementers needed. Earlier drafts: 0.1 (2026-10-09), 0.2 (2026-10-24) and 0.3 (2026-11-04). Ora's checks grade Version 1.0 too, and grade 0.4 files by the same rules, so the check rows in `content/rows/` link the 1.0 pages (a few rows that grade only older drafts link those drafts' pages); [ORA_CHECKS_1.0.md](ORA_CHECKS_1.0.md) is the guide for moving Ora's checks to 1.0. If a sentence is wrong, use the "Report an error" link at the foot of the page.
+poppy.ax is not the official PAP site and does not speak for its authors. Every page is based on [PAP version 1.0](https://personalagentprotocol.org/docs/1.0/spec) (read 2026-11-15), the version the spec's authors ask builders to use, and links the section of the 1.0 pages each claim comes from. Version 1.0 was published on 2026-11-14 and is frozen at `/docs/1.0/`. It is Version 0.4, published 2026-11-10 as the 1.0 release candidate and frozen at `/docs/0.4/`, with the fixes implementers needed. Earlier drafts: 0.1 (2026-10-09), 0.2 (2026-10-24) and 0.3 (2026-11-04). Ora's checks grade Version 1.0 too, and grade every file by the 1.0 rules: a file that declares a 0.x draft fails T0-04 unless its supported_versions links a 1.0 document on its own host. So every check row in `content/rows/` links the 1.0 pages; [ORA_CHECKS_1.0.md](ORA_CHECKS_1.0.md) is the guide for moving Ora's checks to 1.0. If a sentence is wrong, use the "Report an error" link at the foot of the page.
 
 ## How it works
 
@@ -45,7 +45,7 @@ In fixture mode, `lib/ora/client.ts` (the only module that talks to Ora) finds a
 
 ## End-to-end tests
 
-`npm run test:e2e` builds the site, starts it on port 3100 with `ORA_FIXTURES=1` and `ORA_FIXTURES_DELAY_MS=0`, and runs `e2e/` in two projects, `phone` (Pixel 7) and `desktop`. They cover the home page and its domain box (with and without JavaScript), a check with its progress, every recorded result (not set up, working, set up with problems, no problems found, couldn't reach it, owner opt-out), an address that can't be checked, /setup, /sites, the keyboard path, the refusal of a check started from another site, and a 1200 x 630 PNG preview image per result. If a server is already running on port 3100 it is reused, so start it in fixture mode.
+`npm run test:e2e` builds the site, starts it on port 3100 with `ORA_FIXTURES=1` and `ORA_FIXTURES_DELAY_MS=0`, and runs `e2e/` in two projects, `phone` (Pixel 7) and `desktop`. They cover the home page and its domain box (with and without JavaScript), a check with its progress, every recorded result (not set up, set up with problems, no problems found, couldn't reach it, owner opt-out), an address that can't be checked, /setup, /sites, the keyboard path, the refusal of a check started from another site, and a 1200 x 630 PNG preview image per result. No recorded result reads Working with every check measured, so the line shown after Working is covered by the unit tests in `tests/audit.test.ts` instead. If a server is already running on port 3100 it is reused, so start it in fixture mode.
 
 A third project, `ora-local`, runs the same site against a local Ora instead of the fixtures. It is skipped unless both of these test-only variables are set:
 
@@ -77,7 +77,7 @@ npx lighthouse@13.5.0 http://localhost:3100/ --form-factor=mobile --only-categor
 
 ## What we measure
 
-We use Vercel Web Analytics with seven custom events, to learn whether the guide helps. There is no personal data: no IP address, user agent, email or full URL is ever put in an event. `lib/analytics.ts` is the one place events are sent, and it drops any value that is not in the list below.
+We use Vercel Web Analytics with six custom events, to learn whether the guide helps. There is no personal data: no IP address, user agent, email or full URL is ever put in an event. `lib/analytics.ts` is the one place events are sent, and it drops any value that is not in the list below.
 
 | Event | When | Values |
 | --- | --- | --- |
@@ -85,7 +85,6 @@ We use Vercel Web Analytics with seven custom events, to learn whether the guide
 | `result_viewed` | A result page is viewed, once per view | `domain`, `verdict`, `referrer_host` |
 | `setup_level_viewed` | A level on /setup first scrolls into view, once per level per view | `level` |
 | `full_report_clicked` | The link to the full report | `domain` |
-| `owner_verification_clicked` | The owner verification link | `domain` |
 | `ora_audit_clicked` | The one line after a passing result | `domain` |
 | `waitlist_clicked` | The managed PAP box on /setup | none |
 
@@ -93,9 +92,9 @@ We use Vercel Web Analytics with seven custom events, to learn whether the guide
 
 ## Two versions: the guide's and the checker's
 
-The guide explains version 1.0, named in the version line in `content/site.json`. The checker shows Ora's results, which grade the version in the recorded catalog's `profile` (`fixtures/catalog.json`). `tests/spec-version.test.ts` fails if the home page status, /learn, the setup levels or this README name a different guide version or read date than the version line, or if /setup, the result page, /learn or this README name a different checker version than the catalog.
+The guide explains version 1.0, named in the version line in `content/site.json`. The checker shows Ora's results, which grade the version in the recorded catalog's `profile` (`fixtures/catalog.json`). `tests/spec-version.test.ts` fails if the home page status, /learn, the setup levels or this README name a different guide version or read date than the version line, or if /setup, /learn or this README name a different checker version than the catalog.
 
-Today both are version 1.0 (Ora's catalog `pap-1.0@2026-11-15`, which grades the rules 1.0 was published with), but the test keeps them apart, so the guide and the checker can move separately. The weekly watch below follows Ora's catalog only. It does not watch the spec pages: 1.0 is frozen, so a change comes as a new version, which the changelog lists and Ora's catalog follows.
+Today both are version 1.0 (Ora's catalog `pap-1.0@2026-11-21`, which grades every poppy.json by the rules 1.0 was published with), but the test keeps them apart, so the guide and the checker can move separately. The weekly watch below follows Ora's catalog only. It does not watch the spec pages: 1.0 is frozen, so a change comes as a new version, which the changelog lists and Ora's catalog follows.
 
 Once a week, `.github/workflows/spec-drift-watch.yml` runs `scripts/spec-drift.mjs` (shared with ax.guide and Ora) to compare Ora's live catalog with the pin in `spec-watch.json`. When Ora has moved to a new draft, it opens an issue that lists what to update, and escalates it after 14 days. With an `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` secret, it also starts `.github/workflows/spec-drift-fix.yml`. That workflow records Ora's new catalog, moves the pin and opens a pull request with Claude's review: what changed between the drafts and the edits the guide needs. Claude only writes that review (it reads files, with no shell, web access or GitHub token), so a maintainer makes the edits on the branch; `tests/spec-version.test.ts` fails until they do, and the pull request opens as a draft. Close and reopen it to run CI. A failed run opens its own issue, and so does a copy of `scripts/spec-drift.mjs` that no longer matches ax.guide's.
 
@@ -112,7 +111,7 @@ In order. Each item is done by a person; tick it in a pull request.
 
 Before anyone outside sees it:
 
-- [ ] Every factual line checked against the spec, version 1.0 (read 2026-11-15). Each page's content was reviewed against the spec when it was written; before launch, run the spec anchor check again: every `personalagentprotocol.org` link with a `#section` in `content/`, `app/`, `components/` and `lib/` must land on a heading that exists on the live page. Last run 2026-11-12: 137 of 137 distinct links found (102 in the 1.0 spec, guides and extension pages, 1 in the frozen 0.3 spec that a check row links, 28 in the frozen 0.1 and 0.2 pages that the planned checks still link, and 6 on the kit, roadmap, changelog and path to 1.0 pages).
+- [ ] Every factual line checked against the spec, version 1.0 (read 2026-11-15). Each page's content was reviewed against the spec when it was written; before launch, run the spec anchor check again: every `personalagentprotocol.org` link with a `#section` in `content/`, `app/`, `components/` and `lib/` must land on a heading that exists on the live page. Last run 2026-11-12: 137 of 137 distinct links found (102 in the 1.0 spec, guides and extension pages, 1 in the frozen 0.3 spec that a check row links, 28 in the frozen 0.1 and 0.2 pages that the planned checks still linked until 2026-11-21, and 6 on the kit, roadmap, changelog and path to 1.0 pages).
 - [ ] Owner review of the copy, for voice.
 - [x] The home page's problem copy: the owner chose it on 2026-10-11. It cites Sierra's announcement, and the claim about passwords is gone.
 

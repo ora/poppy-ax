@@ -75,30 +75,11 @@
   },
   "notChecked": {
     "question": "What wasn't checked?",
-    "intro": "Today the checker runs the public file and safety checks. These other checks did not run: they are planned, not built, and Ora is taking them off its list. The checks that ran grade Version 1.0.",
     "unmeasured": {
       "title": "Not measured on this run",
       "intro": "These must-fix and should-fix checks run today, but this run could not measure them.",
       "why": "Why:"
-    },
-    "groups": {
-      "2a": {
-        "title": "Planned",
-        "intro": "Planned, not built: the checker does not run these."
-      },
-      "2b": {
-        "title": "Owner checks (optional)",
-        "status": "Not turned on",
-        "intro": "These run only when the site owner verifies the domain and turns them on.",
-        "linkText": "Verify you own the domain on Ora",
-        "href": "https://app.ora.ai/verify?domain={domain}"
-      },
-      "3": {
-        "title": "Signed-in flows",
-        "intro": "What an assistant can do once a person signs in. Planned, not built: the checker does not run these."
-      }
-    },
-    "count": "{n} checks"
+    }
   },
   "report": {
     "linkText": "See every check in the full report",

@@ -2,14 +2,15 @@
 
 poppy.ax has no backend of its own. It asks Ora to check a domain and reads the result. This file is the contract: every endpoint poppy.ax uses, what it sends back and how to call it. Real responses for each case are in [`fixtures/`](fixtures/README.md).
 
-We wrote it from responses captured from a local Ora instance on 10 and 11 October 2026, and from the public behaviour of each route. Where a statement rests on one observation, it says so. A few statements come from Ora's change set dated 2026-10-11 and have not been captured from a running Ora yet; each one is marked "from Ora's change set dated 2026-10-11, not yet captured live". Ignore any field or frame type not listed here, and expect new ones to appear.
+We wrote it from responses captured from a local Ora instance on 10 and 11 October 2026, and from the public behaviour of each route. The notes on the catalog, the profile and grading were brought up to date on 21 November 2026, when Ora began grading every `poppy.json` by version 1.0 and its catalog shrank to the 50 checks it runs; [`fixtures/README.md`](fixtures/README.md) says when each fixture was captured. Where a statement rests on one observation, it says so. A few statements come from Ora's change set dated 2026-10-11 and have not been captured from a running Ora yet; each one is marked "from Ora's change set dated 2026-10-11, not yet captured live". Ignore any field or frame type not listed here, and expect new ones to appear.
 
 ## Basics
 
 - **Base URL:** `https://ora.ai`. In poppy.ax it comes from `ORA_BASE_URL`.
 - **Auth:** `Authorization: Bearer <ORA_SERVICE_TOKEN>`. The token is a partner key that Ora issues with PAP read access (`pap:read`). Send it from the server only. It must never reach a browser, a log line or the repo.
 - **Fixture mode:** with `ORA_FIXTURES=1`, poppy.ax reads `fixtures/` instead of calling Ora.
-- **Spec label:** the checks follow the PAP draft spec. Ora names the draft on its reports, for example "PAP Draft 0.3 (published 2026-11-04; Draft 0.4 is being written and may change it)". The catalog carries the same facts as `profile` (`pap-0.3@2026-11-09`: the version and the day Ora read it), `spec_version` and `draft`. poppy.ax follows the same draft: see [Staying on Ora's draft](README.md#staying-on-oras-draft).
+- **Spec label:** the checks follow PAP version 1.0, which is published and no longer a draft. Ora names it on its reports as "PAP 1.0 (published 2026-11-14)". The catalog carries the same facts as `profile` (`pap-1.0@2026-11-21`: the version and the day Ora read it), `spec_version` (`"1.0"`) and `draft` (`false`). poppy.ax follows the same version: see [Two versions: the guide's and the checker's](README.md#two-versions-the-guides-and-the-checkers).
+- **One version for every file:** Ora grades every `poppy.json` by version 1.0, whatever `protocol_version` it declares. A file that declares a 0.x draft fails T0-04 ("Version a 1.0 agent can use", P0) unless its `supported_versions` links a `"1.0"` document by https on the host that served `poppy.json` (spec 3.4). That failure stops no other check: the other rows still grade `poppy.json` by the 1.0 rules, also when the link is there. A missing or malformed `protocol_version` fails T0-04 and stops the other checks.
 
 | Endpoint | Auth | What it is for |
 | --- | --- | --- |
@@ -25,7 +26,7 @@ Pages poppy.ax links to (it never calls them):
 - `https://ora.ai/pap/<domain>`: the full row-by-row report. Each summary carries it as `report_url`.
 - `https://poppy.ora.ai/<domain>`: a short link. It answers `301` to `https://ora.ai/pap/<domain>`. It removes one leading `www.`, so `poppy.ora.ai/www.example.com` goes to `/pap/example.com`.
 - `https://ora.ai/pap/managed`: the managed-PAP waitlist. Link only.
-- `https://app.ora.ai/verify?domain=<domain>`: owner verification, for the "requires opt-in" (Tier 2b) checks. The owner signs in and verifies `<domain>` there. poppy.ax fills in the result's `domain` (from Ora's change set dated 2026-10-11, not yet captured live).
+- `https://app.ora.ai/verify?domain=<domain>`: owner verification. The owner signs in and verifies `<domain>` there; a verified owner can turn Ora's active probes off for the domain (its Tier 1 rows then read `owner_opt_out`) and leave it out of the sites list. poppy.ax fills in the result's `domain` (from Ora's change set dated 2026-10-11, not yet captured live).
 
 ## Checking a domain
 
@@ -116,48 +117,47 @@ The PAP result of the latest stored scan of one domain.
 
 ### Response `200`
 
-`content-type: application/json`, `cache-control: private, max-age=60`. Abridged from `fixtures/summary-failing-p0.json`:
+`content-type: application/json`, `cache-control: private, max-age=60`. Abridged from `fixtures/summary-demo-receiver.json`, whose `poppy.json` declares `"0.1"` and lists no 1.0 document (`rows` cut to its T0-04 entry):
 
 ```json
 {
-  "domain": "failing-p0.example.com",
-  "profile": "pap-0.1@2026-10-09",
-  "last_run": "2026-10-10T23:13:29.316Z",
+  "domain": "poppy-receiver.roundtrip.workers.dev",
+  "profile": "pap-1.0@2026-11-21",
+  "last_run": "2026-11-21T07:48:10.398Z",
   "verdict": "problems",
   "counts": {
-    "tier0":  { "pass": 19, "fail": 1, "na": 10, "blocked": 0, "not_tested": 0 },
-    "tier1":  { "pass": 0, "fail": 0, "na": 0, "blocked": 0, "not_tested": 7 },
-    "tier2a": { "pass": 0, "fail": 0, "na": 0, "blocked": 0, "not_tested": 10 },
-    "tier2b": { "pass": 0, "fail": 0, "na": 0, "blocked": 0, "not_tested": 36 },
-    "tier3":  { "pass": 0, "fail": 0, "na": 0, "blocked": 0, "not_tested": 17 }
+    "tier0":  { "pass": 7, "fail": 2, "na": 31, "blocked": 0, "not_tested": 0 },
+    "tier1":  { "pass": 0, "fail": 0, "na": 0, "blocked": 0, "not_tested": 10 },
+    "tier2a": { "pass": 0, "fail": 0, "na": 0, "blocked": 0, "not_tested": 0 },
+    "tier2b": { "pass": 0, "fail": 0, "na": 0, "blocked": 0, "not_tested": 0 },
+    "tier3":  { "pass": 0, "fail": 0, "na": 0, "blocked": 0, "not_tested": 0 }
   },
   "rows": [
-    { "id": "T0-11", "tier": 0, "level": "0", "severity": "P0", "outcome": "fail", "reason": null, "note": "the metadata has no poppy_domains" },
-    { "id": "T2-M2", "tier": 2, "level": "2b", "severity": "P0", "outcome": "not_tested", "reason": "opt_in_required", "note": null }
+    { "id": "T0-04", "tier": 0, "level": "0", "severity": "P0", "outcome": "fail", "reason": null, "note": "Set protocol_version to \"1.0\", or list a 1.0 document on this host in supported_versions. No 1.0 agent uses a file that declares \"0.1\" (spec 3.4). Until November 2026 Ora graded each file by the draft it declares; Ora now grades every file by 1.0." }
   ],
   "probed_at": null,
-  "report_url": "https://ora.ai/pap/failing-p0.example.com"
+  "report_url": "https://ora.ai/pap/poppy-receiver.roundtrip.workers.dev"
 }
 ```
 
 | Field | Meaning |
 | --- | --- |
 | `domain` | The requested host with one leading `www.` removed: the domain the result is stored under. Asking for `www.example.com` returns `"example.com"`. Use this value in poppy.ax URLs (`/audit/www.x` should become `/audit/x`). |
-| `profile` | The PAP check profile the run used, such as `pap-0.1@2026-10-09`. Matches the catalog's `profile`. |
+| `profile` | The PAP check profile, `pap-1.0@2026-11-21` today. Matches the catalog's `profile`. |
 | `last_run` | ISO 8601 UTC time of the scan this result comes from. |
-| `probed_at` | ISO 8601 UTC time of the active-probe round that the Tier 1 rows show. `null` when no round from the last 30 days is stored. It can be earlier than `last_run` (see [Limits](#limits)). In `fixtures/summary-demo-receiver.json`, `probed_at` is 22:32 and `last_run` 23:51. |
+| `probed_at` | ISO 8601 UTC time of the active-probe round that the Tier 1 rows show. `null` when no round from the last 30 days is stored. It can be earlier than `last_run` (see [Limits](#limits)). No recorded summary in `fixtures/` has a probe round, so `probed_at` is `null` in each. |
 | `verdict` | One word for the domain; see [Verdicts](#verdicts). |
-| `counts` | Rows per outcome, for each of `tier0`, `tier1`, `tier2a`, `tier2b` and `tier3`. All five outcome keys are always present, zeros included. |
-| `rows` | One entry per catalog row, in catalog order, for every row in the profile (100 today). Fields below. |
+| `counts` | Rows per outcome, for each of `tier0`, `tier1`, `tier2a`, `tier2b` and `tier3`. All five tier keys and all five outcome keys are always present, zeros included. The catalog has no `2a`, `2b` or `3` rows, so those three are all zeros; Ora keeps the keys, and poppy.ax requires them. |
+| `rows` | One entry per catalog row, in catalog order (50 today). A row id that is no longer in the catalog is not listed, even when the stored scan has a result for it. Fields below. |
 | `report_url` | `https://ora.ai/pap/<domain>`, the full report. |
 
 Each row:
 
 | Field | Meaning |
 | --- | --- |
-| `id` | The catalog row id, such as `T0-11`, `X-08`, `ADV-PKCE`. |
-| `tier` | `0`, `1`, `2` or `3` (a number). |
-| `level` | `"0"`, `"1"`, `"2a"`, `"2b"` or `"3"` (a string). Splits Tier 2 into 2a and 2b. |
+| `id` | The catalog row id, such as `T0-11`, `X-04`, `ADV-PKCE`. |
+| `tier` | A number: `0` or `1` on every row today. The schema also allows `2` and `3`, for rows a later change may add. |
+| `level` | A string: `"0"` or `"1"` on every row today. The schema also allows `"2a"`, `"2b"` and `"3"`. |
 | `severity` | `P0`, `P1`, `P2` or `Adv` (advisory). |
 | `outcome` | `pass`, `fail`, `na`, `blocked` or `not_tested`; see [Outcomes and reasons](#outcomes-and-reasons). |
 | `reason` | Why a `not_tested` row was not measured, or `null`. |
@@ -188,10 +188,10 @@ Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`, exc
 | `not_set_up` | No valid `poppy.json` was found. In the captures (example.com, example.org) every Tier 0 and Tier 1 row is `na`, and T0-01's note gives the reason, such as `No poppy.json: HTTP 404`. | `summary-not-set-up.json` (example.com) |
 | `unreachable` | Ora could not measure `poppy.json`: it never answered. Every Tier 0 and Tier 1 row is `not_tested` with reason `timeout`. | `summary-unreachable.json` |
 | `not_checked` | Ora's own discovery check failed, so nothing was measured. This says nothing about the site: show it as Ora's failure, never the site's. Every Tier 0 and Tier 1 row is `not_tested` with reason `check_error`. Before this change, Ora answered `unreachable` here. Ora does not serve this result from its freshness cache, so the next check runs fresh at once (both from Ora's change set dated 2026-10-11, not yet captured live). | none: the tests build one from `summary-unreachable.json` |
-| `problems` | At least one P0 or P1 row failed. | `summary-failing-p0.json` (T0-11, P0) |
-| `working` | `poppy.json` is there and no measured P0 or P1 row failed. | `summary-demo-receiver.json` |
+| `problems` | At least one P0 or P1 row failed. | `summary-failing-p0.json` (T0-11, P0); `summary-demo-receiver.json` (T0-04 and T0-07, P0) |
+| `working` | `poppy.json` is there and no measured P0 or P1 row failed. | `summary-owner-opt-out.json` (its one failure, T0-34, is P2) |
 
-`working` does not mean every P0 and P1 row was measured. Read `rows` for P0 and P1 rows that are `not_tested` or `blocked`. In `summary-timeout.json` four P0 rows are `not_tested` (timeout) and the verdict is still `working`. In `summary-owner-opt-out.json` two Tier 1 rows were not probed. Show those rows next to the verdict.
+`working` does not mean every P0 and P1 row was measured. Read `rows` for P0 and P1 rows that are `not_tested` or `blocked`. In `summary-timeout.json` four P0 rows are `not_tested` (timeout) and the verdict is still `working`. In `summary-owner-opt-out.json` six Tier 1 rows were not probed (`owner_opt_out`). Show those rows next to the verdict.
 
 ## Outcomes and reasons
 
@@ -199,7 +199,7 @@ Errors have `cache-control: no-store` and a JSON body `{"error": "<code>"}`, exc
 | --- | --- |
 | `pass` | The check passed. |
 | `fail` | The check failed. `severity` says how much it matters. |
-| `na` | Does not apply to this site. Examples: browser rows on a site with no browser endpoint (T1-07 on the demo receiver), or every row on a site with no `poppy.json`. |
+| `na` | Does not apply to this site. Examples: the Tier 0 rows after the one an agent stops at (on the demo receiver, which stops at T0-07), or every row on a site with no `poppy.json`. |
 | `blocked` | The site answered with something the spec does not define, such as a firewall page, a bot challenge or a 5xx. It never counts as a failure. No captured response had one; show it as not measured. |
 | `not_tested` | Ora did not measure the row. `reason` and `note` say why. |
 
@@ -212,12 +212,10 @@ Every `reason` value:
 | `probe_cooldown` | Ora probed this target recently and is waiting before it probes again. This is Ora's own limit, not the spec's `rate_limited` error. |
 | `owner_opt_out` | The domain's verified owner turned active probes off. |
 | `out_of_scope` | The target is off the domain, a refused private address, or past one of Ora's size or count limits. |
-| `not_available` | Ora does not run these checks yet: every Tier 2a and Tier 3 row. Show as "coming soon". |
-| `opt_in_required` | These run only for a verified owner who opts in: every Tier 2b row. |
 | `check_error` | Ora's own check failed to run, so nothing was measured. Never show it as N/A. On a `not_checked` summary every Tier 0 and Tier 1 row has it (from Ora's change set dated 2026-10-11, not yet captured live). |
 | `null` | Not measured, with no single cause. On Tier 1 the captured note reads: "Active probes run only on a scan requested for this domain. No probe result from the last 30 days." |
 
-Only `not_tested` rows carry a reason. Treat any reason not listed here as "not measured", with generic text. The fixtures contain `timeout`, `owner_opt_out`, `not_available`, `opt_in_required` and `null`; the other values were not seen in a capture.
+Only `not_tested` rows carry a reason. Treat any reason not listed here as "not measured", with generic text. Ora's schema still lists `not_available` and `opt_in_required`. No row in Ora's current catalog carries them, since the catalog lost its unbuilt checks on 21 November 2026, but older stored summaries can (`fixtures/summary-not-set-up.json` and `fixtures/summary-unreachable.json`, captured in October, still do); read them as "not measured" too.
 
 ## `GET /api/pap/v1/sites`
 
@@ -259,13 +257,13 @@ Top level:
 
 | Field | Meaning |
 | --- | --- |
-| `profile` | The check profile, such as `pap-0.1@2026-10-09`. |
-| `spec_version` | The spec version the checks follow, such as `"0.1"`. |
-| `draft` | `true` while that spec is a draft that may change. |
-| `spec_url` | The frozen page of the spec version the checks follow, such as `https://personalagentprotocol.org/docs/0.3/spec`. |
+| `profile` | The check profile, `pap-1.0@2026-11-21` today. |
+| `spec_version` | The spec version the checks follow, `"1.0"` today. Ora grades every `poppy.json` by this version, whatever version the file declares. |
+| `draft` | `true` while that spec is a draft that may change; `false` for version 1.0. |
+| `spec_url` | The frozen page of the spec version the checks follow, `https://personalagentprotocol.org/docs/1.0/spec` today. |
 | `generated_from` | `"ora"`. |
 | `tier1_policy` | One sentence on when Ora sends Tier 1 requests. Ora sends them only on a scan that asks for active probes, and at most once per target domain every 6 hours. It never sends them to a domain whose verified owner turned them off. |
-| `rows` | Every check, in report order (118 in the recorded catalog). |
+| `rows` | Every check, in report order: 50 today, 40 in Tier 0 and 10 in Tier 1. |
 
 Each row:
 
@@ -277,11 +275,11 @@ Each row:
 | `spec_ref` | Where the requirement comes from, such as `§3`, `Ops §2` or `guides`. |
 | `spec_url` | A link to that place in the spec. |
 | `profile` | The profile this row belongs to. |
-| `implemented` | `true` when Ora runs the check today: Tiers 0 and 1, 37 rows. `false` for Tier 2 and Tier 3 (63 rows). |
-| `provisional` | `true` for a planned check whose details may still change. Today it is `true` exactly when `implemented` is `false`. |
+| `implemented` | `true` when Ora runs the check. Every row in the catalog is `true` today. |
+| `provisional` | `true` for a check whose details may still change. Every row is `false` today. |
 | `request` | For a check that sends its own request: `{ "method", "target", "condition" }`. Example: `GET`, `https://{domain}/.well-known/poppy.json`, "on every scanned domain". `null` otherwise. `target` is a description, not always a URL. |
 | `pass_when` | One line saying what passes. Every row has one. On rows Ora runs, it states Ora's rule. Rows starting "Ora consistency check, not a spec requirement:" are Ora's own cross-checks. |
-| `replaces` | The id of an older row this one supersedes, such as `T1-04` for `T2-M1`, or `null`. |
+| `replaces` | The id of an older row this one supersedes, or `null`. Every row is `null` today. |
 
 ## Limits
 

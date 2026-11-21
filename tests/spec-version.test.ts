@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import audit from "@/content/audit.json";
 import home from "@/content/home.json";
 import setup from "@/content/setup/index.json";
 import catalog from "@/fixtures/catalog.json";
@@ -66,9 +65,8 @@ describe("the version the checker grades", () => {
     expect(catalog.spec_version).toBe(version);
   });
 
-  it("is the one /setup, the result page, /learn and the README say the checker grades", () => {
+  it("is the one /setup, /learn and the README say the checker grades", () => {
     expect(setup.page.checksIntro).toContain(`The checker grades Version ${version},`);
-    expect(audit.notChecked.intro).toContain(`The checks that ran grade Version ${version}.`);
     expect(read("content/learn.mdx")).toContain(`Ora's checker grades Version ${version}`);
     expect(read("README.md")).toContain(`Ora's checks grade Version ${version}`);
   });

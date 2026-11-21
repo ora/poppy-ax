@@ -1,6 +1,6 @@
 import auditText from "@/content/audit.json";
-import type { Catalog, CountKey, OutcomeCounts, Row, Severity, Summary, SummaryResult } from "@/lib/ora/types";
-import { displayTitle, rowContent } from "@/lib/rows";
+import type { Catalog, CountKey, OutcomeCounts, Severity, Summary, SummaryResult } from "@/lib/ora/types";
+import { rowContent } from "@/lib/rows";
 import { fill } from "@/lib/template";
 import { fixFirst, headline, type Headline, type HeadlineKind } from "@/lib/verdict";
 
@@ -89,7 +89,7 @@ export function checkAgain(lastRun: string, now: number): CheckAgain {
 
 // ---- Counts -------------------------------------------------------------------
 
-/** The tiers the checker runs in Phase 1. */
+/** The tiers the checker runs. Ora still sends tier2a, tier2b and tier3 counts, always zero. */
 export const MEASURED_TIERS = ["tier0", "tier1"] as const satisfies readonly CountKey[];
 
 export interface TierCount {
@@ -146,27 +146,6 @@ export interface UnmeasuredView {
   note: string | null;
 }
 
-export type UncheckedLevel = "2a" | "2b" | "3";
-
-export interface UncheckedGroup {
-  level: UncheckedLevel;
-  rows: Array<{ id: string; title: string }>;
-}
-
-const UNCHECKED_LEVELS: readonly UncheckedLevel[] = ["2a", "2b", "3"];
-const NOT_MEASURED: ReadonlySet<Row["outcome"]> = new Set(["not_tested", "blocked"]);
-
-/** Tier 2a, 2b and 3 rows this run did not measure, by name, in summary order. */
-export function uncheckedGroups(summary: Summary, catalog: Catalog): UncheckedGroup[] {
-  const titles = new Map(catalog.rows.map((row) => [row.id, row.title]));
-  return UNCHECKED_LEVELS.map((level) => ({
-    level,
-    rows: summary.rows
-      .filter((row) => row.level === level && NOT_MEASURED.has(row.outcome))
-      .map((row) => ({ id: row.id, title: displayTitle(row.id, titles.get(row.id)) })),
-  })).filter((group) => group.rows.length > 0);
-}
-
 /** The P0 and P1 failures, each as its plain sentence and the step that fixes it. */
 export function fixRows(summary: Summary, catalog: Catalog): FixRow[] {
   return fixFirst(summary, catalog).map((ref) => {
@@ -204,7 +183,6 @@ export interface ResultView {
   invitation: boolean;
   /** For "No problems found" only (Ruling R31): the P0 and P1 rows this run could not measure. */
   unmeasured: UnmeasuredView[];
-  unchecked: UncheckedGroup[];
   reportUrl: string;
   /** The one line to Ora's agent-readiness audit, after "Working" only. */
   passingLine: boolean;
@@ -253,7 +231,6 @@ export function buildResultView(
             note: row.row.note,
           }))
         : [],
-    unchecked: uncheckedGroups(summary, catalog),
     reportUrl: summary.report_url,
     passingLine: top.kind === "working",
     // Ora does not serve a result it could not check from its cache, so a

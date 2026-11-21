@@ -1,7 +1,7 @@
 import type { MDXComponents, MDXContent } from "mdx/types";
 import { TrackedLink } from "@/components/analytics/tracked-link";
 import { Children, isValidElement, type ReactNode } from "react";
-import { groupedRows, setupContent, stepId, type SetupLevel } from "@/lib/setup";
+import { levelRows, setupContent, stepId, type SetupLevel } from "@/lib/setup";
 import { displayTitle } from "@/lib/rows";
 
 /** The plain text inside a heading, for its id. */
@@ -29,11 +29,7 @@ function mdxComponentsFor(levelId: string): MDXComponents {
 }
 
 function checksSummary(level: SetupLevel): string {
-  const { checksSummary: t } = setupContent.page;
-  const total = level.rows.length;
-  const today = groupedRows(level).find((entry) => entry.group === "today")?.rows.length ?? 0;
-  const template = today === total ? t.all : today === 0 ? t.none : t.some;
-  return template.replace("{count}", String(total)).replace("{today}", String(today));
+  return setupContent.page.checksSummary.replace("{count}", String(levelRows(level).length));
 }
 
 export function LevelNav({ levels }: { levels: SetupLevel[] }) {
@@ -95,24 +91,23 @@ export function LevelSection({ level, Body }: { level: SetupLevel; Body: MDXCont
 function LevelChecks({ level }: { level: SetupLevel }) {
   const { page } = setupContent;
   const headingId = `${level.id}-checks`;
+  const rows = levelRows(level);
   return (
     <div className="level-checks">
       <h3 id={headingId}>{page.checksHeading}</h3>
       <p>{page.checksIntro}</p>
-      {groupedRows(level).map(({ group, rows }) => (
-        <details key={group} open={group === "today"}>
-          <summary>
-            {page.groups[group]} <span className="level-checks__count">({rows.length})</span>
-          </summary>
-          <ul>
-            {rows.map((row) => (
-              <li key={row.id}>
-                <code>{row.id}</code> {displayTitle(row.id, row.title)}
-              </li>
-            ))}
-          </ul>
-        </details>
-      ))}
+      <details open>
+        <summary>
+          {page.checksGroup} <span className="level-checks__count">({rows.length})</span>
+        </summary>
+        <ul>
+          {rows.map((row) => (
+            <li key={row.id}>
+              <code>{row.id}</code> {displayTitle(row.id, row.title)}
+            </li>
+          ))}
+        </ul>
+      </details>
     </div>
   );
 }

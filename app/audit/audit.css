@@ -411,56 +411,6 @@
   color: var(--color-ink-muted);
 }
 
-.unchecked {
-  max-width: var(--measure);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-md);
-  background-color: var(--color-card);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.unchecked__group {
-  padding-inline: var(--space-4);
-}
-
-.unchecked__group + .unchecked__group {
-  border-block-start: 1px solid var(--color-rule);
-}
-
-.unchecked__group summary {
-  min-height: 2.75rem;
-  padding-block: var(--space-3);
-  cursor: pointer;
-}
-
-.unchecked__group summary:hover .unchecked__name {
-  color: var(--color-poppy);
-}
-
-.unchecked__name {
-  font-weight: 700;
-}
-
-.unchecked__count {
-  color: var(--color-ink-muted);
-}
-
-.unchecked__intro {
-  margin-block-end: var(--space-3);
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-}
-
-.unchecked__list {
-  display: grid;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0 0 var(--space-4);
-  list-style: none;
-  font-size: var(--text-sm);
-}
-
 .audit__report {
   font-weight: 700;
 }
@@ -509,16 +459,4 @@
   border-radius: var(--radius-sm);
   background-color: var(--color-surface);
   overflow-wrap: anywhere;
-}
-
-/* Owner checks: not turned on is a neutral state, never a failure. */
-.unchecked__status {
-  margin-inline-start: var(--space-2);
-  padding: 0 0.6em;
-  border: 1px solid var(--color-rule);
-  border-radius: 999px;
-  background-color: var(--color-paper);
-  color: var(--color-ink-muted);
-  font-size: 0.85em;
-  font-weight: 700;
 }
