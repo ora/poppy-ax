@@ -94,6 +94,8 @@ describe("content/rows", () => {
       "T0-20": "level-4: extensions.operations is taught with operations",
       "T0-22": "level-3: client assertion signing algorithms are taught with choosing how people sign in",
       "T0-34": "level-3: the signing algorithm list is taught with choosing how people sign in, like T0-22",
+      "T0-39": "level-4: the ucp agent.protocols entry and the UCP extension are taught with conversations",
+      "T0-40": "level-4: the UCP profile behind a ucp entry is taught with conversations",
       "T1-13": "level-1: feedback.endpoint is taught with the poppy.json fields",
       "X-01": "level-2: the MCP server's url is taught under MCP servers",
       "X-12": "level-2: MCP protected resource metadata is taught under MCP servers",
