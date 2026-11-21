@@ -35,11 +35,6 @@ describe("result page words", () => {
     expect(audit.verdict.severity).toEqual({ P0: "Must fix", P1: "Should fix", P2: "Nice to fix", Adv: "Advice" });
   });
 
-  it("shows owner checks as not turned on, never as failed", () => {
-    expect(audit.notChecked.groups["2b"].title).toBe("Owner checks (optional)");
-    expect(audit.notChecked.groups["2b"].status).toBe("Not turned on");
-  });
-
   it("contains no em dashes", () => {
     for (const [path, text] of [...strings(audit), ...strings(verdict)]) {
       expect(text, path).not.toContain(String.fromCharCode(0x2014));

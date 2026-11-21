@@ -8,7 +8,6 @@ export const EVENT_NAMES = [
   "result_viewed",
   "setup_level_viewed",
   "full_report_clicked",
-  "owner_verification_clicked",
   "ora_audit_clicked",
   "waitlist_clicked",
 ] as const;

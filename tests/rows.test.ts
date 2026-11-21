@@ -96,7 +96,6 @@ describe("content/rows", () => {
       "T0-34": "level-3: the signing algorithm list is taught with choosing how people sign in, like T0-22",
       "T0-39": "level-4: the ucp agent.protocols entry and the UCP extension are taught with conversations",
       "T0-40": "level-4: the UCP profile behind a ucp entry is taught with conversations",
-      "T1-13": "level-1: feedback.endpoint is taught with the poppy.json fields",
       "X-01": "level-2: the MCP server's url is taught under MCP servers",
       "X-12": "level-2: MCP protected resource metadata is taught under MCP servers",
     };
@@ -163,10 +162,10 @@ describe("content/rows", () => {
       .map((level) => renderToStaticMarkup(createElement(LevelSection, { level, Body: () => null })))
       .join("");
     expect(html).not.toMatch(/\bOra\b/);
-    for (const id of ["T2-M4", "T2-M5", "T2-07", "T2-38", "T3-02"]) {
-      const title = rowContent(id).title;
-      expect(rowContent(id).title_source, id).toBe("file");
-      expect(html, id).toContain(`<code>${id}</code> ${title.replace(/'/g, "&#x27;")}`);
+    expect(rowContent("T0-04").title_source).toBe("file");
+    for (const row of fixtureCatalog.rows) {
+      const title = displayTitle(row.id, row.title);
+      expect(html, row.id).toContain(`<code>${row.id}</code> ${title.replace(/'/g, "&#x27;")}`);
     }
   });
 
@@ -246,10 +245,10 @@ describe("rowContent", () => {
 
   it("prefers a title from the file over the catalog title", () => {
     const dir = mkdtempSync(join(tmpdir(), "rows-"));
-    writeFileSync(join(dir, "T3-02.md"), '---\ntitle: "A neutral title"\nwhat_failed: "x"\n---\n');
-    expect(createRowContentLoader(dir, fixtureCatalog)("T3-02").title).toBe("A neutral title");
-    expect(createRowContentLoader(mkdtempSync(join(tmpdir(), "rows-")), fixtureCatalog)("T3-02").title).toBe(
-      fixtureCatalog.rows.find((row) => row.id === "T3-02")?.title,
+    writeFileSync(join(dir, "T0-11.md"), '---\ntitle: "A neutral title"\nwhat_failed: "x"\n---\n');
+    expect(createRowContentLoader(dir, fixtureCatalog)("T0-11").title).toBe("A neutral title");
+    expect(createRowContentLoader(mkdtempSync(join(tmpdir(), "rows-")), fixtureCatalog)("T0-11").title).toBe(
+      fixtureCatalog.rows.find((row) => row.id === "T0-11")?.title,
     );
   });
 

@@ -115,32 +115,30 @@ test.describe("result pages", () => {
     await expect(page).toHaveURL(/\/setup$/);
   });
 
-  test("the demo receiver: working, browser rows didn't apply", async ({ page }) => {
+  test("the demo receiver: partly ready, the version row first, browser rows didn't apply", async ({ page }) => {
     await page.goto("/audit/poppy-receiver.roundtrip.workers.dev");
-    await expect(verdictOf(page)).toHaveText("Ready");
-    await expect(verdictOf(page)).toHaveAttribute("data-state", "ready");
+    await expect(verdictOf(page)).toHaveText("Partly ready");
+    await expect(verdictOf(page)).toHaveAttribute("data-state", "partly");
     const facts = page.getByRole("definition");
     await expect(page.getByRole("term").nth(0)).toHaveText("Public file");
-    await expect(facts.nth(0)).toHaveText("20 passed, 10 didn't apply");
+    await expect(facts.nth(0)).toHaveText("7 passed, 2 failed, 31 didn't apply");
     await expect(page.getByRole("term").nth(1)).toHaveText("Safety checks");
-    await expect(facts.nth(1)).toHaveText("4 passed, 3 didn't apply");
+    await expect(facts.nth(1)).toHaveText("10 not measured");
     // The check list version is folded away until asked for.
-    const profile = page.getByText("pap-0.1@2026-10-09");
+    const profile = page.getByText("pap-1.0@2026-11-21");
     await expect(profile).toBeHidden();
     await page.locator(".technical summary").first().click();
     await expect(profile).toBeVisible();
-    // T1-07 (the browser endpoint) is N/A: neither a failure nor unmeasured.
-    await expect(page.getByText("Browser endpoint rejects a junk assertion")).toHaveCount(0);
-    await expect(page.getByText("Nothing. No must-fix or should-fix check failed.")).toBeVisible();
-    // After a passing result, one line only to Ora's audit.
-    const passing = page.locator(".audit__passing");
-    await expect(passing).toHaveText(
-      "Agents can sign in. Whether they finish the job depends on the rest of your site.",
-    );
-    await expect(passing.getByRole("link")).toHaveAttribute(
-      "href",
-      "https://ora.ai/score/poppy-receiver.roundtrip.workers.dev",
-    );
+    // The recorded file declares 0.1, so T0-04 fails first, then T0-07, where the other checks stop.
+    const fixes = page.locator(".fix-list > li");
+    await expect(fixes).toHaveCount(2);
+    await expect(fixes.nth(0).getByRole("heading")).toContainText("Version a 1.0 agent can use");
+    await expect(fixes.nth(1).getByRole("heading")).toContainText("Issuer identified");
+    // T1-07 (the browser endpoint) is not counted as a failure.
+    await expect(page.locator(".fix-list").getByText("Browser endpoint rejects a junk join")).toHaveCount(0);
+    // Not a passing result, so no line to Ora's audit, and nothing unmeasured to list.
+    await expect(page.locator(".audit__passing")).toHaveCount(0);
+    await expect(page.locator("#not-checked")).toHaveCount(0);
     await expect(page.getByRole("link", { name: "See every check in the full report" })).toHaveAttribute(
       "href",
       /^https:\/\/ora\.ai\/pap\/poppy-receiver\.roundtrip\.workers\.dev/,
@@ -156,13 +154,12 @@ test.describe("result pages", () => {
     await expect(first.locator(".tag")).toHaveText("Must fix");
     await expect(first.locator(".tag")).toHaveAttribute("data-severity", "P0");
     // What the checker saw is technical: closed until asked for.
-    const note = first.getByText("the metadata has no poppy_domains");
+    const note = first.getByText("protected_resources does not include https://failing-p0.example.com (it lists");
     await expect(note).toBeHidden();
     await first.getByText("Technical details").click();
     await expect(note).toBeVisible();
     await expect(first.getByRole("heading")).toContainText("Domain binding");
-    // The recorded scan declares 0.1, which the row explains in its own sentence.
-    await expect(first).toContainText("For 0.1 and 0.2 files, poppy_domains does not list organization.domain.");
+    await expect(first).toContainText("protected_resources in the issuer's OAuth metadata does not list");
     const fix = first.getByRole("link", { name: "How to fix it" });
     await expect(fix).toHaveAttribute("href", "/setup#level-1-name-your-sign-in-server");
     await fix.click();
@@ -196,18 +193,11 @@ test.describe("result pages", () => {
     await expect(page.locator(".unmeasured")).toContainText("Why: the owner turned off active checks.");
   });
 
-  test("what wasn't checked lists the later checks by name, owner checks as not turned on", async ({ page }) => {
-    await page.goto("/audit/poppy-receiver.roundtrip.workers.dev");
-    const groups = page.locator(".unchecked__group summary");
-    await expect(groups).toHaveCount(3);
-    await expect(groups.nth(0)).toContainText("Planned");
-    await expect(groups.nth(1)).toContainText("Owner checks (optional)");
-    await expect(groups.nth(1).locator(".unchecked__status")).toHaveText("Not turned on");
-    await expect(groups.nth(2)).toContainText("Signed-in flows");
-    await expect(page.getByRole("link", { name: "Verify you own the domain on Ora", includeHidden: true })).toHaveAttribute(
-      "href",
-      "https://app.ora.ai/verify?domain=poppy-receiver.roundtrip.workers.dev",
-    );
+  test("what wasn't checked is left out when this run measured every must-fix and should-fix check", async ({ page }) => {
+    for (const domain of ["poppy-receiver.roundtrip.workers.dev", "failing-p0.example.com", "example.com"]) {
+      await page.goto(`/audit/${domain}`);
+      await expect(page.getByRole("heading", { name: "What wasn't checked?" }), domain).toHaveCount(0);
+    }
   });
 
   test("no result page shows a tier or severity code", async ({ page }) => {

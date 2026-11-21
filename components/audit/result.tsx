@@ -156,74 +156,32 @@ function FixFirst({ view }: { view: ResultView }) {
   );
 }
 
-/** What did not run, or ran without a result. Nothing at all when both lists are empty. */
+/** The P0 and P1 checks this run could not measure. Nothing at all when there are none. */
 export function NotChecked({ view }: { view: ResultView }) {
   const s = t.notChecked;
-  if (view.unmeasured.length === 0 && view.unchecked.length === 0) return null;
+  if (view.unmeasured.length === 0) return null;
   return (
     <section className="audit__section" aria-labelledby="not-checked">
       <h2 id="not-checked" className="audit__section-title">
         {s.question}
       </h2>
-      {view.unmeasured.length > 0 && (
-        <div className="unmeasured">
-          <h3 className="unmeasured__title">{s.unmeasured.title}</h3>
-          <p className="audit__intro">{s.unmeasured.intro}</p>
-          <ul className="unmeasured__list" role="list">
-            {view.unmeasured.map((row) => (
-              <li key={row.id}>
-                <p className="unmeasured__name">
-                  <SeverityTag severity={row.severity} /> {row.title}
-                </p>
-                <p className="unmeasured__why">
-                  {s.unmeasured.why} {row.reasonText}.
-                </p>
-                {row.note && <CheckerNote note={row.note} />}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {view.unchecked.length > 0 && (
-        <>
-          <p className="audit__intro">{s.intro}</p>
-          <div className="unchecked">
-            {view.unchecked.map((group) => {
-              const words = s.groups[group.level];
-              return (
-                <details key={group.level} className="unchecked__group">
-                  <summary>
-                    <span className="unchecked__name">{words.title}</span>{" "}
-                    <span className="unchecked__count">{fill(s.count, { n: group.rows.length })}</span>
-                    {"status" in words && <span className="unchecked__status">{words.status}</span>}
-                  </summary>
-                  <p className="unchecked__intro">
-                    {words.intro}
-                    {"href" in words && (
-                      <>
-                        {" "}
-                        <TrackedLink
-                          href={fill(words.href, { domain: encodeURIComponent(view.domain) })}
-                          event="owner_verification_clicked"
-                          eventProps={{ domain: view.domain }}
-                        >
-                          {words.linkText}
-                        </TrackedLink>
-                        .
-                      </>
-                    )}
-                  </p>
-                  <ul className="unchecked__list" role="list">
-                    {group.rows.map((row) => (
-                      <li key={row.id}>{row.title}</li>
-                    ))}
-                  </ul>
-                </details>
-              );
-            })}
-          </div>
-        </>
-      )}
+      <div className="unmeasured">
+        <h3 className="unmeasured__title">{s.unmeasured.title}</h3>
+        <p className="audit__intro">{s.unmeasured.intro}</p>
+        <ul className="unmeasured__list" role="list">
+          {view.unmeasured.map((row) => (
+            <li key={row.id}>
+              <p className="unmeasured__name">
+                <SeverityTag severity={row.severity} /> {row.title}
+              </p>
+              <p className="unmeasured__why">
+                {s.unmeasured.why} {row.reasonText}.
+              </p>
+              {row.note && <CheckerNote note={row.note} />}
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }

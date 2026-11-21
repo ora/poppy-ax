@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import catalog from "@/fixtures/catalog.json";
-import { catalogRow, groupedRows, setupContent } from "@/lib/setup";
+import { catalogRow, levelRows, setupContent } from "@/lib/setup";
 import { SPEC_ANCHORS } from "./spec-anchors";
 
 const SETUP_DIR = join(__dirname, "..", "content", "setup");
@@ -67,18 +67,23 @@ describe("content/setup/index.json", () => {
         surfaceTargets.test(row.request?.target ?? "")
       );
     };
-    // Guides rows have no section anchor; these are about a surface by their title.
-    const surfaceByTitle: Record<string, string> = { "T2-25": "Cookie scope (browser join cookie)" };
     for (const row of catalog.rows) {
       if (row.level === "0") continue;
-      const expected = onSurface(row) || row.id in surfaceByTitle;
-      expect(level4.has(row.id), row.id).toBe(expected);
+      expect(level4.has(row.id), row.id).toBe(onSurface(row));
     }
   });
 
-  it("groups rows the checker runs today first", () => {
-    const groups = groupedRows(setupContent.levels[1]!).map((entry) => entry.group);
-    expect(groups[0]).toBe("today");
+  it("lists only rows the checker runs today, in the level's own order", () => {
+    for (const level of setupContent.levels) {
+      const rows = levelRows(level);
+      expect(rows.map((row) => row.id), level.id).toEqual(level.rows);
+      expect(rows.every((row) => row.implemented), level.id).toBe(true);
+    }
+  });
+
+  it("refuses a level that lists a row the catalog does not have", () => {
+    const level = { ...setupContent.levels[0]!, rows: ["T0-01", "NOT-A-ROW"] };
+    expect(() => levelRows(level)).toThrow("content/setup/index.json lists NOT-A-ROW");
   });
 
   it("lists what a site owner needs before level 1, in plain words", () => {

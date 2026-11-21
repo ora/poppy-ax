@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { expectPreviewImage } from "./helpers";
 
-// One recorded result per verdict, plus the cards for a domain with no
-// result and for an address that can't be checked.
+// One recorded result per verdict, the demo receiver's beside it, plus the
+// cards for a domain with no result and for an address that can't be checked.
 const DOMAINS = {
   not_set_up: "example.com",
-  working: "poppy-receiver.roundtrip.workers.dev",
+  demo_receiver: "poppy-receiver.roundtrip.workers.dev",
   problems: "failing-p0.example.com",
   no_problems_found: "timeout.example.com",
   unreachable: "unreachable.example.com",
@@ -22,7 +22,7 @@ test.describe("preview images", () => {
   }
 
   test("a result's image is cached as long as its summary", async ({ request }) => {
-    const response = await request.get(`/audit/${DOMAINS.working}/opengraph-image`);
+    const response = await request.get(`/audit/${DOMAINS.demo_receiver}/opengraph-image`);
     expect(response.headers()["cache-control"]).toBe("public, max-age=60, s-maxage=60");
   });
 

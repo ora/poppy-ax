@@ -77,7 +77,7 @@ npx lighthouse@13.5.0 http://localhost:3100/ --form-factor=mobile --only-categor
 
 ## What we measure
 
-We use Vercel Web Analytics with seven custom events, to learn whether the guide helps. There is no personal data: no IP address, user agent, email or full URL is ever put in an event. `lib/analytics.ts` is the one place events are sent, and it drops any value that is not in the list below.
+We use Vercel Web Analytics with six custom events, to learn whether the guide helps. There is no personal data: no IP address, user agent, email or full URL is ever put in an event. `lib/analytics.ts` is the one place events are sent, and it drops any value that is not in the list below.
 
 | Event | When | Values |
 | --- | --- | --- |
@@ -85,7 +85,6 @@ We use Vercel Web Analytics with seven custom events, to learn whether the guide
 | `result_viewed` | A result page is viewed, once per view | `domain`, `verdict`, `referrer_host` |
 | `setup_level_viewed` | A level on /setup first scrolls into view, once per level per view | `level` |
 | `full_report_clicked` | The link to the full report | `domain` |
-| `owner_verification_clicked` | The owner verification link | `domain` |
 | `ora_audit_clicked` | The one line after a passing result | `domain` |
 | `waitlist_clicked` | The managed PAP box on /setup | none |
 
@@ -93,9 +92,9 @@ We use Vercel Web Analytics with seven custom events, to learn whether the guide
 
 ## Two versions: the guide's and the checker's
 
-The guide explains version 1.0, named in the version line in `content/site.json`. The checker shows Ora's results, which grade the version in the recorded catalog's `profile` (`fixtures/catalog.json`). `tests/spec-version.test.ts` fails if the home page status, /learn, the setup levels or this README name a different guide version or read date than the version line, or if /setup, the result page, /learn or this README name a different checker version than the catalog.
+The guide explains version 1.0, named in the version line in `content/site.json`. The checker shows Ora's results, which grade the version in the recorded catalog's `profile` (`fixtures/catalog.json`). `tests/spec-version.test.ts` fails if the home page status, /learn, the setup levels or this README name a different guide version or read date than the version line, or if /setup, /learn or this README name a different checker version than the catalog.
 
-Today both are version 1.0 (Ora's catalog `pap-1.0@2026-11-15`, which grades the rules 1.0 was published with), but the test keeps them apart, so the guide and the checker can move separately. The weekly watch below follows Ora's catalog only. It does not watch the spec pages: 1.0 is frozen, so a change comes as a new version, which the changelog lists and Ora's catalog follows.
+Today both are version 1.0 (Ora's catalog `pap-1.0@2026-11-21`, which grades every poppy.json by the rules 1.0 was published with), but the test keeps them apart, so the guide and the checker can move separately. The weekly watch below follows Ora's catalog only. It does not watch the spec pages: 1.0 is frozen, so a change comes as a new version, which the changelog lists and Ora's catalog follows.
 
 Once a week, `.github/workflows/spec-drift-watch.yml` runs `scripts/spec-drift.mjs` (shared with ax.guide and Ora) to compare Ora's live catalog with the pin in `spec-watch.json`. When Ora has moved to a new draft, it opens an issue that lists what to update, and escalates it after 14 days. With an `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` secret, it also starts `.github/workflows/spec-drift-fix.yml`. That workflow records Ora's new catalog, moves the pin and opens a pull request with Claude's review: what changed between the drafts and the edits the guide needs. Claude only writes that review (it reads files, with no shell, web access or GitHub token), so a maintainer makes the edits on the branch; `tests/spec-version.test.ts` fails until they do, and the pull request opens as a draft. Close and reopen it to run CI. A failed run opens its own issue, and so does a copy of `scripts/spec-drift.mjs` that no longer matches ax.guide's.
 

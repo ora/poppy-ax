@@ -22,8 +22,8 @@ describe("referrerHost", () => {
 });
 
 describe("trackEvent", () => {
-  it("has the seven closed names", () => {
-    expect(EVENT_NAMES).toHaveLength(7);
+  it("has the six closed names", () => {
+    expect(EVENT_NAMES).toHaveLength(6);
   });
   it("drops unknown keys", () => {
     trackEvent("domain_checked", { domain: "example.com", email: "a@b.co", ip: "1.2.3.4" } as never);

@@ -293,9 +293,15 @@ describe("headline", () => {
 
 describe("row titles", () => {
   it("come from the row content, not a catalog title that names the checker's operator", () => {
-    const s = summary("problems", [row("T3-02", "fail", { severity: "P0", tier: 3, level: "3" })]);
-    const [ref] = fixFirst(s, fixtureCatalog);
-    expect(ref?.title).toBe("Redirect URI not in the assistant's redirect_uris");
+    // The recorded catalog with T0-04's title changed to one that names Ora;
+    // content/rows/T0-04.md carries its own title, which wins.
+    const named: Catalog = {
+      ...fixtureCatalog,
+      rows: fixtureCatalog.rows.map((entry) => (entry.id === "T0-04" ? { ...entry, title: "Ora's version check" } : entry)),
+    };
+    const s = summary("problems", [row("T0-04", "fail", { severity: "P0" })]);
+    const [ref] = fixFirst(s, named);
+    expect(ref?.title).toBe("Version a 1.0 agent can use");
     expect(ref?.title).not.toMatch(/\bOra\b/);
   });
 });
@@ -310,30 +316,30 @@ describe("the captured summaries in fixtures/", () => {
   };
 
   it("reads each verdict the way the page should show it", () => {
-    expect(view("demo-receiver")).toEqual({ kind: "working", text: "Ready", unmeasured: [], fixFirst: [] });
+    expect(view("demo-receiver")).toEqual({ kind: "problems", text: "Partly ready", unmeasured: [], fixFirst: ["T0-04", "T0-07"] });
     expect(view("failing-p0")).toEqual({ kind: "problems", text: "Partly ready", unmeasured: [], fixFirst: ["T0-11"] });
     expect(view("not-set-up")).toEqual({ kind: "not_set_up", text: "Not yet", unmeasured: [], fixFirst: [] });
     expect(view("unreachable")).toEqual({ kind: "unreachable", text: "Couldn't check", unmeasured: [], fixFirst: [] });
     expect(view("owner-opt-out")).toEqual({
       kind: "no_problems_found",
       text: "Ready",
-      unmeasured: ["T1-03", "T1-01"],
+      unmeasured: ["T1-03", "T1-07", "T1-01", "T1-05", "T1-15", "T1-16"],
       fixFirst: [],
     });
     expect(view("timeout")).toEqual({
       kind: "no_problems_found",
       text: "Ready",
-      unmeasured: ["T0-09", "T0-10", "T0-11", "T0-12", "T1-03", "T1-07", "T1-01", "T1-05"],
+      unmeasured: [
+        "T0-09", "T0-10", "T0-11", "T0-12", "T1-03", "T1-07", "T0-36", "T0-22",
+        "T1-01", "T1-05", "T1-15", "T1-16", "T1-17", "T1-14",
+      ],
       fixFirst: [],
     });
   });
 
   it("explains why each unmeasured row was not measured", () => {
     const h = headline(load("owner-opt-out"), fixtureCatalog);
-    expect(h.unmeasured.map((r) => r.reasonText)).toEqual([
-      "the owner turned off active checks",
-      "the owner turned off active checks",
-    ]);
+    expect(h.unmeasured.map((r) => r.reasonText)).toEqual(Array(6).fill("the owner turned off active checks"));
   });
 });
 

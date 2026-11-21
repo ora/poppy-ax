@@ -23,7 +23,7 @@ export interface RowContent {
   title: string;
   /** Where `title` came from. */
   title_source: "file" | "catalog" | "id";
-  /** One plain line: what failed, or for a planned check, what it will look for. */
+  /** One plain line: what failed. */
   what_failed: string;
   /** One plain line on why it matters. Null when the row has no content file. */
   why_it_matters: string | null;
