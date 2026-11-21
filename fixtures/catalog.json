@@ -67,7 +67,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1, 0.2, 0.3, 0.4 or 1.0), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested. From 1.0 a later minor of the same major is compatible (spec 3.4), so a 1.x file is graded by the 1.0 rules, and a later major reads not tested with the rest graded by the Draft 1.0 rules. A file declaring an older draft passes with an advisory to move to 1.0, unless it declares 0.3 or later and links a 1.0 document in supported_versions; versions with different majors are never compatible (spec 3.4), so a 1.0 agent uses no 0.x file",
+      "pass_when": "protocol_version is a \"major.minor\" string Ora grades (0.1, 0.2, 0.3, 0.4 or 1.0), and the file is graded by that draft's rules. Before 1.0 an agent uses only a version it supports, so a later version Ora does not grade yet reads not tested. From 1.0 a later minor of the same major is compatible (spec 3.4), so a 1.x file is graded by the 1.0 rules, and a later major reads not tested with the rest graded by the 1.0 rules. A file declaring an older draft passes with an advisory to move to 1.0, unless it declares 0.3 or later and links a 1.0 document in supported_versions; versions with different majors are never compatible (spec 3.4), so a 1.0 agent uses no 0.x file",
       "replaces": null
     },
     {
@@ -82,7 +82,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "organization has a name and a domain, and organization.domain is the host that served the file after any redirects, compared ignoring case only (a leading www. counts); from Draft 1.0 it carries that host's port when the port is not 443 (spec 3.1). A file declaring 0.1 is graded by Draft 0.1 instead: the host the agent requested, ignoring a leading www.",
+      "pass_when": "organization has a name and a domain, and organization.domain is the host that served the file after any redirects, compared ignoring case only (a leading www. counts); from 1.0 it carries that host's port when the port is not 443 (spec 3.1). A file declaring 0.1 is graded by Draft 0.1 instead: the host the agent requested, ignoring a leading www.",
       "replaces": null
     },
     {
@@ -218,7 +218,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "From Draft 0.3, the metadata's protected_resources lists https://{organization.domain}, host case aside, with no path or trailing slash (from Draft 1.0 the domain, and so the entry, carries its port when that is not 443, spec 3.1). For a file declaring 0.1 or 0.2, its poppy_domains lists organization.domain, case insensitive",
+      "pass_when": "From Draft 0.3, the metadata's protected_resources lists https://{organization.domain}, host case aside, with no path or trailing slash (from 1.0 the domain, and so the entry, carries its port when that is not 443, spec 3.1). For a file declaring 0.1 or 0.2, its poppy_domains lists organization.domain, case insensitive",
       "replaces": null
     },
     {
@@ -263,7 +263,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "From Draft 1.0, a pushed_authorization_request_endpoint the issuer metadata lists is an https URL (spec 3), and when grant_types_supported has authorization_code, require_pushed_authorization_requests set to true comes with that endpoint, since an agent must then push its Direct Sign-In request there (spec 4.2, RFC 9126 section 5). Each gap warns and never fails the check (P2, product owner decision): requiring Pushed Authorization Requests is a choice the Company may make, and a non-https endpoint breaks spec 3 only for agents that push. N/A when the metadata neither lists the endpoint nor requires them, when it requires them but offers no Direct Sign-In, or for a file declaring 0.4 or earlier",
+      "pass_when": "From 1.0, a pushed_authorization_request_endpoint the issuer metadata lists is an https URL (spec 3), and when grant_types_supported has authorization_code, require_pushed_authorization_requests set to true comes with that endpoint, since an agent must then push its Direct Sign-In request there (spec 4.2, RFC 9126 section 5). Each gap warns and never fails the check (P2, product owner decision): requiring Pushed Authorization Requests is a choice the Company may make, and a non-https endpoint breaks spec 3 only for agents that push. N/A when the metadata neither lists the endpoint nor requires them, when it requires them but offers no Direct Sign-In, or for a file declaring 0.4 or earlier",
       "replaces": null
     },
     {
@@ -293,7 +293,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "From Draft 0.3, when the issuer metadata lists token_endpoint_auth_signing_alg_values_supported (it may leave it out), the list includes ES256, which every Company accepts for client assertions, and never none; from Draft 1.0 it also includes PS384, which every Company accepts too (spec 4.1) (T0-34 grades the list's absence next to a JWT method). Draft 0.2: when it lists dpop_signing_alg_values_supported, the list includes ES256. N/A when the list is not given or the file declares 0.1",
+      "pass_when": "From Draft 0.3, when the issuer metadata lists token_endpoint_auth_signing_alg_values_supported (it may leave it out), the list includes ES256, which every Company accepts for client assertions, and never none; from 1.0 it also includes PS384, which every Company accepts too (spec 4.1) (T0-34 grades the list's absence next to a JWT method). Draft 0.2: when it lists dpop_signing_alg_values_supported, the list includes ES256. N/A when the list is not given or the file declares 0.1",
       "replaces": null
     },
     {
@@ -308,7 +308,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "From Draft 0.3, when token_endpoint_auth_methods_supported lists private_key_jwt or client_secret_jwt, the issuer metadata also lists token_endpoint_auth_signing_alg_values_supported, as RFC 8414 section 2 requires. Before Draft 1.0 an agent can still sign with ES256 without it, which every Company must accept (spec 4.1), but an agent that signs blindly uses PS384 (spec 4.1, 10.7) and cannot tell whether it is accepted; from Draft 1.0 every Company accepts both, so the list only restates the rule. Ora grades the gap as a warning, never failing the check. N/A when neither method is listed, or the file declares 0.1 or 0.2",
+      "pass_when": "From Draft 0.3, when token_endpoint_auth_methods_supported lists private_key_jwt or client_secret_jwt, the issuer metadata also lists token_endpoint_auth_signing_alg_values_supported, as RFC 8414 section 2 requires. Before 1.0 an agent can still sign with ES256 without it, which every Company must accept (spec 4.1), but an agent that signs blindly uses PS384 (spec 4.1, 10.7) and cannot tell whether it is accepted; from 1.0 every Company accepts both, so the list only restates the rule. Ora grades the gap as a warning, never failing the check. N/A when neither method is listed, or the file declares 0.1 or 0.2",
       "replaces": null
     },
     {
@@ -477,7 +477,7 @@
       "implemented": true,
       "provisional": false,
       "request": null,
-      "pass_when": "agent.protocols is a non-empty list, each entry with a type and an https endpoint. From Draft 1.0, each entry also has a description of what the agent at that endpoint can help with (spec 8.1)",
+      "pass_when": "agent.protocols is a non-empty list, each entry with a type and an https endpoint. From 1.0, each entry also has a description of what the agent at that endpoint can help with (spec 8.1)",
       "replaces": null
     },
     {
@@ -565,6 +565,40 @@
       "provisional": false,
       "request": null,
       "pass_when": "From Draft 0.4, tasks.endpoint is on a host that is not a loopback, private or link-local IP address (spec 3); a missing endpoint is an advisory on T0-08 and a non-https one fails T0-08, so either reads N/A here. Ora does not request it: spec 9 lets a Company that gives every Session the same response serve it without checking the Session header, so a request without one proves nothing. N/A without a tasks block, without an https endpoint (see T0-08), or for a file declaring 0.3 or earlier",
+      "replaces": null
+    },
+    {
+      "id": "T0-39",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "title": "UCP entry lists the UCP extension",
+      "spec_ref": "UCP §5",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/extensions/ucp#conversations",
+      "profile": "pap-1.0@2026-11-15",
+      "implemented": true,
+      "provisional": false,
+      "request": null,
+      "pass_when": "From Draft 0.3, a file whose agent.protocols lists a ucp entry also lists the UCP extension with a version \"1\" entry (UCP extension 5; an entry at another version is ignored by agents, so it fails too)",
+      "replaces": null
+    },
+    {
+      "id": "T0-40",
+      "tier": 0,
+      "level": "0",
+      "severity": "P1",
+      "title": "UCP profile offers Ask",
+      "spec_ref": "UCP §5",
+      "spec_url": "https://personalagentprotocol.org/docs/1.0/extensions/ucp#conversations",
+      "profile": "pap-1.0@2026-11-15",
+      "implemented": true,
+      "provisional": false,
+      "request": {
+        "method": "GET",
+        "target": "each ucp entry's endpoint, its UCP profile",
+        "condition": "when a file declaring 0.3 or later lists a ucp agent entry on the host that served it; up to 2, no redirect followed"
+      },
+      "pass_when": "From Draft 0.3, each ucp entry names a UCP profile on the host that served poppy.json, which answers 200 with no redirect and JSON whose capabilities offer dev.ucp.common.ask with at least one version entry (UCP extension 3 and 5: an agent must not follow a redirect from the profile URL or use a profile from another host, so either fails; Ask is in UCP's current draft, so a profile that predates it fails)",
       "replaces": null
     },
     {
