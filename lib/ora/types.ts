@@ -90,7 +90,7 @@ export interface CatalogRow {
   profile?: string;
   /** True when the checker runs this check today. */
   implemented: boolean;
-  /** True for a planned check whose details may still change. */
+  /** Ora's schema field for a check whose details may still change. No row in the current catalog sets it. */
   provisional: boolean;
   request: CatalogRequest | null;
   /** One line saying what passes. Every row has one. */

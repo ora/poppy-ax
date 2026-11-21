@@ -186,6 +186,23 @@ export function NotChecked({ view }: { view: ResultView }) {
   );
 }
 
+/** The one line after "Working", to the domain's agent-readiness audit on Ora (R63). Nothing otherwise. */
+export function PassingLine({ view }: { view: ResultView }) {
+  if (!view.passingLine) return null;
+  return (
+    <p className="audit__passing">
+      {t.passing.before}
+      <TrackedLink
+        href={fill(t.passing.href, { domain: view.domain })}
+        event="ora_audit_clicked"
+        eventProps={{ domain: view.domain }}
+      >
+        {t.passing.linkText}
+      </TrackedLink>
+    </p>
+  );
+}
+
 /** The whole answer for a domain with a stored result. */
 export function AuditResult({ view }: { view: ResultView }) {
   const again = view.checkAgain;
@@ -219,18 +236,7 @@ export function AuditResult({ view }: { view: ResultView }) {
         notes={notes}
         copy={progressCopy}
       />
-      {view.passingLine && (
-        <p className="audit__passing">
-          {t.passing.before}
-          <TrackedLink
-            href={fill(t.passing.href, { domain: view.domain })}
-            event="ora_audit_clicked"
-            eventProps={{ domain: view.domain }}
-          >
-            {t.passing.linkText}
-          </TrackedLink>
-        </p>
-      )}
+      <PassingLine view={view} />
       <FixFirst view={view} />
       <NotChecked view={view} />
       <p className="audit__report">

@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createElement } from "react";
+import { Children, createElement, isValidElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { NotChecked } from "@/components/audit/result";
+import { TrackedLink, type TrackedLinkProps } from "@/components/analytics/tracked-link";
+import { NotChecked, PassingLine } from "@/components/audit/result";
 import auditJson from "@/content/audit.json";
 import {
   auditContent,
@@ -59,11 +60,12 @@ const notChecked: Summary = (() => {
 })();
 
 /**
- * A Working summary. No capture reads Working under 1.0 grading: the demo
- * receiver stops at T0-07, and the opt-out capture leaves six Tier 1 rows
- * unmeasured because the owner turned active checks off. This is the opt-out
- * capture with those six rows read as not applying, as its other four Tier 1
- * rows already do, counts kept in step.
+ * A Working summary. No capture reads Working with every check measured under
+ * 1.0 grading: the demo receiver stops at T0-07, and the opt-out capture
+ * leaves six Tier 1 rows unmeasured because the owner turned active checks
+ * off. This is the opt-out capture with those six rows read as passing, as a
+ * run with active checks on would grade a site that answers them, counts kept
+ * in step. Their notes, which say the row was not probed, go with the reason.
  */
 const working: Summary = (() => {
   const copy = structuredClone(optOut);
@@ -71,11 +73,11 @@ const working: Summary = (() => {
   copy.report_url = "https://ora.ai/pap/working.example.com";
   for (const row of copy.rows) {
     if (row.reason !== "owner_opt_out") continue;
-    row.outcome = "na";
+    row.outcome = "pass";
     row.reason = null;
     row.note = null;
     copy.counts.tier1.not_tested -= 1;
-    copy.counts.tier1.na += 1;
+    copy.counts.tier1.pass += 1;
   }
   return copy;
 })();
@@ -232,7 +234,7 @@ describe("buildResultView with the six fixtures", () => {
     expect(view.passingLine).toBe(true);
     expect(view.fixFirst).toEqual([]);
     expect(view.unmeasured).toEqual([]);
-    expect(view.tiers.map((tier) => tier.text)).toEqual(["25 passed, 1 failed, 14 didn't apply", "10 didn't apply"]);
+    expect(view.tiers.map((tier) => tier.text)).toEqual(["25 passed, 1 failed, 14 didn't apply", "6 passed, 4 didn't apply"]);
   });
 
   it("not set up: an invitation into /setup, not a failure", () => {
@@ -260,6 +262,39 @@ describe("buildResultView with the six fixtures", () => {
     const text = JSON.stringify(auditJson);
     const oraLinks = text.match(/https:\/\/[a-z.]*ora\.ai[^"]*/g) ?? [];
     expect(oraLinks.sort()).toEqual(["https://ora.ai/score/{domain}"]);
+  });
+});
+
+describe("the passing line", () => {
+  const view = buildResultView(working, fixtureCatalog, LATER);
+
+  it("renders after Working, linking to the domain's agent-readiness audit", () => {
+    const html = renderToStaticMarkup(createElement(PassingLine, { view }));
+    expect(html).toBe(
+      '<p class="audit__passing">Agents can sign in. ' +
+        '<a href="https://ora.ai/score/working.example.com">' +
+        auditContent.passing.linkText +
+        "</a></p>",
+    );
+  });
+
+  it("records ora_audit_clicked with the domain on its link", () => {
+    const line = PassingLine({ view }) as ReactElement<{ children: ReactNode }>;
+    const link = Children.toArray(line.props.children).find(
+      (child): child is ReactElement<TrackedLinkProps> => isValidElement(child) && child.type === TrackedLink,
+    );
+    expect(link?.props.href).toBe("https://ora.ai/score/working.example.com");
+    expect(link?.props.event).toBe("ora_audit_clicked");
+    expect(link?.props.eventProps).toEqual({ domain: "working.example.com" });
+  });
+
+  it("renders nothing for a result that is not Working", () => {
+    for (const fixture of [failing, timeout, unreachable, optOut, receiver, notSetUp, notChecked]) {
+      const html = renderToStaticMarkup(
+        createElement(PassingLine, { view: buildResultView(fixture, fixtureCatalog, LATER) }),
+      );
+      expect(html, fixture.domain).toBe("");
+    }
   });
 });
 

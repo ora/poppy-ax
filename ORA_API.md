@@ -215,7 +215,7 @@ Every `reason` value:
 | `check_error` | Ora's own check failed to run, so nothing was measured. Never show it as N/A. On a `not_checked` summary every Tier 0 and Tier 1 row has it (from Ora's change set dated 2026-10-11, not yet captured live). |
 | `null` | Not measured, with no single cause. On Tier 1 the captured note reads: "Active probes run only on a scan requested for this domain. No probe result from the last 30 days." |
 
-Only `not_tested` rows carry a reason. Treat any reason not listed here as "not measured", with generic text. Ora's schema still lists `not_available` and `opt_in_required`, but no row carries them since the catalog lost its unbuilt checks on 21 November 2026; read them as "not measured" too.
+Only `not_tested` rows carry a reason. Treat any reason not listed here as "not measured", with generic text. Ora's schema still lists `not_available` and `opt_in_required`. No row in Ora's current catalog carries them, since the catalog lost its unbuilt checks on 21 November 2026, but older stored summaries can (`fixtures/summary-not-set-up.json` and `fixtures/summary-unreachable.json`, captured in October, still do); read them as "not measured" too.
 
 ## `GET /api/pap/v1/sites`
 
